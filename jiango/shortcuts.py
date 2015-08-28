@@ -3,11 +3,11 @@
 # @author: Yefei
 from functools import wraps
 import re
-import json
 from django.http import HttpResponse
 from django.conf import settings
 from django.template.loader import render_to_string
 from django.template.context import RequestContext
+from jiango.serializers import get_serializer
 
 
 MOBILE_MATCH = re.compile(r'iphone|ipod|android|blackberry|mini|windows\sce|palm', re.I)
@@ -68,27 +68,55 @@ def renderer(prefix=None, template_ext='html', content_type=settings.DEFAULT_CON
     return do_renderer
 
 
-def response_json(value, response=None):
+def response_serialize(value, output_format='json', options=None, response=None):
     if isinstance(value, HttpResponse):
         return value
+    options = options if options else {}
+    serializer = get_serializer(output_format)()
     response = response or HttpResponse()
-    response.content = json.dumps(value)
-    #response['Content-Type'] = 'text/json'
+    response.content = serializer.serialize(value, **options)
+    response['Content-Type'] = serializer.content_type
     return response
 
 
-def render_json(func_or_format):
+def render_serialize(func_or_format):
     """ return HttpResponse()
         return {'var': value ...} or [list] or 'string'
+        return 'json', {'var': value ...}
+        return 'json', {'var': value ...}, {'options': opt ...}
     """
+    
+    default_format = 'json'
     
     def do_renderer(func):
         @wraps(func)
         def wrapper(request, *args, **kwargs):
+            _format = default_format
+            value = None
+            options = {}
             response = HttpResponse()
+            
             result = func(request, response, *args, **kwargs)
-            return response_json(result, response)
+            
+            if isinstance(result, HttpResponse):
+                return result
+            
+            if isinstance(result, tuple):
+                len_tuple = len(result)
+                if len_tuple == 2:
+                    _format, value = result
+                elif len_tuple == 3:
+                    _format, value, options = result
+            else:
+                value = result
+            
+            return response_serialize(value, _format, options, response)
         return wrapper
     
+    # @render_serialize('json')
+    if isinstance(func_or_format, basestring):
+        default_format = func_or_format
+        return do_renderer
+    
     # @render_serialize
-    return do_renderer(func_or_format)
+    return do_renderer(func_or_format) 
