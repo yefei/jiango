@@ -16,10 +16,10 @@ MOBILE_MATCH = re.compile(r'iphone|ipod|android|blackberry|mini|windows\sce|palm
 def renderer(prefix=None, template_ext='html', content_type=settings.DEFAULT_CONTENT_TYPE, do_exception=None):
     """ return HttpResponse()
         return {'var': value ...}
-        return 'template'
-        return '/root_template'
-        return ('temp1', 'temp2' ...),
+        return 'template' or '/root_template'
+        return 'template1', 'template2' ...
         return 'template', {'var': value ...}
+        return 'template1', 'template2', ... {'var': value ...}
     """
     def do_renderer(func):
         @wraps(func)
@@ -28,7 +28,6 @@ def renderer(prefix=None, template_ext='html', content_type=settings.DEFAULT_CON
             request.is_mobile = MOBILE_MATCH.search(request.META.get('HTTP_USER_AGENT',''))
             
             response = HttpResponse(content_type=content_type)
-            dictionary = None
             
             try:
                 result = func(request, response, *args, **kwargs)
@@ -41,16 +40,28 @@ def renderer(prefix=None, template_ext='html', content_type=settings.DEFAULT_CON
             if isinstance(result, HttpResponse):
                 return result
             
-            if isinstance(result, basestring):
-                templates = result
-            elif isinstance(result, tuple) and len(result) == 2:
-                templates, dictionary = result
-            else:
-                templates = func.__name__
+            templates = [func.__name__]
+            dictionary = None
+            
+            # 参数解析
+            # {'var': value ...}
+            if isinstance(result, dict):
                 dictionary = result
             
-            if not isinstance(templates, (list, tuple)):
-                templates = [templates]
+            # 'template' or '/root_template'
+            elif isinstance(result, basestring):
+                templates = [result]
+            
+            # 'template1', 'template2' ...
+            # 'template', {'var': value ...}
+            # 'template1', 'template2', ... {'var': value ...}
+            elif isinstance(result, tuple):
+                # 最后一项是否为字典
+                if isinstance(result[-1], dict):
+                    templates = list(result[:-1])
+                    dictionary = result[-1]
+                else:
+                    templates = list(result)
             
             if request.is_mobile:
                 templates = [t + '.mobile' for t in templates] + templates
