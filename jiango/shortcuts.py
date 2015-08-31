@@ -2,15 +2,11 @@
 # Created on 2015-8-26
 # @author: Yefei
 from functools import wraps
-import re
 from django.http import HttpResponse
 from django.conf import settings
 from django.template.loader import render_to_string
 from django.template.context import RequestContext
 from jiango.serializers import get_serializer
-
-
-MOBILE_MATCH = re.compile(r'iphone|ipod|android|blackberry|mini|windows\sce|palm', re.I)
 
 
 def renderer(prefix=None, template_ext='html', content_type=settings.DEFAULT_CONTENT_TYPE, do_exception=None):
@@ -24,9 +20,6 @@ def renderer(prefix=None, template_ext='html', content_type=settings.DEFAULT_CON
     def do_renderer(func):
         @wraps(func)
         def wrapper(request, *args, **kwargs):
-            # 移动设备判断
-            request.is_mobile = MOBILE_MATCH.search(request.META.get('HTTP_USER_AGENT',''))
-            
             response = HttpResponse(content_type=content_type)
             
             try:
@@ -63,7 +56,7 @@ def renderer(prefix=None, template_ext='html', content_type=settings.DEFAULT_CON
                 else:
                     templates = list(result)
             
-            if request.is_mobile:
+            if getattr(request, 'is_mobile'):
                 templates = [t + '.mobile' for t in templates] + templates
             
             for i in xrange(0, len(templates)):
