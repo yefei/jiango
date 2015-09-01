@@ -56,7 +56,7 @@ def renderer(prefix=None, template_ext='html', content_type=settings.DEFAULT_CON
                 else:
                     templates = list(result)
             
-            if getattr(request, 'is_mobile'):
+            if hasattr(request, 'is_mobile') and getattr(request, 'is_mobile'):
                 templates = [t + '.mobile' for t in templates] + templates
             
             for i in xrange(0, len(templates)):

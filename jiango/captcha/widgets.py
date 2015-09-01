@@ -39,7 +39,7 @@ class CaptchaWidget(MultiWidget):
             (reverse('jiango-captcha-image', kwargs={'key':key, 'ext':draw.image_ext}), id_)
         
         self.new_challenge_tag = """
-            <a href="#" onclick="$.getJSON('%(api)s',function(r){$('#%(id)s_image').attr('src',r.image);$('#%(id)s_0').val(r.key);});">%(new_challenge)s</a>
+            <a href="javascript:;" onclick="$.getJSON('%(api)s',function(r){$('#%(id)s_image').attr('src',r.image);$('#%(id)s_0').val(r.key);});">%(new_challenge)s</a>
         """.strip().replace('\n','') % {'api': reverse('jiango-captcha-json'),
                                         'id': id_,
                                         'new_challenge': _('Get a new challenge')}
