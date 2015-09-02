@@ -7,17 +7,22 @@ from django.forms.forms import NON_FIELD_ERRORS
 class APIError(Exception):
     status_code = 422
 
+
 class ParamError(APIError):
     pass
+
 
 class LoginRequerd(APIError):
     status_code = 401
 
+
 class Forbidden(APIError):
     status_code = 403
 
+
 class Deny(APIError):
     pass
+
 
 class FormError(APIError):
     def __init__(self, form):
