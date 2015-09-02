@@ -2,6 +2,7 @@
 # Created on 2015-9-2
 # @author: Yefei
 import hashlib
+from time import time
 from uuid import uuid4
 from functools import wraps
 from django.utils.http import urlquote
@@ -10,15 +11,35 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.conf import settings
 from .models import User
-
-
-COOKIE_NAME = 'jiango_admin_auth'
-AUTHENTICATE_NEXT_FIELD = 'next'
-REQUEST_ADMIN_FIELD = 'admin'
+from .config import COOKIE_NAME, AUTH_SLAT_TIMEOUT, REQUEST_ADMIN_FIELD, LOGIN_NEXT_FIELD
 
 
 def auth_token_password(user):
     return hashlib.md5(':'.join((user.login_token, user.password_digest, settings.SECRET_KEY))).hexdigest()
+
+
+def get_temp_salt_verify(salt, salt_time):
+    return hashlib.md5(salt + str(salt_time) + settings.SECRET_KEY).hexdigest()
+
+
+# 生成一个临时效验密匙
+def get_temp_salt():
+    salt = hashlib.md5(str(uuid4())).hexdigest()
+    salt_time = str(int(time()))
+    return salt + get_temp_salt_verify(salt, salt_time) + salt_time
+
+
+def verify_temp_salt(value):
+    if value and len(value) == 74:
+        salt, verify, salt_time = value[:32], value[32:64], value[64:]
+        if not salt_time.isdigit():
+            return
+        # 效验是否伪造
+        if get_temp_salt_verify(salt, salt_time) != verify:
+            return
+        if int(time()) > (int(salt_time) + AUTH_SLAT_TIMEOUT):
+            return False
+        return True
 
 
 def get_user_from_auth_token(value):
@@ -65,7 +86,7 @@ def get_admin_user(request):
 
 def login_redirect(request):
     path = urlquote(request.get_full_path())
-    tup = reverse('admin:login'), AUTHENTICATE_NEXT_FIELD, path
+    tup = reverse('admin:login'), LOGIN_NEXT_FIELD, path
     return HttpResponseRedirect('%s?%s=%s' % tup)
 
 

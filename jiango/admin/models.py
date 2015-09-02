@@ -5,15 +5,12 @@ import hashlib
 from django.db import models
 from django.utils import timezone
 from django.utils.functional import cached_property
-from django.conf import settings
 from jiango.serializers import serialize
-
-
-ONLINE_TIMEOUT = 30
+from .config import ONLINE_TIMEOUT, SECRET_KEY_DIGEST, LOGIN_FAIL_LOCK_TIMES, LOGIN_MAX_FAILS
 
 
 def get_password_digest(raw_password):
-    return hashlib.md5(hashlib.md5(raw_password).hexdigest() + settings.SECRET_KEY).hexdigest()
+    return hashlib.md5(hashlib.md5(raw_password).hexdigest() + SECRET_KEY_DIGEST).hexdigest()
 
 
 class AbstractPermission(models.Model):
@@ -70,6 +67,24 @@ class User(models.Model):
     
     def check_password(self, raw_password):
         return self.password_digest and get_password_digest(raw_password) == self.password_digest
+    
+    @property
+    def login_fail_lock_remain(self):
+        if not self.login_fail_at:
+            return 0
+        return max(0, LOGIN_FAIL_LOCK_TIMES - (timezone.now() - self.login_fail_at).seconds)
+    
+    @property
+    def is_login_fail_lock(self):
+        return self.login_fail_lock_remain > 0 and self.login_fails >= LOGIN_MAX_FAILS
+    
+    def update_login_fails(self, fails=1):
+        if self.login_fail_at is None or self.login_fail_lock_remain == 0:
+            self.login_fail_at = timezone.now()
+            self.login_fails = 0
+        self.login_fails += fails
+        User.objects.filter(pk=self.pk).update(login_fail_at=self.login_fail_at,
+                                               login_fails=self.login_fails)
     
     @cached_property
     def get_group_permissions(self):
