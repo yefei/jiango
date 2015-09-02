@@ -4,9 +4,46 @@
 from functools import wraps
 from django.http import HttpResponse
 from django.conf import settings
-from django.template.loader import render_to_string
+from django.template.loader import render_to_string as _render_to_string
 from django.template.context import RequestContext
 from jiango.serializers import get_serializer
+
+
+def render_to_string(request, result, default_template, prefix=None, template_ext='html'):
+    templates = [default_template]
+    dictionary = None
+    
+    # 参数解析
+    # {'var': value ...}
+    if isinstance(result, dict):
+        dictionary = result
+    
+    # 'template' or '/root_template'
+    elif isinstance(result, basestring):
+        templates = [result]
+    
+    # 'template1', 'template2' ...
+    # 'template', {'var': value ...}
+    # 'template1', 'template2', ... {'var': value ...}
+    elif isinstance(result, tuple):
+        # 最后一项是否为字典
+        if isinstance(result[-1], dict):
+            templates = list(result[:-1])
+            dictionary = result[-1]
+        else:
+            templates = list(result)
+    
+    if getattr(request, 'is_mobile', False):
+        templates = [t + '.mobile' for t in templates] + templates
+    
+    for i in xrange(0, len(templates)):
+        if templates[i].startswith('/'):
+            templates[i] = templates[i][1:]
+        elif prefix:
+            templates[i] = prefix + templates[i]
+        templates[i] += '.' + template_ext
+    
+    return _render_to_string(templates, dictionary, RequestContext(request))
 
 
 def renderer(prefix=None, template_ext='html', content_type=settings.DEFAULT_CONTENT_TYPE, do_exception=None):
@@ -21,7 +58,6 @@ def renderer(prefix=None, template_ext='html', content_type=settings.DEFAULT_CON
         @wraps(func)
         def wrapper(request, *args, **kwargs):
             response = HttpResponse(content_type=content_type)
-            
             try:
                 result = func(request, response, *args, **kwargs)
             except Exception, e:
@@ -29,44 +65,9 @@ def renderer(prefix=None, template_ext='html', content_type=settings.DEFAULT_CON
                     result = do_exception(request, response, e)
                 else:
                     raise
-            
             if isinstance(result, HttpResponse):
                 return result
-            
-            templates = [func.__name__]
-            dictionary = None
-            
-            # 参数解析
-            # {'var': value ...}
-            if isinstance(result, dict):
-                dictionary = result
-            
-            # 'template' or '/root_template'
-            elif isinstance(result, basestring):
-                templates = [result]
-            
-            # 'template1', 'template2' ...
-            # 'template', {'var': value ...}
-            # 'template1', 'template2', ... {'var': value ...}
-            elif isinstance(result, tuple):
-                # 最后一项是否为字典
-                if isinstance(result[-1], dict):
-                    templates = list(result[:-1])
-                    dictionary = result[-1]
-                else:
-                    templates = list(result)
-            
-            if hasattr(request, 'is_mobile') and getattr(request, 'is_mobile'):
-                templates = [t + '.mobile' for t in templates] + templates
-            
-            for i in xrange(0, len(templates)):
-                if templates[i].startswith('/'):
-                    templates[i] = templates[i][1:]
-                elif prefix:
-                    templates[i] = prefix + templates[i]
-                templates[i] += '.' + template_ext
-            
-            response.content = render_to_string(templates, dictionary, RequestContext(request))
+            response.content = render_to_string(request, result, func.__name__, prefix, template_ext)
             return response
         return wrapper
     return do_renderer

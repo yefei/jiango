@@ -1,32 +1,37 @@
 # -*- coding: utf-8 -*-
 # Created on 2015-9-1
 # @author: Yefei
-from django.utils.datastructures import SortedDict
+from django.conf.urls import url, include
 from jiango.importlib import autodiscover_installed_apps
+from . import views
 
 
-registered = SortedDict()
-
+# A flag to tell us if autodiscover is running.  autodiscover will set this to
+# True while running, and False when it finishes.
 LOADING = False
+loaded_modules = {}
 
-# 自动根据 settings.INSTALLED_APPS 中的顺序查找所有 admin package 并注册
-def autodiscover():
+
+urlpatterns = [
+    url(r'^$', views.index, name='index'),
+    url(r'^login/$', views.login, name='login'),
+    url(r'^logout/$', views.logout, name='logout'),
+]
+
+
+def autodiscover(module_name):
     global LOADING
-    if LOADING: return
+    if LOADING:
+        return
     LOADING = True
-    imported_modules = autodiscover_installed_apps('admin')
-    for app_label, module in imported_modules:
-        register_admin(app_label, module)
+    for namesapce, module in autodiscover_installed_apps(module_name):
+        loaded_modules[module] = namesapce
+    # autodiscover was successful, reset loading flag.
     LOADING = False
 
 
-# 注册 admin 包
-def register_admin(app_label, module):
-    global registered
-    
-    if getattr(module, '__NOT_JIANGO_ADMIN__', False):
-        return False
-    
-    print app_label, module
-    
-    return True
+def admin_urls(module_name='admin'):
+    autodiscover(module_name)
+    for module, app_name in loaded_modules.iteritems():
+        urlpatterns.append(url(r'^%s/' % app_name, include(module.urlpatterns, app_name)))
+    return include(urlpatterns, 'admin')

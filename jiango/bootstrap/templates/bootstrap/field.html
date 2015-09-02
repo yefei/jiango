@@ -1,0 +1,58 @@
+{% load bootstrap %}
+
+<div class="form-group{% if field.errors %} has-error{% endif %}">
+    {% if field|is_checkbox %}
+        <div class="{{ classes.single_value }}">
+            <div class="checkbox">
+                {% if field.auto_id %}
+                  <label>{{ field }} <span>{{ field.label }}</span></label>
+                {% endif %}
+                {% for error in field.errors %}
+                  <span class="help-block">{{ error }}</span>
+                {% endfor %}
+                {% if field.help_text %}
+                  <p class="help-block">{{ field.help_text|safe }}</p>
+                {% endif %}
+            </div>
+        </div>
+    {% elif field|is_radio or field|is_multiple_checkbox %}
+        {% if field.auto_id %}
+            <label class="control-label {{ classes.label }}">{{ field.label }}</label>
+        {% endif %}
+        <div class="{{ classes.value }}">
+          {% if field|is_radio %}
+            {% for choice in field %}
+              <div class="radio-inline">
+                <label>{{ choice.tag }} {{ choice.choice_label }}</label>
+              </div>
+            {% endfor %}
+          {% else %}
+            {% for choice in field %}
+              <div class="checkbox-inline">
+                <label>{{ choice.tag }} {{ choice.choice_label }}</label>
+              </div>
+            {% endfor %}
+          {% endif %}
+          {% for error in field.errors %}
+            <span class="help-block">{{ error }}</span>
+          {% endfor %}
+          {% if field.help_text %}
+            <p class="help-block">{{ field.help_text|safe }}</p>
+          {% endif %}
+        </div>
+    {% else %}
+        {% if field.auto_id %}
+            <label class="control-label {{ classes.label }}" for="{{ field.auto_id }}">{{ field.label }}</label>
+        {% endif %}
+        <div class="{{ classes.value }}">
+          {{ field }}
+          {% for error in field.errors %}
+             <span class="help-block">{{ error }}</span>
+          {% endfor %}
+          {% if field.help_text %}
+             <p class="help-block">{{ field.help_text|safe }}</p>
+          {% endif %}
+        </div>
+    {% endif %}
+    <div class="clearfix"></div>
+</div>

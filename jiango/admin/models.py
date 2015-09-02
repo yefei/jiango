@@ -1,13 +1,19 @@
 # -*- coding: utf-8 -*-
 # Created on 2015-9-1
 # @author: Yefei
+import hashlib
 from django.db import models
 from django.utils import timezone
 from django.utils.functional import cached_property
+from django.conf import settings
 from jiango.serializers import serialize
 
 
 ONLINE_TIMEOUT = 30
+
+
+def get_password_digest(raw_password):
+    return hashlib.md5(hashlib.md5(raw_password).hexdigest() + settings.SECRET_KEY).hexdigest()
 
 
 class AbstractPermission(models.Model):
@@ -32,7 +38,7 @@ class GroupPermission(AbstractPermission):
 class UserManager(models.Manager):
     def online(self):
         online_gte = timezone.now() - timezone.timedelta(seconds=ONLINE_TIMEOUT)
-        return self.filter(is_login=True, request_at__gte=online_gte)
+        return self.exclude(login_token=None).filter(request_at__gte=online_gte)
 
 
 class User(models.Model):
@@ -40,8 +46,9 @@ class User(models.Model):
     password_digest = models.CharField(max_length=32, editable=False)
     is_active = models.BooleanField(u'有效用户', default=True, db_index=True)
     is_superuser = models.BooleanField(u'超级用户', default=False, db_index=True)
-    is_login = models.BooleanField(u'已经登陆', default=False, db_index=True)
     login_at = models.DateTimeField(null=True, db_index=True, editable=False)
+    login_token = models.CharField(max_length=32, null=True, db_index=True, editable=False)
+    login_fail_at = models.DateTimeField(u'尝试登陆失败日期', null=True, db_index=True, editable=False)
     login_fails = models.PositiveSmallIntegerField(u'尝试登陆失败次数', default=0, editable=False)
     join_at = models.DateTimeField(auto_now_add=True, db_index=True)
     request_at = models.DateTimeField(u'请求时间', null=True, db_index=True, editable=False)
@@ -53,6 +60,16 @@ class User(models.Model):
     
     def __unicode__(self):
         return '%d: %s' % (self.pk, self.username)
+    
+    def set_password(self, raw_password):
+        self.password_digest = get_password_digest(raw_password)
+    
+    def update_password(self, raw_password):
+        self.set_password(raw_password)
+        User.objects.filter(pk=self.pk).update(password_digest=self.password_digest)
+    
+    def check_password(self, raw_password):
+        return self.password_digest and get_password_digest(raw_password) == self.password_digest
     
     @cached_property
     def get_group_permissions(self):

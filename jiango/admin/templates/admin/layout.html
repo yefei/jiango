@@ -1,0 +1,57 @@
+{% load staticfiles %}<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>{% block title %}admin{% endblock %}</title>
+	<link rel="stylesheet" type="text/css" href="{% static 'admin/css/bootstrap.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'admin/css/style.css' %}">
+	<script src="{% static 'admin/js/jquery.js' %}"></script>
+	<script src="{% static 'admin/js/bootstrap.js' %}"></script>
+</head>
+<body>
+	<div class="navbar navbar-inverse navbar-fixed-top">
+		<div class="container-fluid">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+					<span class="sr-only">显示菜单</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="#"><span class="glyphicon glyphicon-text-background"></span> 管理中心</a>
+			</div>
+			<div id="navbar" class="navbar-collapse collapse">
+				<ul class="nav navbar-nav navbar-right">
+					{% if user %}
+						<li><a href="#">{{user.username}}</a></li>
+						<li><a href="{% url admin:logout %}">退出</a></li>
+					{% else %}
+						<li><a href="{% url admin:login %}">登陆</a></li>
+					{% endif %}
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div class="container-fluid">
+		{% if navigation %}
+		<div class="row">
+			<div class="col-xs-3 col-md-2 sidebar">
+				<ul class="nav nav-sidebar">
+					<li class="active"><a href="#">Overview</a></li>
+					<li><a href="#">Reports</a></li>
+					<li><a href="#">Analytics</a></li>
+					<li><a href="#">Export</a></li>
+				</ul>
+			</div>
+			<div class="col-xs-9 col-xs-offset-3 col-md-10 col-md-offset-2 main">
+				{{content}}
+			</div>
+		</div>
+		{% else %}
+			{{content}}
+		{% endif %}
+	</div>
+</body>
+</html>
