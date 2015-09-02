@@ -1,34 +1,36 @@
 # -*- coding: utf-8 -*-
 # Created on 2012-9-19
 # @author: Yefei
-import sys
 from functools import wraps
-from django.conf.urls import url
+from django.conf.urls import url, include
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from jiango.importlib import autodiscover_installed_apps
 from jiango.serializers import get_public_serializer_formats, get_serializer, deserialize
 from .utils import Param
-from .exceptions import APIError, LoginRequerd, Deny
-
-
-# A flag to tell us if autodiscover is running.  autodiscover will set this to
-# True while running, and False when it finishes.
-LOADING = False
-urlpatterns = []
-
-def autodiscover():
-    global LOADING
-    if LOADING:
-        return
-    LOADING = True
-    autodiscover_installed_apps('apis', True)
-    # autodiscover was successful, reset loading flag.
-    LOADING = False
+from .exceptions import APIError
 
 
 formats = get_public_serializer_formats()
 content_types = dict([(get_serializer(f).content_type, f) for f in formats])
+
+# A flag to tell us if autodiscover is running.  autodiscover will set this to
+# True while running, and False when it finishes.
+LOADING = False
+loaded_apis = {}
+loaded_modules = {}
+urlpatterns = []
+
+
+def autodiscover(module_name):
+    global LOADING
+    if LOADING:
+        return
+    LOADING = True
+    for namesapces, module in autodiscover_installed_apps(module_name, True):
+        loaded_modules[module.__name__] = namesapces
+    # autodiscover was successful, reset loading flag.
+    LOADING = False
 
 
 def render(func):
@@ -39,12 +41,6 @@ def render(func):
         response = HttpResponse(content_type=serializer.content_type)
         
         try:
-            user = getattr(request, 'user')
-            if func.login_requerd and not user:
-                raise LoginRequerd
-            if func.admin_requerd and not user.is_admin:
-                raise Deny('Admin requerd!')
-            
             request.param = Param(request.REQUEST)
             request.value = None
             content_type = request.META.get('CONTENT_TYPE')
@@ -67,45 +63,34 @@ def render(func):
 
 
 def register(path, func, name=None):
-    global urlpatterns
-    urlpatterns.append(url(r'^%s\.(?P<output_format>%s)$' % (path, '|'.join(formats)),
-                           render(func),
-                           name = name if name else path.strip('/').replace('/', '-')))
+    urlpatterns.append(url(r'^%s\.(?P<output_format>%s)$' % (path, '|'.join(formats)), render(func), name=name))
 
 
-def get_func_app_ns(func):
-    return sys.modules[func.__module__].__name__.split('.')[1:-1]
-
-
-def api(func_or_path=None, name=None, login_requerd=False, admin_requerd=False):
+def api(func_or_path=None, name=None):
     def wrapper(func):
-        path = func_or_path
-        func.login_requerd = login_requerd or admin_requerd
-        func.admin_requerd = admin_requerd
-        ns = get_func_app_ns(func)
-        # @api(login_requerd=True)
-        if path is None:
-            path = '/'.join(ns + ([] if func.__name__ == 'index' else [func.__name__]))
-        # @api('/root/urlpath')
-        elif path.startswith('/'):
-            path = path[1:]
-        else:
-            path = '/'.join(ns + [path])
-        _name = '-'.join(ns + [name]) if name else None
-        register(path, func, _name)
+        if func.__module__ not in loaded_apis:
+            loaded_apis[func.__module__] = []
+        loaded_apis[func.__module__].append((func, None if func_or_path==func else func_or_path, name))
         return func
     
-    # @api('sub/urlpath') or @api('/root/urlpath') or @api(r'(\d+)')
-    # @api(name='other') or @api(login_requerd=True)
+    # @api() 带参数
     if func_or_path is None or isinstance(func_or_path, basestring):
         return wrapper
     
-    # @api
-    func_or_path.login_requerd = login_requerd or admin_requerd
-    func_or_path.admin_requerd = admin_requerd
-    ns = get_func_app_ns(func_or_path)
-    funcname = func_or_path.__name__
-    path = '/'.join(ns + ([] if funcname == 'index' else [funcname]))
-    register(path, func_or_path, '-'.join(ns + [funcname]))
+    # @api 不带参数
+    return wrapper(func_or_path)
+
+
+def api_urls(namespace='api', module_name='api'):
+    autodiscover(module_name)
     
-    return func_or_path
+    for module, namesapces in loaded_modules.iteritems():
+        for func, func_or_path, name in loaded_apis.get(module, []):
+            if func_or_path and func_or_path.startswith('/'):
+                path = func_or_path
+            else:
+                path = '/'.join(namesapces + [func_or_path or func.__name__])
+            name = '-'.join(namesapces + [name or func.__name__])
+            register(path, func, name)
+    
+    return include(urlpatterns, namespace)
