@@ -20,10 +20,16 @@ REQUEST_ADMIN_FIELD = 'admin'
 AUTH_SLAT_TIMEOUT = 30
 
 # 在线状态超时时间
-ONLINE_TIMEOUT = 30
+ONLINE_TIMEOUT = 60 * 10
 
 # 最大密码错误次数
 LOGIN_MAX_FAILS = 3
 
 # 错误锁定时间
 LOGIN_FAIL_LOCK_TIMES = 60 * 5
+
+# 管理系统权限
+ADMIN_PERMISSIONS = {
+    'log.view': u'查看系统日志',
+    'user.view': u'查看管理员',
+}

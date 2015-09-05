@@ -1,0 +1,20 @@
+<h2 class="page-header">
+	<a href="{% url admin:-index %}">系统</a>
+	/ <a href="{% url admin:-log-list %}">日志</a>
+	/ #{{result.pk}}
+</h2>
+
+<p>
+	<b>日期:</b> {{result.datetime}} &nbsp; &nbsp;
+	<b>级别:</b> {{result.get_level_display}} &nbsp; &nbsp;
+	<b>动作:</b> {{result.get_action_display}}
+</p>
+<p>
+	<b>来源:</b> {{result.app_label}} &nbsp; &nbsp;
+	{% if result.view_url %}
+		<b>查看链接:</b> <a href="{{result.view_url}}" target="_blank">{{result.view_url}}</a> &nbsp; &nbsp;
+	{% endif %}
+	<b>用户:</b> {{result.user}} &nbsp; &nbsp;
+	<b>客户端IP:</b> {{result.remote_ip}}
+</p>
+<pre>{{result.content}}</pre>

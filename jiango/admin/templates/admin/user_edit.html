@@ -1,0 +1,26 @@
+{% load bootstrap  %}
+
+<h2 class="page-header">
+	<a href="{% url admin:-index %}">系统</a>
+	/ <a href="{% url admin:-user-list %}">管理员</a>
+	{% if user %}
+		/ <a href="{% url admin:-user-show user.pk %}">{{user}}</a>
+		/ 编辑管理员
+	{% else %}
+		/ 添加管理员
+	{% endif %}
+</h2>
+
+<div class="panel panel-warning" style="width:600px;">
+	<div class="panel-body">
+		<form method="post" action="" class="form" id="form">
+			{% csrf_token %}
+			{{form|bootstrap}}
+			<div class="form-group">
+				<div style="text-align:center;">
+					<button type="submit" class="btn btn-warning btn-lg">确定</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>

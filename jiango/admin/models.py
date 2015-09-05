@@ -5,7 +5,8 @@ import hashlib
 from django.db import models
 from django.utils import timezone
 from django.utils.functional import cached_property
-from jiango.serializers import serialize
+from django.core.urlresolvers import reverse, NoReverseMatch
+from jiango.serializers import serialize, deserialize
 from .config import ONLINE_TIMEOUT, SECRET_KEY_DIGEST, LOGIN_FAIL_LOCK_TIMES, LOGIN_MAX_FAILS
 
 
@@ -13,23 +14,23 @@ def get_password_digest(raw_password):
     return hashlib.md5(hashlib.md5(raw_password).hexdigest() + SECRET_KEY_DIGEST).hexdigest()
 
 
-class AbstractPermission(models.Model):
-    app_label = models.CharField(max_length=100)
-    codename = models.CharField(max_length=100)
+class Permission(models.Model):
+    codename = models.CharField(max_length=100, primary_key=True)
+    name = models.CharField(u'权限名', max_length=100)
     
     class Meta:
-        abstract = True
+        ordering = ('codename',)
+    
+    def __unicode__(self):
+        return ' / '.join(self.name.split('/'))
 
 
 class Group(models.Model):
     name = models.CharField(u'名称', max_length=80, unique=True)
-
-
-class GroupPermission(AbstractPermission):
-    group = models.ForeignKey(Group, related_name='permission_set')
+    permissions = models.ManyToManyField(Permission, verbose_name=u'权限', blank=True)
     
-    class Meta:
-        unique_together = (('group', 'app_label', 'codename'),)
+    def __unicode__(self):
+        return self.name
 
 
 class UserManager(models.Manager):
@@ -45,28 +46,26 @@ class User(models.Model):
     is_superuser = models.BooleanField(u'超级用户', default=False, db_index=True)
     login_at = models.DateTimeField(null=True, db_index=True, editable=False)
     login_token = models.CharField(max_length=32, null=True, db_index=True, editable=False)
-    login_fail_at = models.DateTimeField(u'尝试登陆失败日期', null=True, db_index=True, editable=False)
-    login_fails = models.PositiveSmallIntegerField(u'尝试登陆失败次数', default=0, editable=False)
+    login_fail_at = models.DateTimeField(u'最近登陆失败日期', null=True, db_index=True, editable=False)
+    login_fails = models.PositiveSmallIntegerField(u'最近登陆失败次数', default=0, editable=False)
     join_at = models.DateTimeField(auto_now_add=True, db_index=True)
-    request_at = models.DateTimeField(u'请求时间', null=True, db_index=True, editable=False)
-    groups = models.ManyToManyField(Group, verbose_name=u'用户组', blank=True)
+    request_at = models.DateTimeField(u'最近请求时间', null=True, db_index=True, editable=False)
+    groups = models.ManyToManyField(Group, verbose_name=u'用户组', blank=True,
+                                    help_text=u'如果为超级用户则已经拥有所有用户组无需选择。<br>')
+    permissions = models.ManyToManyField(Permission, verbose_name=u'额外权限', blank=True,
+                                         help_text=u'如果为超级用户则已经拥有所有权限无需选择。<br>')
     objects = UserManager()
     
     class Meta:
         ordering = ('-request_at',)
+        verbose_name = u'管理员'
     
     def __unicode__(self):
-        return '%d: %s' % (self.pk, self.username)
+        return '%s #%d' % (self.username, self.pk)
     
-    def set_password(self, raw_password):
-        self.password_digest = get_password_digest(raw_password)
-    
-    def update_password(self, raw_password):
-        self.set_password(raw_password)
+    def update_password(self, password_digest):
+        self.password_digest  = password_digest
         User.objects.filter(pk=self.pk).update(password_digest=self.password_digest)
-    
-    def check_password(self, raw_password):
-        return self.password_digest and get_password_digest(raw_password) == self.password_digest
     
     @property
     def login_fail_lock_remain(self):
@@ -88,15 +87,12 @@ class User(models.Model):
     
     @cached_property
     def get_group_permissions(self):
-        user_groups_field = self._meta.get_field('groups')
-        user_groups_query = 'group__%s' % user_groups_field.related_query_name()
-        perms = GroupPermission.objects.filter(**{user_groups_query: self})
-        perms = perms.values_list('app_label', 'codename').order_by()
-        return set(['%s.%s' % (app_label, codename) for app_label, codename in perms])
+        perms = Permission.objects.filter(group__user=self).values_list('codename')
+        return set([i[0] for i in perms])
     
     @cached_property
     def get_all_permissions(self):
-        perms = set(['%s.%s' % (i.app_label, i.codename) for i in self.permission_set.all()])
+        perms = set([i[0] for i in self.permissions.values_list('codename')])
         perms.update(self.get_group_permissions)
         return perms
     
@@ -108,23 +104,30 @@ class User(models.Model):
             return u'全部'
         return len(self.get_all_permissions)
     
-    def has_perm(self, perm_name):
+    def has_perm(self, codename):
         if not self.is_active:
             return False
         if self.is_superuser:
             return True
-        return perm_name in self.get_all_permissions
+        return codename in self.get_all_permissions
+    
+    @property
+    def is_login(self):
+        return self.login_token != None
+    
+    @property
+    def online_remain(self):
+        if not self.request_at:
+            return 0
+        return max(0, ONLINE_TIMEOUT - (timezone.now() - self.request_at).seconds)
     
     @property
     def is_online(self):
-        return self.is_login and self.request_at and self.request_at >= (timezone.now() - timezone.timedelta(seconds=ONLINE_TIMEOUT))
-
-
-class UserPermission(AbstractPermission):
-    user = models.ForeignKey(User, related_name='permission_set')
+        return self.is_login and self.online_remain > 0
     
-    class Meta:
-        unique_together = (('user', 'app_label', 'codename'),)
+    def update_request_at(self, request_at=None):
+        self.request_at = request_at or timezone.now()
+        User.objects.filter(pk=self.pk).update(request_at=self.request_at)
 
 
 class Log(models.Model):
@@ -146,12 +149,16 @@ class Log(models.Model):
     RETRIEVE = 20
     UPDATE = 30
     DELETE = 40
+    LOGIN = 1000
+    LOGOUT = 1001
     ACTIONS = (
         (NONE, u'无'),
         (CREATE, u'增加'),
         (RETRIEVE, u'读取'),
         (UPDATE, u'更新'),
         (DELETE, u'删除'),
+        (LOGIN, u'登陆'),
+        (LOGOUT, u'退出'),
     )
     
     user = models.ForeignKey(User, null=True, verbose_name=u'用户')
@@ -169,7 +176,7 @@ class Log(models.Model):
         ordering = ('-id',)
     
     @staticmethod
-    def write(level=SUCCESS, action=NONE, app_label=None, content=None,
+    def write(level=SUCCESS, app_label=None, content=None, action=NONE,
               view_name=None, view_args=None, view_kwargs=None,
               remote_ip=None, user=None):
         _view_args = None
@@ -183,9 +190,12 @@ class Log(models.Model):
                    view_args=_view_args, view_kwargs=_view_kwargs,
                    remote_ip=remote_ip, user=user)
     
-    @property
+    @cached_property
     def view_url(self):
         if self.view_name:
-            if not hasattr(self, '_view_url'):
-                self._view_url = None
-            return self._view_url
+            args = deserialize('json', self.view_args) if self.view_args else None
+            kwargs = deserialize('json', self.view_kwargs) if self.view_kwargs else None
+            try:
+                return reverse(self.view_name, args=args, kwargs=kwargs)
+            except NoReverseMatch:
+                pass

@@ -9,17 +9,16 @@ from django.utils.http import urlquote
 from django.utils import timezone
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
-from django.conf import settings
 from .models import User
-from .config import COOKIE_NAME, AUTH_SLAT_TIMEOUT, REQUEST_ADMIN_FIELD, LOGIN_NEXT_FIELD
+from .config import COOKIE_NAME, AUTH_SLAT_TIMEOUT, REQUEST_ADMIN_FIELD, LOGIN_NEXT_FIELD, SECRET_KEY_DIGEST
 
 
 def auth_token_password(user):
-    return hashlib.md5(':'.join((user.login_token, user.password_digest, settings.SECRET_KEY))).hexdigest()
+    return hashlib.md5(':'.join((user.login_token, user.password_digest, SECRET_KEY_DIGEST))).hexdigest()
 
 
 def get_temp_salt_verify(salt, salt_time):
-    return hashlib.md5(salt + str(salt_time) + settings.SECRET_KEY).hexdigest()
+    return hashlib.md5(salt + str(salt_time) + SECRET_KEY_DIGEST).hexdigest()
 
 
 # 生成一个临时效验密匙
@@ -76,7 +75,7 @@ def set_logout_cookie(response):
     response.delete_cookie(COOKIE_NAME)
 
 
-def get_admin_user(request):
+def get_request_user(request):
     if hasattr(request, REQUEST_ADMIN_FIELD):
         return getattr(request, REQUEST_ADMIN_FIELD)
     user = get_user_from_auth_token(request.COOKIES.get(COOKIE_NAME))
@@ -86,27 +85,27 @@ def get_admin_user(request):
 
 def login_redirect(request):
     path = urlquote(request.get_full_path())
-    tup = reverse('admin:login'), LOGIN_NEXT_FIELD, path
+    tup = reverse('admin:-login'), LOGIN_NEXT_FIELD, path
     return HttpResponseRedirect('%s?%s=%s' % tup)
 
 
 def login_required(view_func):
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        if get_admin_user(request):
+        if get_request_user(request):
             return view_func(request, *args, **kwargs)
         return login_redirect(request)
     return wrapper
 
 
 def logout_redirect(request):
-    return HttpResponseRedirect(reverse('admin:index'))
+    return HttpResponseRedirect(reverse('admin:-index'))
 
 
 def logout_required(view_func):
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        if not get_admin_user(request):
+        if not get_request_user(request):
             return view_func(request, *args, **kwargs)
         return logout_redirect(request)
     return wrapper

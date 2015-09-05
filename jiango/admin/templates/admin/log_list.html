@@ -1,0 +1,10 @@
+{% load admin_pagination %}
+
+<h2 class="page-header">
+	<a href="{% url admin:-index %}">系统</a>
+	/ 日志
+</h2>
+
+{% include 'admin/log-table.inc.html' %}
+
+{% paginate log_set %}

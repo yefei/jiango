@@ -1,0 +1,25 @@
+<ul class="pagination pagination-sm">
+	{% if previous_url %}
+		<li><a href="{{previous_url}}">&laquo;</a></li>
+	{% else %}
+		<li class="disabled"><a href="#">&laquo;</a></li>
+	{% endif %}
+	
+	{% for page, url in page_urls %}
+        {% if page %}
+            {% ifequal page page_obj.number %}
+                <li class="active"><span>{{page}}</span></li>
+            {% else %}
+                <li><a href="{{url}}">{{page}}</a></li>
+            {% endifequal %}
+        {% else %}
+            <li class="disabled"><span>...</span></li>
+        {% endif %}
+    {% endfor %}
+	
+	{% if next_url %}
+		<li><a href="{{next_url}}">&raquo;</a></li>
+	{% else %}
+		<li class="disabled"><a href="#">&raquo;</a></li>
+	{% endif %}
+</ul>

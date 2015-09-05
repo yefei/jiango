@@ -26,10 +26,7 @@ def bootstrap_field(field):
 
 
 @register.filter
-def bootstrap_horizontal(element, label_cols={}):
-    if not label_cols:
-        label_cols = 'col-sm-2 col-lg-2'
-
+def bootstrap_horizontal(element, label_cols='col-sm-2 col-lg-2'):
     markup_classes = {'label': label_cols,
             'value': '',
             'single_value': ''}
