@@ -53,7 +53,7 @@ def add_input_classes(field):
        and not is_radio(field) and not is_file(field):
         field_classes = field.field.widget.attrs.get('class', '')
         field_classes += ' form-control'
-        field.field.widget.attrs['class'] = field_classes
+        field.field.widget.attrs['class'] = field_classes.strip()
 
 
 def render(element, markup_classes):
