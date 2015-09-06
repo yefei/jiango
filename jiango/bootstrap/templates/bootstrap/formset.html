@@ -1,7 +1,11 @@
 {{ formset.management_form }}
 
 {% for form in formset %}
-
-  {% include "bootstrap/form.html" with form=form %}
-
+  {% if classes.label == 'sr-only' %}
+      <div class="form-inline">
+      {% include "bootstrap/form.html" with form=form %}
+      </div>
+  {%else%}
+      {% include "bootstrap/form.html" with form=form %}
+  {% endif %}
 {% endfor %}
