@@ -25,7 +25,7 @@
 			<div id="navbar" class="navbar-collapse collapse">
 				<ul class="nav navbar-nav navbar-right">
 					{% if user %}
-						<li><a href="#">{{user.username}}</a></li>
+						<li><a href="{% url admin:-user-show user.pk %}">{{user.username}}</a></li>
 						<li><a href="{% url admin:-index %}">系统</a></li>
 						<li><a href="{% url admin:-logout %}">退出</a></li>
 					{% else %}

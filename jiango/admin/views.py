@@ -5,7 +5,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.utils.crypto import get_random_string
 from jiango.pagination import Paging
-from .shortcuts import renderer, Alert, has_superuser
+from .shortcuts import renderer, Alert, has_superuser, has_perm
 from .forms import AuthenticationForm, SetPasswordForm, UserForm
 from .auth import LOGIN_NEXT_FIELD, set_login, set_login_cookie, set_logout, set_logout_cookie, get_request_user
 from .config import SECRET_KEY_DIGEST
@@ -114,9 +114,11 @@ def user_list(request, response):
     return locals()
 
 
-@render(perm='admin.user.view')
+@render
 def user_show(request, response, user_id):
     user = User.objects.get(pk=user_id)
+    if get_request_user(request) != user:
+        has_perm(request, 'admin.user.view')
     return locals()
 
 
