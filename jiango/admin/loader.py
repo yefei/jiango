@@ -4,6 +4,7 @@
 from inspect import isfunction
 from django.conf.urls import url, include
 from django.utils.text import capfirst
+from django.utils.datastructures import SortedDict
 from django.core.urlresolvers import reverse, resolve
 from jiango.importlib import autodiscover_installed_apps
 from . import views
@@ -12,7 +13,7 @@ from . import views
 # A flag to tell us if autodiscover is running.  autodiscover will set this to
 # True while running, and False when it finishes.
 LOADING = False
-loaded_modules = {}
+loaded_modules = SortedDict()
 
 
 urlpatterns = [

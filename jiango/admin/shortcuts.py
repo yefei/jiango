@@ -7,7 +7,7 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from jiango.shortcuts import render_to_string
 from .auth import login_required, logout_required, get_request_user
-from .models import Permission
+from .models import Permission, Log, LogTypes
 
 
 class Alert(Exception):
@@ -106,3 +106,25 @@ def renderer(prefix=None, default_extends_layout=True,
         # @render 不带参数
         return do_wrapper(func)
     return render
+
+
+class Logger(LogTypes):
+    def __init__(self, app_label):
+        self.app_label = app_label
+    
+    def __call__(self, request, level, content, action=None, user=None, remote_ip=None,
+                 view_name=None, view_args=None, view_kwargs=None, form=None):
+        if form:
+            content = '%s\n\n%s' % (content, form.errors.as_text())
+        
+        if action == None:
+            action = LogTypes.NONE
+        
+        if remote_ip == None:
+            remote_ip = request.META.get('REMOTE_ADDR')
+        
+        if user == None:
+            user = get_request_user(request)
+        
+        return Log.write(level, self.app_label, content, action,
+                         view_name, view_args, view_kwargs, remote_ip, user)

@@ -130,12 +130,13 @@ class User(models.Model):
         User.objects.filter(pk=self.pk).update(request_at=self.request_at)
 
 
-class Log(models.Model):
+class LogTypes(object):
     DEBUG = 10
     INFO = 20
     SUCCESS = 25
     WARNING = 30
     ERROR = 40
+    
     LEVELS = (
         (DEBUG, u'调试'),
         (INFO, u'信息'),
@@ -151,6 +152,7 @@ class Log(models.Model):
     DELETE = 40
     LOGIN = 1000
     LOGOUT = 1001
+    
     ACTIONS = (
         (NONE, u'无'),
         (CREATE, u'增加'),
@@ -160,11 +162,13 @@ class Log(models.Model):
         (LOGIN, u'登陆'),
         (LOGOUT, u'退出'),
     )
-    
+
+
+class Log(models.Model):
     user = models.ForeignKey(User, null=True, verbose_name=u'用户')
     datetime = models.DateTimeField(u'时间', auto_now=True, db_index=True)
-    level = models.SmallIntegerField(u'级别', db_index=True, choices=LEVELS, default=SUCCESS)
-    action = models.SmallIntegerField(u'动作', db_index=True, choices=ACTIONS, default=NONE)
+    level = models.SmallIntegerField(u'级别', db_index=True, choices=LogTypes.LEVELS, default=LogTypes.SUCCESS)
+    action = models.SmallIntegerField(u'动作', db_index=True, choices=LogTypes.ACTIONS, default=LogTypes.NONE)
     app_label = models.CharField(max_length=100, null=True)
     content = models.TextField(null=True)
     view_name = models.CharField(max_length=100, null=True)
@@ -176,7 +180,7 @@ class Log(models.Model):
         ordering = ('-id',)
     
     @staticmethod
-    def write(level=SUCCESS, app_label=None, content=None, action=NONE,
+    def write(level=LogTypes.SUCCESS, app_label=None, content=None, action=LogTypes.NONE,
               view_name=None, view_args=None, view_kwargs=None,
               remote_ip=None, user=None):
         _view_args = None
@@ -193,8 +197,8 @@ class Log(models.Model):
     @cached_property
     def view_url(self):
         if self.view_name:
-            args = deserialize('json', self.view_args) if self.view_args else None
-            kwargs = deserialize('json', self.view_kwargs) if self.view_kwargs else None
+            args = deserialize('json', str(self.view_args)) if self.view_args else None
+            kwargs = deserialize('json', str(self.view_kwargs)) if self.view_kwargs else None
             try:
                 return reverse(self.view_name, args=args, kwargs=kwargs)
             except NoReverseMatch:
