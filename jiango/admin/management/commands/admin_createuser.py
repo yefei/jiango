@@ -26,12 +26,12 @@ class Command(BaseCommand):
                 try:
                     username = username_field.clean(raw_value, None)
                 except exceptions.ValidationError as e:
-                    self.stderr.write("Error: %s" % '; '.join(e.messages))
+                    print >>self.stderr, "Error:", '; '.join(e.messages)
                     username = None
                     continue
                 
                 if User.objects.filter(username=username).exists():
-                    self.stderr.write("Error: That username is already taken.")
+                    self.stderr.write("Error: That username is already taken.\n")
                     username = None
             
             # Get a password
@@ -40,18 +40,18 @@ class Command(BaseCommand):
                     password = getpass.getpass()
                     password2 = getpass.getpass('Password (again): ')
                     if password != password2:
-                        self.stderr.write("Error: Your passwords didn't match.")
+                        self.stderr.write("Error: Your passwords didn't match.\n")
                         password = None
                         continue
                 if password.strip() == '':
-                    self.stderr.write("Error: Blank passwords aren't allowed.")
+                    self.stderr.write("Error: Blank passwords aren't allowed.\n")
                     password = None
                     continue
 
         except KeyboardInterrupt:
-            self.stderr.write("\nOperation cancelled.")
+            self.stderr.write("Operation cancelled.\n")
             sys.exit(1)
         
         User.objects.create(username=username, password_digest=get_password_digest(password),
                             is_active=True, is_superuser=True)
-        self.stdout.write("Admin superuser created successfully.")
+        self.stdout.write("Admin superuser created successfully.\n")

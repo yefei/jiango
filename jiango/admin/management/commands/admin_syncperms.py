@@ -36,7 +36,7 @@ class Command(BaseCommand):
             if i.codename in perms:
                 # 更新检查
                 if perms[i.codename] != i.name:
-                    self.stdout.write(i.codename + ': ' + i.name + ' > ' + perms[i.codename] + '\n')
+                    print >>self.stdout, 'rename', i.codename + ':', i.name, '>', perms[i.codename]
                     i.name = perms[i.codename]
                     i.save()
                 del perms[i.codename]
@@ -53,9 +53,7 @@ class Command(BaseCommand):
         
         # 同步到数据库
         for codename, name in perms.items():
-            self.stdout.write(codename + ': ' + name + ' ')
+            print >>self.stdout, 'install', codename + ':', name
             Permission.objects.create(codename=codename, name=name)
-            
-            self.stdout.write('installed.\n')
         
-        self.stdout.write("Sync permissions successfully.")
+        self.stdout.write("Sync permissions successfully.\n")
