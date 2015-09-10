@@ -6,8 +6,14 @@ thispath = lambda *p: os.path.join(os.path.dirname(__file__), *p)
 
 CAPTCHA_AGE = getattr(settings,'CAPTCHA_AGE', 60 * 60 * 1)
 
-CAPTCHA_OUTPUT_FORMAT = getattr(settings,'CAPTCHA_OUTPUT_FORMAT',
-                u'%(image_tag)s %(hidden_field)s %(text_field)s %(new_challenge_tag)s')
+CAPTCHA_OUTPUT_FORMAT = getattr(settings,'CAPTCHA_OUTPUT_FORMAT', """
+%(hidden_field)s
+<div>
+    <div style="float:left;width:100px;">%(image_tag)s</div>
+    <div style="float:left;width:80px;">%(text_field)s</div>
+    <div style="float:left;line-height:30px;padding-left:10px">%(new_challenge_tag)s</div>
+    <div class="clearfix"></div>
+</div>""")
 
 CAPTCHA_CHARS = 'ABCDEFGHJKLMNPRSTWXZV'
 
@@ -19,7 +25,7 @@ CAPTCHA_DRAWS = getattr(settings, 'CAPTCHA_DRAWS', {
         'DRAW': 'jiango.captcha.draws.simple',
         'OPTIONS': {
             'WIDTH': 100,
-            'HEIGHT': 35,
+            'HEIGHT': 30,
             'BACKGROUND_COLOR': '#E0E8F3',
             'FONT_COLOR': '#000000',
             'FONT_SIZE': 30,

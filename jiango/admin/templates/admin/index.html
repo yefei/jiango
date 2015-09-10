@@ -3,13 +3,13 @@
 <p>当前在线管理员: <b>{{online_count}}</b> 位
 	&nbsp;
 	<span class="btn-group">
-		<a href="{% url admin:-user-list %}" class="btn btn-default btn-sm">查看所有管理员</a>
-		<a href="{% url admin:-user-add %}" class="btn btn-default btn-sm">添加</a>
+		<a href="{% url admin:-user-list %}" class="btn">查看所有管理员</a>
+		<a href="{% url admin:-user-add %}" class="btn">添加</a>
 	</span>
 	&nbsp; &nbsp;
-	<a href="{% url admin:-password %}" class="btn btn-default btn-sm">修改我的密码</a>
+	<a href="{% url admin:-password %}" class="btn">修改我的密码</a>
 </p>
-<ul class="list-inline">
+<ul class="inline">
 	{% for i in online_set %}
 		<li>{{i.username}}</li>
 	{% endfor %}
@@ -19,4 +19,4 @@
 
 {% include 'admin/log-table.inc.html' %}
 
-<p style="text-align:center"><a href="{% url admin:-log-list %}" class="btn btn-default btn-sm">共有 {{log_count}} 条日志 ...</a></p>
+<p style="text-align:center"><a href="{% url admin:-log-list %}" class="btn">共有 {{log_count}} 条日志 ...</a></p>

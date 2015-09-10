@@ -5,25 +5,17 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>{% block title %}admin{% endblock %}</title>
-	<link rel="stylesheet" type="text/css" href="{% static 'admin/css/bootstrap.css' %}">
-	<link rel="stylesheet" type="text/css" href="{% static 'admin/css/style.css' %}">
-	<script src="{% static 'admin/js/jquery.js' %}"></script>
-	<script src="{% static 'admin/js/bootstrap.js' %}"></script>
+	<link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/admin.css' %}">
+	<script src="{% static 'js/jquery.js' %}"></script>
+	<script src="{% static 'js/bootstrap.js' %}"></script>
 </head>
 <body>
 	<div class="navbar navbar-inverse navbar-fixed-top">
-		<div class="container-fluid">
-			<div class="navbar-header">
-				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-					<span class="sr-only">显示菜单</span>
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-				</button>
-				<a class="navbar-brand" href="{% url admin:-index %}"><span class="glyphicon glyphicon-text-background"></span> 管理中心</a>
-			</div>
-			<div id="navbar" class="navbar-collapse collapse">
-				<ul class="nav navbar-nav navbar-right">
+		<div class="navbar-inner">
+			<div class="container-fluid">
+				<a class="brand" href="{% url admin:-index %}">管理中心</a>
+				<ul class="nav pull-right">
 					{% if user %}
 						<li><a href="{% url admin:-user-show user.pk %}">{{user.username}}</a></li>
 						<li><a href="{% url admin:-index %}">系统</a></li>
@@ -38,14 +30,14 @@
 	<div class="container-fluid">
 		{% if navigation %}
 		<div class="row">
-			<div class="col-xs-3 col-md-2 sidebar">
-				<ul class="nav nav-sidebar">
+			<div class="span2 sidebar">
+				<ul class="nav nav-list nav-sidebar">
 					{% for i in navigation %}
 					<li{% if i.is_active %} class="active"{% endif %}><a href="{{i.url}}">{{i.verbose_name}}</a></li>
 					{% endfor %}
 				</ul>
 			</div>
-			<div class="col-xs-9 col-xs-offset-3 col-md-10 col-md-offset-2 main">
+			<div class="offset2 main">
 				{{content}}
 			</div>
 		</div>

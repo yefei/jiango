@@ -4,17 +4,17 @@
 	/ {{user}}
 </h2>
 
-<p>
-	<b>加入于:</b> {{user.join_at}} &nbsp; &nbsp;
-	<b>最近登录于:</b> {{user.login_at}} &nbsp; &nbsp;
-	<b>最近登录失败于:</b> {{user.login_fail_at}} ({{user.login_fails}})
-</p>
-<p>
-	<b>有效用户:</b> {{user.is_active|yesno:'是,否'}} &nbsp; &nbsp;
-	<b>超级用户:</b> {{user.is_superuser|yesno:'是,否'}} &nbsp; &nbsp;
-</p>
+<ul class="inline">
+	<li><b>加入于:</b> {{user.join_at}}</li>
+	<li><b>最近登录于:</b> {{user.login_at}}</li>
+	<li><b>最近登录失败于:</b> {{user.login_fail_at}} ({{user.login_fails}})</li>
+</ul>
+<ul class="inline">
+	<li><b>有效用户:</b> {{user.is_active|yesno:'是,否'}}</li>
+	<li><b>超级用户:</b> {{user.is_superuser|yesno:'是,否'}}</li>
+</ul>
 
-<ul class="list-inline">
+<ul class="inline">
 	<li><b>用户组:</b></li>
 {% for i in user.groups.all %}
 	<li>{{i}}</li>
@@ -23,7 +23,7 @@
 {% endfor %}
 </ul>
 
-<ul class="list-inline">
+<ul class="inline">
 	<li><b>附加权限:</b></li>
 {% for i in user.permissions.all %}
 	<li>{{i}}</li>
@@ -33,6 +33,6 @@
 </ul>
 
 <p>
-	<a href="{% url admin:-user-password user.pk %}" class="btn btn-default">修改用户密码</a>
-	<a href="{% url admin:-user-edit user.pk %}" class="btn btn-default">修改用户</a>
+	<a href="{% url admin:-user-password user.pk %}" class="btn">修改用户密码</a>
+	<a href="{% url admin:-user-edit user.pk %}" class="btn">修改用户</a>
 </p>

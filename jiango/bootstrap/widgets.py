@@ -9,6 +9,15 @@ from django.utils.safestring import mark_safe
 
 
 class CheckboxSelectMultiple(widgets.CheckboxSelectMultiple):
+    BOOTSTRAP_CLASSES = {
+        2: 'checkbox inline',
+        3: 'checkbox-inline',
+    }
+    
+    def __init__(self, bootstrap_version=2, attrs=None, choices=()):
+        super(CheckboxSelectMultiple, self).__init__(attrs, choices)
+        self.bootstrap_version = bootstrap_version
+    
     def render(self, name, value, attrs=None, choices=()):
         if value is None: value = []
         has_id = attrs and 'id' in attrs
@@ -29,5 +38,6 @@ class CheckboxSelectMultiple(widgets.CheckboxSelectMultiple):
             option_value = force_unicode(option_value)
             rendered_cb = cb.render(name, option_value)
             option_label = conditional_escape(force_unicode(option_label))
-            output.append(u'<label class="checkbox-inline"%s>%s %s</label>' % (label_for, rendered_cb, option_label))
+            output.append(u'<label class="%s"%s>%s %s</label>' % (self.BOOTSTRAP_CLASSES[self.bootstrap_version],
+                                                                  label_for, rendered_cb, option_label))
         return mark_safe(u'\n'.join(output))
