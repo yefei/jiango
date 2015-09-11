@@ -3,7 +3,8 @@
 # @author: Yefei
 import hashlib
 from django import forms
-from .models import User
+from jiango.bootstrap.widgets import FilteredSelectMultiple
+from .models import User, Group
 from .auth import get_temp_salt, verify_temp_salt
 from .config import AUTH_SLAT_TIMEOUT, LOGIN_MAX_FAILS
 
@@ -93,3 +94,11 @@ class SetPasswordForm(forms.Form):
 class UserForm(forms.ModelForm):
     class Meta:
         model = User
+        widgets = {'groups':FilteredSelectMultiple(u'用户组'),
+                   'permissions':FilteredSelectMultiple(u'权限')}
+
+
+class GroupForm(forms.ModelForm):
+    class Meta:
+        model = Group
+        widgets = {'permissions':FilteredSelectMultiple(u'权限')}

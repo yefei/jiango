@@ -28,6 +28,7 @@ class Permission(models.Model):
 class Group(models.Model):
     name = models.CharField(u'名称', max_length=80, unique=True)
     permissions = models.ManyToManyField(Permission, verbose_name=u'权限', blank=True)
+    permissions.help_text = None # 强制去除默认的 选择多个值 提示
     
     def __unicode__(self):
         return self.name
@@ -50,10 +51,10 @@ class User(models.Model):
     login_fails = models.PositiveSmallIntegerField(u'最近登陆失败次数', default=0, editable=False)
     join_at = models.DateTimeField(auto_now_add=True, db_index=True)
     request_at = models.DateTimeField(u'最近请求时间', null=True, db_index=True, editable=False)
-    groups = models.ManyToManyField(Group, verbose_name=u'用户组', blank=True,
-                                    help_text=u'如果为超级用户则已经拥有所有用户组无需选择。<br>')
-    permissions = models.ManyToManyField(Permission, verbose_name=u'额外权限', blank=True,
-                                         help_text=u'如果为超级用户则已经拥有所有权限无需选择。<br>')
+    groups = models.ManyToManyField(Group, verbose_name=u'用户组', blank=True)
+    groups.help_text = u'如果为超级用户则已经拥有所有用户组无需选择'
+    permissions = models.ManyToManyField(Permission, verbose_name=u'额外权限', blank=True)
+    permissions.help_text = u'如果为超级用户则已经拥有所有权限无需选择'
     objects = UserManager()
     
     class Meta:

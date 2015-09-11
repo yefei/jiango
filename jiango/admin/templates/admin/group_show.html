@@ -1,0 +1,22 @@
+<h2 class="page-header">
+	<a href="{% url admin:-index %}">系统</a>
+	/ <a href="{% url admin:-group-list %}">用户组</a>
+	/ {{group}}
+</h2>
+
+<ul class="inline">
+	<li><b>组名称:</b> {{group.name}}</li>
+</ul>
+
+<ul class="inline">
+	<li><b>权限:</b></li>
+{% for i in group.permissions.all %}
+	<li>{{i}}</li>
+{% empty %}
+	<li><i>无</i></li>
+{% endfor %}
+</ul>
+
+<p>
+	<a href="{% url admin:-group-edit group.pk %}" class="btn">修改</a>
+</p>

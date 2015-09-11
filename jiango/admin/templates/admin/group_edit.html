@@ -1,0 +1,24 @@
+{% load bootstrap  %}
+
+<h2 class="page-header">
+	<a href="{% url admin:-index %}">系统</a>
+	/ <a href="{% url admin:-group-list %}">用户组</a>
+	{% if group %}
+		/ <a href="{% url admin:-group-show group.pk %}">{{group}}</a>
+		/ 编辑
+	{% else %}
+		/ 添加
+	{% endif %}
+</h2>
+
+<div class="panel panel-warning" style="width:600px;">
+	<div class="panel-body">
+		<form method="post" action="" class="form" id="form">
+			{% csrf_token %}
+			{{form|bootstrap}}
+			<div style="text-align:center;margin-top:30px">
+				<button type="submit" class="btn btn-warning btn-large">确定</button>
+			</div>
+		</form>
+	</div>
+</div>

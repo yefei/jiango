@@ -6,10 +6,10 @@ from django.http import HttpResponseRedirect
 from django.utils.crypto import get_random_string
 from jiango.pagination import Paging
 from .shortcuts import renderer, Alert, has_superuser, has_perm, Logger
-from .forms import AuthenticationForm, SetPasswordForm, UserForm
+from .forms import AuthenticationForm, SetPasswordForm, UserForm, GroupForm
 from .auth import LOGIN_NEXT_FIELD, set_login, set_login_cookie, set_logout, set_logout_cookie, get_request_user
 from .config import SECRET_KEY_DIGEST
-from .models import User, Log, get_password_digest
+from .models import User, Log, get_password_digest, Group
 
 
 render = renderer('admin/')
@@ -140,4 +140,38 @@ def user_edit(request, response, user_id=None):
         log(request, log.ERROR, u'%s管理员失败' % action_name, action, form=form)
     else:
         form = UserForm(instance=user)
+    return locals()
+
+
+@render(perm='admin.group.view')
+def group_list(request, response):
+    group_set = Group.objects.prefetch_related('permissions')
+    return locals()
+
+
+@render(perm='admin.group.view')
+def group_show(request, response, group_id):
+    group = Group.objects.get(pk=group_id)
+    return locals()
+
+
+@render
+def group_edit(request, response, group_id=None):
+    has_superuser(request)
+    group = Group.objects.get(pk=group_id) if group_id else None
+    action = log.UPDATE if group else log.CREATE
+    action_name = u'编辑' if group else u'添加'
+    if request.method == 'POST':
+        form = GroupForm(request.POST, instance=group)
+        if form.is_valid():
+            group = form.save()
+            log(request, log.SUCCESS, u'%s %s 用户组' % (action_name, group), action,
+                view_name='admin:-group-show', view_args=(group.pk,), form=form)
+            raise Alert(Alert.SUCCESS, u'成功%s用户组' % action_name, {
+                    u'完成': reverse('admin:-group-list'),
+                    u'查看': reverse('admin:-group-show', args=(group.pk,)),
+                }, False)
+        log(request, log.ERROR, u'%s用户组失败' % action_name, action, form=form)
+    else:
+        form = GroupForm(instance=group)
     return locals()

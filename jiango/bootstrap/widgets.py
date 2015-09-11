@@ -3,20 +3,17 @@
 # @author: Yefei
 from itertools import chain
 from django.forms import widgets
+from django import forms
 from django.utils.html import conditional_escape
 from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
+from django.contrib.admin.templatetags.admin_static import static
 
 
 class CheckboxSelectMultiple(widgets.CheckboxSelectMultiple):
-    BOOTSTRAP_CLASSES = {
-        2: 'checkbox inline',
-        3: 'checkbox-inline',
-    }
-    
-    def __init__(self, bootstrap_version=2, attrs=None, choices=()):
+    def __init__(self, class_name='checkbox inline', attrs=None, choices=()):
         super(CheckboxSelectMultiple, self).__init__(attrs, choices)
-        self.bootstrap_version = bootstrap_version
+        self.class_name = class_name
     
     def render(self, name, value, attrs=None, choices=()):
         if value is None: value = []
@@ -38,6 +35,24 @@ class CheckboxSelectMultiple(widgets.CheckboxSelectMultiple):
             option_value = force_unicode(option_value)
             rendered_cb = cb.render(name, option_value)
             option_label = conditional_escape(force_unicode(option_label))
-            output.append(u'<label class="%s"%s>%s %s</label>' % (self.BOOTSTRAP_CLASSES[self.bootstrap_version],
+            output.append(u'<label class="%s"%s>%s %s</label>' % (self.class_name,
                                                                   label_for, rendered_cb, option_label))
         return mark_safe(u'\n'.join(output))
+
+
+class FilteredSelectMultiple(widgets.SelectMultiple):
+    @property
+    def media(self):
+        return forms.Media(js=[static("js/bootstrap.selectfilter.js")])
+
+    def __init__(self, verbose_name, attrs=None, choices=()):
+        self.verbose_name = verbose_name
+        super(FilteredSelectMultiple, self).__init__(attrs, choices)
+
+    def render(self, name, value, attrs=None, choices=()):
+        if attrs is None:
+            attrs = {}
+        attrs['class'] = 'selectfilter'
+        output = [super(FilteredSelectMultiple, self).render(name, value, attrs, choices)]
+        output.append(u'<script type="text/javascript">SelectFilter.init("id_%s", "%s");</script>\n' % (name, self.verbose_name.replace('"', '\\"')))
+        return mark_safe(u''.join(output))

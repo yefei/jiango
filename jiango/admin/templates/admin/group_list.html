@@ -1,0 +1,26 @@
+<h2 class="page-header">
+	<a href="{% url admin:-index %}">系统</a>
+	/ 用户组 &nbsp;
+	<a href="{% url admin:-group-add %}" class="btn">添加用户组</a>
+</h2>
+
+<div class="row">
+	{% for i in group_set %}
+	<div class="span3">
+		<div class="panel panel-default">
+			<div class="panel-heading"><a href="{% url admin:-group-show i.pk %}">{{i.name}}</a></div>
+			<div class="panel-body">
+				{% if i.permissions.all %}
+				<ol>
+					{% for p in i.permissions.all %}
+						<li>{{p}}</li>
+					{% endfor %}
+				</ol>
+				{% else %}
+					<div style="text-align:center">-- 无任何权限 --</div>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+	{% endfor %}
+</div>
