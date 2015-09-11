@@ -22,28 +22,20 @@ class CaptchaWidget(MultiWidget):
     
     def format_output(self, rendered_widgets):
         hidden_field, text_field = rendered_widgets
-        return self._args.get('output_format') % {
-                                'image_tag':self.image_tag,
-                                'hidden_field':hidden_field,
-                                'text_field':text_field,
-                                'new_challenge_tag':self.new_challenge_tag}
+        self.output_attrs['hidden_field'] = hidden_field
+        self.output_attrs['text_field'] = text_field
+        return self._args.get('output_format') % self.output_attrs
     
     def render(self, name, value, attrs=None):
         key = create_crypted_challenge()
         value = [key, u'']
-        
         final_attrs = self.build_attrs(attrs)
-        id_ = final_attrs.get('id', None)
-        
-        self.image_tag = '<img src="%s" id="%s_image" />' % \
-            (reverse('jiango-captcha-image', kwargs={'key':key, 'ext':draw.image_ext}), id_)
-        
-        self.new_challenge_tag = """
-            <a href="javascript:;" onclick="$.getJSON('%(api)s',function(r){$('#%(id)s_image').attr('src',r.image);$('#%(id)s_0').val(r.key);});">%(new_challenge)s</a>
-        """.strip().replace('\n','') % {'api': reverse('jiango-captcha-json'),
-                                        'id': id_,
-                                        'new_challenge': _('Get a new challenge')}
-        
+        self.output_attrs = {
+            'id': final_attrs.get('id', None),
+            'image_url': reverse('jiango-captcha-image', kwargs={'key':key, 'ext':draw.image_ext}),
+            'api_url': reverse('jiango-captcha-json'),
+            'new_challenge': _('Get a new challenge'),
+        }
         return super(CaptchaWidget, self).render(name, value, attrs=attrs)
 
     # This probably needs some more love

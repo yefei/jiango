@@ -8,11 +8,10 @@ CAPTCHA_AGE = getattr(settings,'CAPTCHA_AGE', 60 * 60 * 1)
 
 CAPTCHA_OUTPUT_FORMAT = getattr(settings,'CAPTCHA_OUTPUT_FORMAT', """
 %(hidden_field)s
-<div>
-    <div style="float:left;width:100px;">%(image_tag)s</div>
-    <div style="float:left;width:80px;">%(text_field)s</div>
-    <div style="float:left;line-height:30px;padding-left:10px">%(new_challenge_tag)s</div>
-    <div class="clearfix"></div>
+%(text_field)s
+<div class="help-block">
+<img src="%(image_url)s" id="%(id)s_image">
+<a href="javascript:;" class="btn" onclick="$.getJSON('%(api_url)s',function(r){$('#%(id)s_image').attr('src',r.image);$('#%(id)s_0').val(r.key);});">%(new_challenge)s</a>
 </div>""")
 
 CAPTCHA_CHARS = 'ABCDEFGHJKLMNPRSTWXZV'
