@@ -204,3 +204,7 @@ class Log(models.Model):
                 return reverse(self.view_name, args=args, kwargs=kwargs)
             except NoReverseMatch:
                 pass
+    
+    def app_verbose_name(self):
+        from .loader import get_app_verbose_name
+        return get_app_verbose_name(self.app_label)

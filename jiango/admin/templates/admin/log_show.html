@@ -10,7 +10,7 @@
 	<b>动作:</b> {{result.get_action_display}}
 </p>
 <p>
-	<b>来源:</b> {{result.app_label}} &nbsp; &nbsp;
+	<b>来源:</b> {{result.app_verbose_name}} &nbsp; &nbsp;
 	{% if result.view_url %}
 		<b>查看链接:</b> <a href="{{result.view_url}}" target="_blank">{{result.view_url}}</a> &nbsp; &nbsp;
 	{% endif %}

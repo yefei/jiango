@@ -65,6 +65,16 @@ def get_navigation(request):
     return navigation
 
 
+def get_app_verbose_name(app_name):
+    for module, _app_name in loaded_modules.iteritems():
+        if app_name == _app_name:
+            verbose_name = getattr(module, 'verbose_name', capfirst(app_name))
+            if isfunction(verbose_name):
+                verbose_name = verbose_name(None)
+            return verbose_name
+    return capfirst(app_name)
+
+
 def admin_urls(module_name='admin'):
     autodiscover(module_name)
     for module, app_name in loaded_modules.iteritems():
