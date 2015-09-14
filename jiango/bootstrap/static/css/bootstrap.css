@@ -1459,12 +1459,24 @@ input[type="checkbox"][readonly] {
   background-color: transparent;
 }
 
-.control-group.warning .control-label,
-.control-group.warning .help-block,
-.control-group.warning .help-inline {
-  color: #c09853;
+.control-group.required .control-label:after {
+  content: "∗";
+  padding-left: 2px;
+  color: #b94a48;
+}
+.form-horizontal .control-group.required .control-label:after {
+  content: none;
+  padding-left: 0;
+}
+.form-horizontal .control-group.required .control-label:before {
+  content: "∗";
+  padding-right: 2px;
+  color: #b94a48;
 }
 
+.control-group.warning .control-label,
+.control-group.warning .help-block,
+.control-group.warning .help-inline,
 .control-group.warning .checkbox,
 .control-group.warning .radio,
 .control-group.warning input,
@@ -1500,10 +1512,7 @@ input[type="checkbox"][readonly] {
 
 .control-group.error .control-label,
 .control-group.error .help-block,
-.control-group.error .help-inline {
-  color: #b94a48;
-}
-
+.control-group.error .help-inline,
 .control-group.error .checkbox,
 .control-group.error .radio,
 .control-group.error input,
@@ -1539,10 +1548,7 @@ input[type="checkbox"][readonly] {
 
 .control-group.success .control-label,
 .control-group.success .help-block,
-.control-group.success .help-inline {
-  color: #468847;
-}
-
+.control-group.success .help-inline,
 .control-group.success .checkbox,
 .control-group.success .radio,
 .control-group.success input,
@@ -1578,10 +1584,7 @@ input[type="checkbox"][readonly] {
 
 .control-group.info .control-label,
 .control-group.info .help-block,
-.control-group.info .help-inline {
-  color: #3a87ad;
-}
-
+.control-group.info .help-inline,
 .control-group.info .checkbox,
 .control-group.info .radio,
 .control-group.info input,

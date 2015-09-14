@@ -11,9 +11,9 @@ from django.contrib.admin.templatetags.admin_static import static
 
 
 class CheckboxSelectMultiple(widgets.CheckboxSelectMultiple):
-    def __init__(self, class_name='checkbox inline', attrs=None, choices=()):
+    def __init__(self, label_class='checkbox inline', attrs=None, choices=()):
         super(CheckboxSelectMultiple, self).__init__(attrs, choices)
-        self.class_name = class_name
+        self.label_class = label_class
     
     def render(self, name, value, attrs=None, choices=()):
         if value is None: value = []
@@ -35,9 +35,19 @@ class CheckboxSelectMultiple(widgets.CheckboxSelectMultiple):
             option_value = force_unicode(option_value)
             rendered_cb = cb.render(name, option_value)
             option_label = conditional_escape(force_unicode(option_label))
-            output.append(u'<label class="%s"%s>%s %s</label>' % (self.class_name,
+            output.append(u'<label class="%s"%s>%s %s</label>' % (self.label_class,
                                                                   label_for, rendered_cb, option_label))
         return mark_safe(u'\n'.join(output))
+
+
+class RadioSelect(widgets.RadioSelect):
+    def __init__(self, label_class='radio inline', *args, **kwargs):
+        super(RadioSelect, self).__init__(*args, **kwargs)
+        self.label_class = label_class
+    
+    def render(self, name, value, attrs=None, choices=()):
+        r =  self.get_renderer(name, value, attrs, choices)
+        return mark_safe('\n'.join([unicode(i).replace('<label', '<label class="%s"' % self.label_class) for i in r]))
 
 
 class FilteredSelectMultiple(widgets.SelectMultiple):
