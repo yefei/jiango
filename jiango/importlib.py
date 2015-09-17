@@ -13,17 +13,15 @@ def autodiscover_installed_apps(module_name, recursion_package=False):
     def _find(app, namespaces):
         mod = import_module(app)
         try:
-            app_path = mod.__path__
-        except AttributeError:
-            return
-        
-        try:
-            imp.find_module(module_name, app_path)
             imported_modules.append((namespaces, import_module("%s.%s" % (app, module_name))))
         except ImportError:
             pass
         
         if recursion_package:
+            try:
+                app_path = mod.__path__
+            except AttributeError:
+                return
             for f in os.listdir(app_path[0]):
                 f = os.path.join(app_path[0], f)
                 if os.path.isdir(f):
