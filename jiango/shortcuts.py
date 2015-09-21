@@ -11,6 +11,32 @@ from django.db.models.expressions import F
 from jiango.serializers import get_serializer
 
 
+# 让客户端浏览器重新载入当前地址
+class HttpReload(Exception):
+    # remove_getvars 是否需要清除指定的 GETs
+    # 如果为列表参数则删除列表中指定的 GET 变量
+    # 如果为 True 则删除所有 GET 变量
+    # None 就什么都不做,直接重载当前地址
+    def __init__(self, remove_getvars=None):
+        self.remove_getvars = remove_getvars
+    
+    def response(self, request, response=None):
+        if response == None:
+            response = HttpResponse()
+        response.status_code = 302
+        if request.GET and self.remove_getvars == True:
+            location = request.path
+        elif request.GET and isinstance(self.remove_getvars, (tuple, list)):
+            getvars = request.GET.copy()
+            for k in self.remove_getvars:
+                del getvars[k]
+            location = '%s%s' % (request.path, getvars and ('?' + getvars.urlencode()) or '')
+        else:
+            location = request.get_full_path()
+        response['Location'] = location
+        return response
+
+
 def render_to_string(request, result, default_template, prefix=None, template_ext='html'):
     templates = [default_template]
     dictionary = None
@@ -62,7 +88,9 @@ def renderer(prefix=None, template_ext='html', content_type=settings.DEFAULT_CON
             response = HttpResponse(content_type=content_type)
             try:
                 result = func(request, response, *args, **kwargs)
-            except Exception, e:
+            except HttpReload as e:
+                return e.response(request, response)
+            except Exception as e:
                 if do_exception:
                     result = do_exception(request, response, e)
                 else:

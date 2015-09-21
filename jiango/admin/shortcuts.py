@@ -5,7 +5,7 @@ from functools import wraps
 from django.http import HttpResponse
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from jiango.shortcuts import render_to_string
+from jiango.shortcuts import render_to_string, HttpReload
 from .auth import login_required, logout_required, get_request_user
 from .models import Permission, Log, LogTypes
 
@@ -73,6 +73,8 @@ def renderer(prefix=None, default_extends_layout=True,
                     if perm:
                         has_perm(request, perm)
                     result = _func(request, response, *args, **kwargs)
+                except HttpReload as e:
+                    return e.response(request, response)
                 except (Alert, ObjectDoesNotExist) as e:
                     result = {}
                     if isinstance(e, Alert):
