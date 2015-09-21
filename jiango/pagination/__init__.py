@@ -41,9 +41,34 @@ class Paging(SafePaginator):
             return self.page_url(page_obj.next_page_number())
 
 
+class ReversePaging(SafePaginator):
+    def __init__(self, object_list, request, viewname, view_args=None, view_kwargs=None, per_page=30, field_name='page', *args, **kwargs):
+        self.request = request
+        self.viewname = viewname
+        self.view_args = view_args
+        self.view_kwargs = view_kwargs or {}
+        self.field_name = field_name
+        super(ReversePaging, self).__init__(object_list, per_page, *args, **kwargs)
+    
+    def page_url(self, page_number):
+        getvars = ''
+        if self.request.GET:
+            getvars = '?' + self.request.GET.urlencode()
+        self.view_kwargs[self.field_name] = page_number
+        return '%s%s' % (reverse(self.viewname, args=self.view_args, kwargs=self.view_kwargs), getvars)
+    
+    def previous_url(self, page_obj):
+        if page_obj.has_previous():
+            return self.page_url(page_obj.previous_page_number())
+    
+    def next_url(self, page_obj):
+        if page_obj.has_next():
+            return self.page_url(page_obj.next_page_number())
+
+
 def paginate(page_obj, window=4):
     assert isinstance(page_obj, Page), "%r is not %r object" % (page_obj, Page)
-    assert isinstance(page_obj.paginator, Paging), "%r is not %r object" % (page_obj.paginator, Paging)
+    assert isinstance(page_obj.paginator, (Paging, ReversePaging)), "%r is not %r object" % (page_obj.paginator, Paging)
     
     paginator = page_obj.paginator
     page_range = paginator.page_range

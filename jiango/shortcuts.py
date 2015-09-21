@@ -6,6 +6,8 @@ from django.http import HttpResponse
 from django.conf import settings
 from django.template.loader import render_to_string as _render_to_string
 from django.template.context import RequestContext
+from django.shortcuts import _get_queryset
+from django.db.models.expressions import F
 from jiango.serializers import get_serializer
 
 
@@ -125,3 +127,22 @@ def render_serialize(func_or_format):
     
     # @render_serialize
     return do_renderer(func_or_format) 
+
+
+def get_object_or_none(klass, *args, **kwargs):
+    queryset = _get_queryset(klass)
+    try:
+        return queryset.get(*args, **kwargs)
+    except queryset.model.DoesNotExist:
+        return None
+
+
+# 批量增加 model 实例中字段的数值并更新到数据库
+def incr_and_update_instance(instance, **fields):
+    if not fields:
+        return
+    updates = {}
+    for f,v in fields.items():
+        setattr(instance, f, getattr(instance, f) + v)
+        updates[f] = F(f) + v
+    instance._default_manager.filter(pk=instance.pk).update(**updates)
