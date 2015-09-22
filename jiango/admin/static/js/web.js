@@ -25,8 +25,7 @@ Web.modal_defaults = {
 	header: null,
 	body: '',
 	footer: null,
-	closeButton: true,
-	closeButtonHtml: '<button class="btn" data-dismiss="modal" aria-hidden="true">关闭</button>',
+	closeButton: '<button class="btn" data-dismiss="modal" aria-hidden="true">关闭</button>',
 	// bootstrap model options
 	backdrop: true,
 	keyboard: true,
@@ -45,7 +44,7 @@ Web.modal = function(options){
 	if (opts.footer || opts.closeButton) {
 		footer = $('<div></div>').addClass('modal-footer');
 		opts.footer && footer.append(opts.footer);
-		opts.closeButton && footer.append(opts.closeButtonHtml);
+		opts.closeButton && footer.append(opts.closeButton);
 	}
 	
 	var body = $('<div></div>').addClass('modal-body').append(opts.body);
