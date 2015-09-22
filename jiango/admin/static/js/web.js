@@ -21,6 +21,46 @@ Web.notify = function(tags, message){
 	if (Web._notify_audio) Web._notify_audio.play();
 };
 
+Web.modal_defaults = {
+	header: null,
+	body: '',
+	footer: null,
+	closeButton: true,
+	closeButtonHtml: '<button class="btn" data-dismiss="modal" aria-hidden="true">关闭</button>',
+	// bootstrap model options
+	backdrop: true,
+	keyboard: true,
+	show: true,
+	remote: false
+	
+};
+Web.modal = function(options){
+	var opts = $.extend({}, Web.modal_defaults, options);
+	var header = null, footer = null;
+	
+	if (opts.header) {
+		header = $('<div></div>').addClass('modal-header').append(opts.header);
+	}
+	
+	if (opts.footer || opts.closeButton) {
+		footer = $('<div></div>').addClass('modal-footer');
+		opts.footer && footer.append(opts.footer);
+		opts.closeButton && footer.append(opts.closeButtonHtml);
+	}
+	
+	var body = $('<div></div>').addClass('modal-body').append(opts.body);
+	var modal = $('<div></div>').addClass('modal fade').append(header).append(body).append(footer).modal({
+		backdrop: opts.backdrop,
+		keyboard: opts.keyboard,
+		show: opts.show,
+		remote: opts.remote
+	});
+	
+	modal.on('hidden', function(){
+		$(this).remove();
+	});
+};
+
 $(document).ajaxError(function(event, xhr, ajaxSettings, thrownError){
 	if (xhr.status >= 500 && xhr.status < 600) {
 		Web.notify('error', '500: 服务器程序错误');
@@ -42,10 +82,10 @@ $(document).ajaxError(function(event, xhr, ajaxSettings, thrownError){
 			body.html($.map(data.message, function(v){
 				return '<p>' + (v.label?'<label>'+v.label+'：</label>':'') + v.message + '</p>';
 			}));
-			//Boxy.alert(body);
+			Web.modal({body:body, header:'<b>请修正以下问题</b>'});
 			break;
 		case 'Deny':
-			//Boxy.alert(data.message);
+			Web.modal({body:data.message, header:'<b>操作被禁止</b>'});
 			break;
 		}
 	}
