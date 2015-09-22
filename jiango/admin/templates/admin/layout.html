@@ -1,14 +1,19 @@
-{% load staticfiles %}<!DOCTYPE html>
+{% load static %}<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="csrf-token" content="{{csrf_token}}">
 	<title>{% block title %}admin{% endblock %}</title>
 	<link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/jquery.toastmessage.css' %}">
 	<link rel="stylesheet" type="text/css" href="{% static 'css/admin.css' %}">
+	<script type="text/javascript">var static_prefix = '{% get_static_prefix %}';</script>
 	<script src="{% static 'js/jquery.js' %}"></script>
 	<script src="{% static 'js/bootstrap.js' %}"></script>
+	<script src="{% static 'js/jquery.toastmessage.js' %}"></script>
+	<script src="{% static 'js/web.js' %}"></script>
 </head>
 <body>
 	<div class="navbar navbar-inverse navbar-fixed-top">
@@ -45,5 +50,13 @@
 			{{content}}
 		{% endif %}
 	</div>
+
+	{% if messages %}
+	<script type="text/javascript">
+	{% for m in messages %}
+		Web.notify({{m.tags|json}}, {{m.message|json}});
+	{% endfor %}
+	</script>
+	{% endif %}
 </body>
 </html>

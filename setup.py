@@ -35,7 +35,7 @@ for dirpath, dirnames, filenames in os.walk('jiango'):
 
 setup(
     name = "jiango",
-    version = "0.1.4",
+    version = "0.1.5",
     author = 'Yefei',
     author_email = '316606233@qq.com',
     url = 'http://djangobbs.com',

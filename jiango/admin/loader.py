@@ -35,6 +35,7 @@ urlpatterns = [
     url(r'^-/group/add/$', views.group_edit, name='-group-add'),
     url(r'^-/group/(?P<group_id>\d+)/$', views.group_show, name='-group-show'),
     url(r'^-/group/(?P<group_id>\d+)/edit/$', views.group_edit, name='-group-edit'),
+    url(r'^-/group/(?P<group_id>\d+)/delete/$', views.group_delete, name='-group-delete'),
 ]
 
 

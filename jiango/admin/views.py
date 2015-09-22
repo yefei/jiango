@@ -4,6 +4,8 @@
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.utils.crypto import get_random_string
+from django.shortcuts import redirect
+from django.contrib import messages
 from jiango.pagination import Paging
 from .shortcuts import renderer, Alert, has_superuser, has_perm, Logger
 from .forms import AuthenticationForm, SetPasswordForm, UserForm, GroupForm
@@ -72,8 +74,8 @@ def set_password(request, response, user_id=None):
             log(request, log.SUCCESS, u'修改 %s 的登陆密码' % target_user, log.UPDATE)
             if user.pk == target_user.pk:
                 set_login_cookie(response, user)
-            raise Alert(Alert.SUCCESS, u'修改 %s 的登陆密码成功' % target_user,
-                        {u'返回':reverse('admin:-index')}, back=False)
+            messages.success(request, u'成功修改 %s 的登陆密码' % target_user)
+            return redirect('admin:-index')
         
         log(request, log.WARNING, u'修改 %s 的登陆密码' % target_user, log.UPDATE, form=form)
         
@@ -167,11 +169,21 @@ def group_edit(request, response, group_id=None):
             group = form.save()
             log(request, log.SUCCESS, u'%s %s 用户组' % (action_name, group), action,
                 view_name='admin:-group-show', view_args=(group.pk,), form=form)
-            raise Alert(Alert.SUCCESS, u'成功%s用户组' % action_name, {
-                    u'完成': reverse('admin:-group-list'),
-                    u'查看': reverse('admin:-group-show', args=(group.pk,)),
-                }, False)
+            messages.success(request, u'成功%s用户组' % action_name)
+            return redirect('admin:-group-show', group.pk)
         log(request, log.ERROR, u'%s用户组失败' % action_name, action, form=form)
     else:
         form = GroupForm(instance=group)
+    return locals()
+
+
+@render
+def group_delete(request, response, group_id):
+    has_superuser(request)
+    group = Group.objects.get(pk=group_id)
+    if request.method == 'POST':
+        log(request, log.SUCCESS, u'删除用户组: %s' % group, log.DELETE)
+        messages.success(request, u'删除完成')
+        group.delete()
+        return redirect('admin:-group-list')
     return locals()
