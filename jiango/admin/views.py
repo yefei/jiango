@@ -34,11 +34,14 @@ def login(request, response):
         form = AuthenticationForm(request.POST)
         if form.is_valid():
             user = form.get_user()
+            if not user.is_active:
+                log(request, log.WARNING, u'用户 %s 认证成功，由于账户已被停用而被禁止登陆' % user.username, log.LOGIN, user=user)
+                raise Alert(Alert.ERROR, u'您的帐号已经被停用')
             next_url = request.REQUEST.get(LOGIN_NEXT_FIELD, reverse('admin:-index'))
             resp = HttpResponseRedirect(next_url)
             set_login(user)
             set_login_cookie(resp, user)
-            log(request, log.SUCCESS, u'用户 %s 登陆成功' % user.username, log.LOGIN, user=form.get_user())
+            log(request, log.SUCCESS, u'用户 %s 登陆成功' % user.username, log.LOGIN, user=user)
             return resp
         log(request, log.WARNING, u'尝试登陆\n用户名: %s' % form.data.get('username',''),
             log.LOGIN, user=form.get_user(), form=form)
@@ -72,10 +75,11 @@ def set_password(request, response, user_id=None):
         if form.is_valid():
             target_user.update_password(form.cleaned_data['new'])
             log(request, log.SUCCESS, u'修改 %s 的登陆密码' % target_user, log.UPDATE)
-            if user.pk == target_user.pk:
-                set_login_cookie(response, user)
             messages.success(request, u'成功修改 %s 的登陆密码' % target_user)
-            return redirect('admin:-index')
+            resp = redirect('admin:-index')
+            if user.pk == target_user.pk:
+                set_login_cookie(resp, user)
+            return resp
         
         log(request, log.WARNING, u'修改 %s 的登陆密码' % target_user, log.UPDATE, form=form)
         
@@ -133,15 +137,27 @@ def user_edit(request, response, user_id=None):
                 raw_password = get_random_string(6)
                 form.instance.password_digest = get_password_digest(raw_password)
             user = form.save()
-            log(request, log.SUCCESS, u'%s %s 管理员' % (action_name, user), action,
+            log(request, log.SUCCESS, u'%s管理员: %s' % (action_name, user), action,
                 view_name='admin:-user-show', view_args=(user.pk,), form=form)
-            raise Alert(Alert.SUCCESS, u'成功%s管理员%s' % (action_name, u'，登陆密码: %s' % raw_password if raw_password else ''),{
-                    u'完成': reverse('admin:-user-list'),
-                    u'查看': reverse('admin:-user-show', args=(user.pk,)),
-                }, False)
+            messages.success(request,
+                             u'成功%s管理员%s' % (action_name, (u'，初始密码: %s' % raw_password) if raw_password else ''),
+                             'sticky' if raw_password else '')
+            return redirect('admin:-user-show', user.pk)
         log(request, log.ERROR, u'%s管理员失败' % action_name, action, form=form)
     else:
         form = UserForm(instance=user)
+    return locals()
+
+
+@render
+def user_delete(request, response, user_id):
+    has_superuser(request)
+    user = User.objects.get(pk=user_id)
+    if request.method == 'POST':
+        log(request, log.SUCCESS, u'删除用户: %s' % user, log.DELETE)
+        messages.success(request, u'删除完成')
+        user.delete()
+        return redirect('admin:-user-list')
     return locals()
 
 

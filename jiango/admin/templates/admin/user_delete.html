@@ -1,0 +1,19 @@
+<h2 class="page-header">
+	<a href="{% url admin:-index %}">系统</a>
+	/ <a href="{% url admin:-user-list %}">管理员</a>
+	/ <a href="{% url admin:-user-show user.pk %}">{{user}}</a>
+	/ 删除用户
+</h2>
+
+<blockquote>
+	<p>
+		您确定要删除用户 <b>{{user}}</b> 吗？<br><br>
+		<span style="color:red">注意：删除用户会将此用户相关的所有数据一同删除！</span><br>
+		提示：如果您只是想停用这个账户完全可以不用删除，只要<a href="{% url admin:-user-edit user.pk %}">编辑</a>用户将<b>有效用户</b>选项去除即可。
+	</p>
+</blockquote>
+
+<form method="post" action="">
+	{% csrf_token %}
+	<button type="submit" class="btn btn-danger btn-large">确认删除</button>
+</form>

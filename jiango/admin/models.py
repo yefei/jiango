@@ -3,6 +3,8 @@
 # @author: Yefei
 import hashlib
 from django.db import models
+from django.dispatch import receiver
+from django.db.models.signals import pre_delete
 from django.utils import timezone
 from django.utils.functional import cached_property
 from django.core.urlresolvers import reverse, NoReverseMatch
@@ -130,6 +132,12 @@ class User(models.Model):
         update_instance(self, request_at=(request_at or timezone.now()))
 
 
+@receiver(pre_delete, sender=User)
+def user_pre_delete(instance, **kwargs):
+    # 不采用 ForeignKey(on_delete=models.SET_NULL) 避免查询 Log.user 增强性能
+    Log.objects.filter(user=instance).update(user=None)
+
+
 class LogTypes(object):
     DEBUG = 10
     INFO = 20
@@ -165,7 +173,8 @@ class LogTypes(object):
 
 
 class Log(models.Model):
-    user = models.ForeignKey(User, null=True, verbose_name=u'用户')
+    user = models.ForeignKey(User, null=True, on_delete=models.DO_NOTHING, verbose_name=u'用户')
+    username = models.CharField(u'用户名', max_length=50, null=True)
     datetime = models.DateTimeField(u'时间', auto_now=True, db_index=True)
     level = models.SmallIntegerField(u'级别', db_index=True, choices=LogTypes.LEVELS, default=LogTypes.SUCCESS)
     action = models.SmallIntegerField(u'动作', db_index=True, choices=LogTypes.ACTIONS, default=LogTypes.NONE)
@@ -192,7 +201,7 @@ class Log(models.Model):
         return Log.objects.create(level=level, action=action, app_label=app_label,
                    content=content,view_name=view_name,
                    view_args=_view_args, view_kwargs=_view_kwargs,
-                   remote_ip=remote_ip, user=user)
+                   remote_ip=remote_ip, user=user, username=(unicode(user) if user else None))
     
     @cached_property
     def view_url(self):

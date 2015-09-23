@@ -14,7 +14,15 @@
 	{% if result.view_url %}
 		<b>查看链接:</b> <a href="{{result.view_url}}" target="_blank">{{result.view_url}}</a> &nbsp; &nbsp;
 	{% endif %}
-	<b>用户:</b> {{result.user}} &nbsp; &nbsp;
+	<b>用户:</b>
+	{% if result.user_id %}
+		<a href="{% url admin:-user-show result.user.pk %}" target="_blank">{{result.user.username}}</a>
+	{% elif result.username %}
+		{{result.username}} (已经被删除)
+	{% else %}
+		无
+	{% endif %}
+	&nbsp; &nbsp;
 	<b>客户端IP:</b> {{result.remote_ip}}
 </p>
 <pre>{{result.content}}</pre>

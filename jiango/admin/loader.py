@@ -30,6 +30,7 @@ urlpatterns = [
     url(r'^-/user/(?P<user_id>\d+)/$', views.user_show, name='-user-show'),
     url(r'^-/user/(?P<user_id>\d+)/edit/$', views.user_edit, name='-user-edit'),
     url(r'^-/user/(?P<user_id>\d+)/password/$', views.set_password, name='-user-password'),
+    url(r'^-/user/(?P<user_id>\d+)/delete/$', views.user_delete, name='-user-delete'),
     
     url(r'^-/group/$', views.group_list, name='-group-list'),
     url(r'^-/group/add/$', views.group_edit, name='-group-add'),

@@ -7,6 +7,7 @@
  * $('<p>Hello World!</p>').notify({sticky: true});
  * 
  * <p class="notify" data-notify-type="error">Error!</p>
+ * <p class="notify" data-notify-type="success sticky">Sticky Info</p>
  * $('.notify').notify();
  */
 
@@ -19,39 +20,43 @@
 			opacity: 'show'
 		},
 		inEffectDuration: 100,
-		stayTime: 3000,
+		stay: 5000,
 		sticky: false,
 		type: 'notice',
 		position: 'top-right',
 		sound: null
 	};
 	
+	function dataSetting(el, options, name) {
+		var data = el.data('notify-' + name);
+		if (data) options[name] = data;
+	};
+	
 	var Notify = function(el, options){
 		var el = $(el);
 		var $this = this;
-		var dataSettings = {}, data;
+		var dataSettings = {};
 		
-		data = el.data('notify-type');
-		if (data && types.indexOf(data) > -1) {
-			dataSettings['type'] = data;
-		}
+		$.each(['type','stay','position'], function(k, v){
+			dataSetting(el, dataSettings, v);
+		});
 		
-		data = el.data('notify-stay');
-		if (data) {
-			dataSettings['stayTime'] = data;
-		}
-		
-		data = el.data('notify-position');
-		if (data) {
-			dataSettings['position'] = data;
-		}
-		
-		data = el.data('notify-sticky');
-		if (data) {
-			dataSettings['sticky'] = data == 'yes' ? true : false;
+		if (el.data('notify-sticky')) {
+			dataSettings['sticky'] = el.data('notify-sticky') == 'yes' ? true : false;
 		}
 		
 		this.opts = $.extend({}, settings, dataSettings, typeof options == 'object' && options);
+		
+		// 检查 type 配置里面是否有 sticky 值
+		if (this.opts.type.indexOf('sticky') > -1) {
+			this.opts.sticky = true;
+			this.opts.type = $.trim(this.opts.type.replace('sticky',''));
+		}
+		
+		// 检查 type 类型是否支持
+		if (types.indexOf(this.opts.type) == -1) {
+			this.opts.type = settings.type;
+		}
 		
 		var wrapAll = (!$('.notify-container').length) ? $('<div></div>').addClass('notify-container').addClass('notify-position-' + this.opts.position).appendTo('body') : $('.notify-container');
 		var itemOuter = $('<div></div>').addClass('notify-item-wrapper');
@@ -62,7 +67,7 @@
 		$('<div></div>').addClass('notify-item-image').addClass('notify-item-image-' + this.opts.type).prependTo(this.itemInner);
 
         navigator.userAgent.match(/MSIE 6/i) && wrapAll.css({top: document.documentElement.scrollTop});
-		!this.opts.sticky && setTimeout(function(){$this.close()}, this.opts.stayTime);
+		!this.opts.sticky && setTimeout(function(){$this.close()}, this.opts.stay);
 		this.opts.sound && audio && audio.play();
 	};
 	
@@ -87,7 +92,7 @@
 	
 	$.fn.notify = function(options) {
 		return this.each(function () {
-			if (typeof options == 'string' && types.indexOf(options) > -1) {
+			if (typeof options == 'string') {
 				return new Notify(this, {type: options});
 			}
 			return new Notify(this, options);
