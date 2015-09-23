@@ -11,16 +11,11 @@ $.ajaxPrefilter(function(options, originalOptions, xhr){
 	}
 });
 
-if (window.HTMLAudioElement) {
-	Web._notify_audio = new Audio();
-	Web._notify_audio.src = static_prefix + 'audio/notify.wav';
-}
+$.notifySetup({sound: static_prefix + 'audio/notify.wav'});
 
-Web.notify = function(tags, message){
-	$().toastmessage('showToast', {text:message, type:tags});
-	if (Web._notify_audio) Web._notify_audio.play();
-};
-
+/**
+ * modal 浮层对话框
+ */
 Web.modal_defaults = {
 	header: null,
 	body: '',
@@ -31,7 +26,6 @@ Web.modal_defaults = {
 	keyboard: true,
 	show: true,
 	remote: false
-	
 };
 Web.modal = function(options){
 	var opts = $.extend({}, Web.modal_defaults, options);
@@ -60,18 +54,21 @@ Web.modal = function(options){
 	});
 };
 
+/**
+ * 全局 Ajax 错误处理
+ */
 $(document).ajaxError(function(event, xhr, ajaxSettings, thrownError){
 	if (xhr.status >= 500 && xhr.status < 600) {
-		Web.notify('error', '500: 服务器程序错误');
+		$('<p>500: 服务器程序错误</p>').notify('error');
 	}
 	else if (xhr.status == 401) {
-		Web.notify('error', '401: 未授权，请登陆帐号');
+		$('<p>401: 未授权，请登陆帐号</p>').notify('error');
 	}
 	else if (xhr.status == 403) {
-		Web.notify('error', '403: 没有权限');
+		$('<p>403: 没有权限</p>').notify('error');
 	}
 	else if (xhr.status == 404) {
-		Web.notify('error', '404: 请求的资源不存在');
+		$('<p>404: 请求的资源不存在</p>').notify('error');
 	}
 	else if (xhr.status == 422) {
 		var data = $.parseJSON(xhr.responseText);

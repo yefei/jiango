@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.utils.functional import cached_property
 from django.core.urlresolvers import reverse, NoReverseMatch
 from jiango.serializers import serialize, deserialize
+from jiango.shortcuts import update_instance
 from .config import ONLINE_TIMEOUT, SECRET_KEY_DIGEST, LOGIN_FAIL_LOCK_TIMES, LOGIN_MAX_FAILS
 
 
@@ -65,8 +66,7 @@ class User(models.Model):
         return '%s #%d' % (self.username, self.pk)
     
     def update_password(self, password_digest):
-        self.password_digest  = password_digest
-        User.objects.filter(pk=self.pk).update(password_digest=self.password_digest)
+        update_instance(self, password_digest=password_digest)
     
     @property
     def login_fail_lock_remain(self):
@@ -79,12 +79,12 @@ class User(models.Model):
         return self.login_fail_lock_remain > 0 and self.login_fails >= LOGIN_MAX_FAILS
     
     def update_login_fails(self, fails=1):
+        updates = {'login_fails':self.login_fails}
         if self.login_fail_at is None or self.login_fail_lock_remain == 0:
-            self.login_fail_at = timezone.now()
-            self.login_fails = 0
-        self.login_fails += fails
-        User.objects.filter(pk=self.pk).update(login_fail_at=self.login_fail_at,
-                                               login_fails=self.login_fails)
+            updates['login_fail_at'] = timezone.now()
+            updates['login_fails'] = 0
+        updates['login_fails'] += fails
+        update_instance(self, **updates)
     
     @cached_property
     def get_group_permissions(self):
@@ -127,8 +127,7 @@ class User(models.Model):
         return self.is_login and self.online_remain > 0
     
     def update_request_at(self, request_at=None):
-        self.request_at = request_at or timezone.now()
-        User.objects.filter(pk=self.pk).update(request_at=self.request_at)
+        update_instance(self, request_at=(request_at or timezone.now()))
 
 
 class LogTypes(object):

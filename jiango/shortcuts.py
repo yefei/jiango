@@ -165,6 +165,16 @@ def get_object_or_none(klass, *args, **kwargs):
         return None
 
 
+def update_instance(instance, **fields):
+    if not fields:
+        return
+    updates = {}
+    for f,v in fields.items():
+        setattr(instance, f, v)
+        updates[f] = v
+    instance._default_manager.filter(pk=instance.pk).update(**updates)
+
+
 # 批量增加 model 实例中字段的数值并更新到数据库
 def incr_and_update_instance(instance, **fields):
     if not fields:

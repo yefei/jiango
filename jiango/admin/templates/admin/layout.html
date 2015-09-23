@@ -7,12 +7,12 @@
 	<meta name="csrf-token" content="{{csrf_token}}">
 	<title>{% block title %}admin{% endblock %}</title>
 	<link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.css' %}">
-	<link rel="stylesheet" type="text/css" href="{% static 'css/jquery.toastmessage.css' %}">
+	<link rel="stylesheet" type="text/css" href="{% static 'css/jquery.notify.css' %}">
 	<link rel="stylesheet" type="text/css" href="{% static 'css/admin.css' %}">
 	<script type="text/javascript">var static_prefix = '{% get_static_prefix %}';</script>
 	<script src="{% static 'js/jquery.js' %}"></script>
 	<script src="{% static 'js/bootstrap.js' %}"></script>
-	<script src="{% static 'js/jquery.toastmessage.js' %}"></script>
+	<script src="{% static 'js/jquery.notify.js' %}"></script>
 	<script src="{% static 'js/web.js' %}"></script>
 </head>
 <body>
@@ -52,11 +52,12 @@
 	</div>
 
 	{% if messages %}
-	<script type="text/javascript">
-	{% for m in messages %}
-		Web.notify({{m.tags|json}}, {{m.message|json}});
-	{% endfor %}
-	</script>
+		<div style="display:none;">
+			{% for m in messages %}
+				<p class="notify" data-notify-type="{{m.tags}}">{{m.message}}</p>
+			{% endfor %}
+		</div>
+		<script type="text/javascript">$('.notify').notify();</script>
 	{% endif %}
 </body>
 </html>

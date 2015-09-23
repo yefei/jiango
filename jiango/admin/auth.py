@@ -79,6 +79,7 @@ def get_request_user(request):
     if hasattr(request, REQUEST_ADMIN_FIELD):
         return getattr(request, REQUEST_ADMIN_FIELD)
     user = get_user_from_auth_token(request.COOKIES.get(COOKIE_NAME))
+    user and user.update_request_at()
     setattr(request, REQUEST_ADMIN_FIELD, user)
     return user
 
