@@ -20,10 +20,5 @@ def json(var):
 
 
 @register.filter
-def xml(var):
-    return mark_safe(serialize('xml', var))
-
-
-@register.filter
 def yaml(var):
     return mark_safe(serialize('yaml', var))

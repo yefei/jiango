@@ -107,10 +107,10 @@ def response_serialize(value, output_format='json', options=None, response=None)
     if isinstance(value, HttpResponse):
         return value
     options = options if options else {}
-    serializer = get_serializer(output_format)()
+    serializer = get_serializer(output_format)
     response = response or HttpResponse()
     response.content = serializer.serialize(value, **options)
-    response['Content-Type'] = serializer.content_type
+    response['Content-Type'] = serializer.mimetype
     return response
 
 

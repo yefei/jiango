@@ -4,47 +4,39 @@ YAML serializer.
 Requires PyYaml (http://pyyaml.org/), but that's checked for in __init__.
 """
 from __future__ import absolute_import
-
 import yaml
 from cStringIO import StringIO
-from django.db.models.query import QuerySet, ValuesQuerySet, ValuesListQuerySet
-from django.core.serializers.python import Serializer as PythonSerializer
-from django.core.serializers.pyyaml import DjangoSafeDumper as _DjangoSafeDumper
-
-from .base import Serializer as BaseSerializer
-
-
-class DjangoSafeDumper(_DjangoSafeDumper):
-    def represent_values_queryset(self, data):
-        return self.represent_sequence('tag:yaml.org,2002:seq', [v for v in data])
-    
-    def represent_queryset(self, data):
-        s = PythonSerializer()
-        s.serialize(data)
-        return self.represent_sequence('tag:yaml.org,2002:seq', s.getvalue())
-
-DjangoSafeDumper.add_representer(ValuesListQuerySet, DjangoSafeDumper.represent_values_queryset)
-DjangoSafeDumper.add_representer(ValuesQuerySet, DjangoSafeDumper.represent_values_queryset)
-DjangoSafeDumper.add_representer(QuerySet, DjangoSafeDumper.represent_queryset)
+from django.db.models import Model
+from django.db.models.query import QuerySet, ValuesQuerySet
+from django.core.serializers.pyyaml import DjangoSafeDumper
+from .python import QuerySetSerializer
 
 
-class Serializer(BaseSerializer):
-    """
-    Convert a objects to YAML.
-    """
-    content_type = 'application/yaml'
-
-    def serialization(self):
-        yaml.dump(self.objects, self.stream, Dumper=DjangoSafeDumper, **self.options)
+MIME_TYPES = ('text/yaml',
+              'text/x-yaml',
+              'application/yaml',
+              'application/x-yaml')
 
 
-def Deserializer(stream_or_string, **options):
-    """
-    Deserialize a stream or string of YAML data.
-    """
+class SafeDumper(DjangoSafeDumper):
+    def represent_data(self, data):
+        if isinstance(data, ValuesQuerySet):
+            data = list(data)
+        
+        elif isinstance(data, QuerySet):
+            data = QuerySetSerializer().serialize(data)
+        
+        elif isinstance(data, Model):
+            data = QuerySetSerializer().serialize((data,))[0]
+        
+        return super(SafeDumper, self).represent_data(data)
+
+
+def serialize(obj, stream=None, **options):
+    return yaml.dump(obj, stream, Dumper=SafeDumper, **options)
+
+
+def deserialize(stream_or_string, **options):
     if isinstance(stream_or_string, basestring):
-        stream = StringIO(stream_or_string)
-    else:
-        stream = stream_or_string
-    return yaml.load(stream)
-
+        stream_or_string = StringIO(stream_or_string)
+    return yaml.load(stream_or_string)

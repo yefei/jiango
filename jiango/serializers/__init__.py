@@ -1,27 +1,26 @@
 """
-Interfaces for serializing Django objects.
+Interfaces for serializing objects.
 
 Usage::
 
     from jiango import serializers
     json = serializers.serialize("json", some_object)
-    objects = list(serializers.deserialize("json", json))
+    objects = serializers.deserialize("json", json)
 
 To add your own serializers, use the JIANGO_SERIALIZATION_MODULES setting::
 
     JIANGO_SERIALIZATION_MODULES = {
-        "csv" : "path.to.csv.serializer",
-        "txt" : "path.to.txt.serializer",
+        "csv" : "path.to.csv",
+        "txt" : "path.to.txt",
     }
 
 """
 
 from django.conf import settings
-from django.utils import importlib
+from django.utils.importlib import import_module
 
 # Built-in serializers
 BUILTIN_SERIALIZERS = {
-    "xml"    : "jiango.serializers.xml",
     "json"   : "jiango.serializers.json",
 }
 
@@ -32,85 +31,66 @@ try:
 except ImportError:
     pass
 
+
 _serializers = {}
 
-def register_serializer(format, serializer_module, serializers=None):
-    """Register a new serializer.
 
-    ``serializer_module`` should be the fully qualified module name
-    for the serializer.
+class Serializer:
+    def __init__(self, serialize, deserialize, mimetypes=None):
+        self.serialize = serialize
+        self.deserialize = deserialize
+        self.mimetypes = mimetypes
+        self.mimetype = mimetypes[0] if mimetypes else None
 
-    If ``serializers`` is provided, the registration will be added
-    to the provided dictionary.
 
-    If ``serializers`` is not provided, the registration will be made
-    directly into the global register of serializers. Adding serializers
-    directly is not a thread-safe operation.
-    """
-    if serializers is None and not _serializers:
-        _load_serializers()
-    module = importlib.import_module(serializer_module)
-    if serializers is None:
-        _serializers[format] = module
-    else:
-        serializers[format] = module
+def register_serializer(format_, serializer_module):
+    m = import_module(serializer_module)
+    _serializers[format_] = Serializer(serialize=m.serialize,
+                                       deserialize=m.deserialize,
+                                       mimetypes=getattr(m, 'MIME_TYPES', None))
 
-def unregister_serializer(format):
-    "Unregister a given serializer. This is not a thread-safe operation."
-    if format in _serializers:
-        del _serializers[format]
 
-def get_serializer(format):
-    if not _serializers:
-        _load_serializers()
-    assert format in _serializers, 'Unknown serializer "%s"' % format
-    return _serializers[format].Serializer
+def unregister_serializer(format_):
+    if format_ in _serializers:
+        del _serializers[format_]
+
 
 def get_serializer_formats():
-    if not _serializers:
-        _load_serializers()
     return _serializers.keys()
 
-def get_public_serializer_formats():
-    if not _serializers:
-        _load_serializers()
-    return [k for k, v in _serializers.iteritems() if not v.Serializer.internal_use_only]
 
-def get_deserializer(format):
-    if not _serializers:
-        _load_serializers()
-    assert format in _serializers, 'Unknown serializer "%s"' % format
-    return _serializers[format].Deserializer
+def get_serializer_mimetypes():
+    mimetypes = {}
+    for f,m in _serializers.items():
+        if not m.mimetypes:
+            continue
+        for t in m.mimetypes:
+            mimetypes[t] = f
+    return mimetypes
 
-def serialize(format, objects, **options):
-    """
-    Serialize a objects using a certain serializer.
-    """
-    s = get_serializer(format)()
-    s.serialize(objects, **options)
-    return s.getvalue()
 
-def deserialize(format, stream_or_string, **options):
-    """
-    Deserialize a stream or a string. Returns an iterator that yields ``(obj,
-    m2m_relation_dict)``, where ``obj`` is a instantiated -- but *unsaved* --
-    object, and ``m2m_relation_dict`` is a dictionary of ``{m2m_field_name :
-    list_of_related_objects}``.
-    """
-    d = get_deserializer(format)
-    return d(stream_or_string, **options)
+def get_serializer(format_):
+    assert format_ in _serializers, 'Unknown serializer "%s"' % format_
+    return _serializers[format_]
+
+
+def serialize(format_, obj, **options):
+    s = get_serializer(format_)
+    return s.serialize(obj, **options)
+
+
+def deserialize(format_, stream_or_string, **options):
+    s = get_serializer(format_)
+    return s.deserialize(stream_or_string, **options)
+
 
 def _load_serializers():
-    """
-    Register built-in and settings-defined serializers. This is done lazily so
-    that user code has a chance to (e.g.) set up custom settings without
-    needing to be careful of import order.
-    """
-    global _serializers
-    serializers = {}
-    for format in BUILTIN_SERIALIZERS:
-        register_serializer(format, BUILTIN_SERIALIZERS[format], serializers)
+    if _serializers:
+        return
+    for f, m in BUILTIN_SERIALIZERS.items():
+        register_serializer(f, m)
     if hasattr(settings, "JIANGO_SERIALIZATION_MODULES"):
-        for format in settings.JIANGO_SERIALIZATION_MODULES:
-            register_serializer(format, settings.JIANGO_SERIALIZATION_MODULES[format], serializers)
-    _serializers = serializers
+        for f, m in settings.JIANGO_SERIALIZATION_MODULES.items():
+            register_serializer(f, m)
+
+_load_serializers()

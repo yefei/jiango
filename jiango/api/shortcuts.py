@@ -4,29 +4,29 @@
 from functools import wraps
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
-from jiango.serializers import get_serializer, deserialize, get_public_serializer_formats
+from jiango.serializers import deserialize, get_serializer, get_serializer_formats, get_serializer_mimetypes
 from .utils import Param
 from .exceptions import APIError
 
 
-formats = get_public_serializer_formats()
-content_types = dict([(get_serializer(f).content_type, f) for f in formats])
+formats = get_serializer_formats()
+mimetypes = get_serializer_mimetypes()
 
 
 def render(func):
     @wraps(func)
     def wrapper(request, output_format, *args, **kwargs):
         status = 200
-        serializer = get_serializer(output_format)()
-        response = HttpResponse(content_type=serializer.content_type)
+        serializer = get_serializer(output_format)
+        response = HttpResponse(content_type=serializer.mimetype)
         
         try:
             request.param = Param(request.REQUEST)
             request.value = None
-            content_type = request.META.get('CONTENT_TYPE')
-            if content_type in content_types and request.body:
+            mimetype = request.META.get('CONTENT_TYPE')
+            if mimetype in mimetypes and request.body:
                 try:
-                    request.value = deserialize(content_types[content_type], request.body)
+                    request.value = deserialize(mimetypes[mimetype], request.body)
                 except Exception, e:
                     raise APIError(e.message)
             
