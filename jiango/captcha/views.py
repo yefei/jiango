@@ -8,7 +8,7 @@ from .draws import draw
 
 def captcha_image(request, key, ext):
     challenge  = decrypt_challenge(key)
-    if challenge is None:
+    if not challenge:
         raise Http404()
     buf = StringIO()
     draw.render(buf, challenge)
