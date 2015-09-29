@@ -10,7 +10,7 @@ from .settings import CAPTCHA_CHARS, CAPTCHA_LENGTH, CAPTCHA_AGE
 
 def create_crypted_challenge():
     challenge = get_random_string(CAPTCHA_LENGTH, CAPTCHA_CHARS)
-    return b64_encode(crypto_data.encode(challenge, CAPTCHA_AGE))
+    return b64_encode(crypto_data.encrypt(challenge, CAPTCHA_AGE))
 
 
 def decrypt_challenge(data):
@@ -18,25 +18,19 @@ def decrypt_challenge(data):
         data = b64_decode(smart_str(data))
     except TypeError:
         return None
-    return crypto_data.decode(data)
+    return crypto_data.decrypt(data)
 
 
 class CaptchaStore(object):
-    def __init__(self):
-        self._cache = cache
+    def __init__(self, key):
+        self.cache = cache
+        self.key = 'captcha:' + md5(key).hexdigest()
     
-    def _hash(self, key):
-        return md5(key).hexdigest()
+    def create(self):
+        self.cache.set(self.key, 1, CAPTCHA_AGE)
     
-    def create(self, key):
-        if self.exists(key):
-            func = self._cache.set
-        else:
-            func = self._cache.add
-        func(self._hash(key), None, CAPTCHA_AGE)
-    
-    def exists(self, key):
-        return self._cache.has_key(self._hash(key))
+    def exists(self):
+        return self.cache.has_key(self.key)
 
-    def delete(self, key):
-        self._cache.delete(self._hash(key))
+    def delete(self):
+        self.cache.delete(self.key)

@@ -35,9 +35,9 @@ class CaptchaField(MultiValueField):
         challenge = decrypt_challenge(value[0])
         if challenge is not None and challenge.lower() == value[1].lower():
             # 保证验证码一次性
-            store = CaptchaStore()
-            if not store.exists(value[0]):
-                store.create(value[0])
+            store = CaptchaStore(value[0])
+            if not store.exists():
+                store.create()
                 return value[1]
         
         raise ValidationError(self.error_messages['invalid'])

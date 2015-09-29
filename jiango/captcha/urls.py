@@ -1,8 +1,3 @@
-try:
-    import pyDes
-except ImportError:
-    raise Warning("Requires pyDes >=2.0.0")
-
 from django.conf.urls import url
 from .views import captcha_image, captcha_json
 

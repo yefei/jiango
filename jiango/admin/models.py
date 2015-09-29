@@ -188,8 +188,8 @@ class Log(models.Model):
     class Meta:
         ordering = ('-id',)
     
-    @staticmethod
-    def write(level=LogTypes.SUCCESS, app_label=None, content=None, action=LogTypes.NONE,
+    @classmethod
+    def write(cls, level=LogTypes.SUCCESS, app_label=None, content=None, action=LogTypes.NONE,
               view_name=None, view_args=None, view_kwargs=None,
               remote_ip=None, user=None):
         _view_args = None
@@ -198,7 +198,7 @@ class Log(models.Model):
             _view_args = serialize('json', view_args)
         if view_kwargs:
             _view_kwargs = serialize('json', view_kwargs)
-        return Log.objects.create(level=level, action=action, app_label=app_label,
+        return cls.objects.create(level=level, action=action, app_label=app_label,
                    content=content,view_name=view_name,
                    view_args=_view_args, view_kwargs=_view_kwargs,
                    remote_ip=remote_ip, user=user, username=(unicode(user) if user else None))

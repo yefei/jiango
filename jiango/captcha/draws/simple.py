@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import random
+from time import time
 try:
     from PIL import Image, ImageColor, ImageDraw, ImageFont
 except ImportError:
@@ -31,6 +31,7 @@ class CaptchaDraw(BaseDraw):
         im = self.im.copy()
         im2 = self.im.copy()
         x = 0
+        r_i = sum(ord(c) for c in value) # 根据验证码字符串产生一个固定数值
         for c in value:
             fgimg = Image.new('RGBA', self.size, self.font_color)
             charimg = Image.new('L', self.font.getsize(c), '#000000')
@@ -38,7 +39,8 @@ class CaptchaDraw(BaseDraw):
             draw = ImageDraw.Draw(charimg)
             draw.text((0,0), c, font=self.font, fill='#ffffff')
             
-            charimg = charimg.rotate(random.randint(-20,20), expand=1, resample=Image.BICUBIC)
+            r = (int(time()) / 1000 + ord(c) + r_i) % 40 - 20 # 计算一段时间内每个字符的旋转值
+            charimg = charimg.rotate(r, expand=1, resample=Image.BICUBIC)
             charimg = charimg.crop(charimg.getbbox())
             
             maskimg = Image.new('L', self.size)
@@ -46,7 +48,7 @@ class CaptchaDraw(BaseDraw):
             maskimg.paste(charimg, (x, y, charimg.size[0] + x, charimg.size[1] + y))
             
             im2 = Image.composite(fgimg, im2, maskimg)
-            x += charimg.size[0] - 3 # - X重叠值
+            x += charimg.size[0] - 5 # - X重叠值
         
         # 将生成的验证码 x 居中
         center = (im.size[0] - x) / 2

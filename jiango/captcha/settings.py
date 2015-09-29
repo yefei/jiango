@@ -4,7 +4,7 @@ from django.conf import settings
 thispath = lambda *p: os.path.join(os.path.dirname(__file__), *p)
 
 
-CAPTCHA_AGE = getattr(settings,'CAPTCHA_AGE', 60 * 60 * 1)
+CAPTCHA_AGE = getattr(settings,'CAPTCHA_AGE', 60 * 15)
 
 CAPTCHA_OUTPUT_FORMAT = getattr(settings,'CAPTCHA_OUTPUT_FORMAT', """
 %(hidden_field)s
@@ -18,8 +18,7 @@ CAPTCHA_CHARS = 'ABCDEFGHJKLMNPRSTWXZV'
 
 CAPTCHA_LENGTH = getattr(settings, 'CAPTCHA_LENGTH', 4) # Chars
 
-
-CAPTCHA_DRAWS = getattr(settings, 'CAPTCHA_DRAWS', {
+CAPTCHA_DRAWS = {
     'default': {
         'DRAW': 'jiango.captcha.draws.simple',
         'OPTIONS': {
@@ -31,6 +30,9 @@ CAPTCHA_DRAWS = getattr(settings, 'CAPTCHA_DRAWS', {
             'FONT_PATH': thispath('fonts','verdana.ttf'),
         }
     }
-})
+}
+
+if hasattr(settings, 'CAPTCHA_DRAWS'):
+    CAPTCHA_DRAWS.update(settings.CAPTCHA_DRAWS)
 
 CAPTCHA_DRAW = getattr(settings, 'CAPTCHA_DRAW', 'default')

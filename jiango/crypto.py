@@ -22,9 +22,9 @@ class CryptoData(object):
         self.keyb = md5(self.key_digest[8:]).digest()
     
     def get_data_key(self, data):
-        return md5(data + self.keyb).digest()[:8]
+        return md5(self.keyb + data).digest()[:8]
     
-    def encode(self, data, expiry=0):
+    def encrypt(self, data, expiry=0):
         ckey = ''
         if self.ckey_len > 0:
             ckey = md5(get_random_string(16)).digest()[:self.ckey_len]
@@ -33,7 +33,7 @@ class CryptoData(object):
         data = struct.pack(self.FMT % len(data), expiry, self.get_data_key(data), data)
         return ckey + self.xor(data, ckey)
     
-    def decode(self, data):
+    def decrypt(self, data):
         ckey = ''
         if self.ckey_len > 0:
             if len(data) < self.ckey_len + self.INFO_LEN:
@@ -50,24 +50,20 @@ class CryptoData(object):
         return False
     
     def xor(self, data, ckey=''):
-        cryptkey = self.keya + md5(self.keya + ckey).digest()
-        result = ''
+        cryptkey = md5(self.keya + ckey).digest()
+        result = []
         box = dict((i,i) for i in xrange(0,256))
         rndkey = dict((i, ord(cryptkey[i % 16])) for i in xrange(0,256))
         j = 0
         for i in xrange(0,256):
             j = (j + box[i] + rndkey[i]) % 256
-            tmp = box[i]
-            box[i] = box[j]
-            box[j] = tmp
+            box[i], box[j] = box[j], box[i]
         a = j = 0
         for i in xrange(0, len(data)):
             a = (a + 1) % 256
             j = (j + box[a]) % 256
-            tmp = box[a]
-            box[a] = box[j]
-            box[j] = tmp
-            result += chr(ord(data[i]) ^ (box[(box[a] + box[j]) % 256]))
-        return result
+            box[a], box[j] = box[j], box[a]
+            result.append(chr(ord(data[i]) ^ (box[(box[a] + box[j]) % 256])))
+        return ''.join(result)
 
 crypto_data = CryptoData()
