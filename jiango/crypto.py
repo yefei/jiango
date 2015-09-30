@@ -52,8 +52,8 @@ class CryptoData(object):
     def xor(self, data, ckey=''):
         cryptkey = md5(self.keya + ckey).digest()
         result = []
-        box = dict((i,i) for i in xrange(0,256))
-        rndkey = dict((i, ord(cryptkey[i % 16])) for i in xrange(0,256))
+        box = range(0, 256)
+        rndkey = [ord(cryptkey[i % 16]) for i in xrange(0, 256)]
         j = 0
         for i in xrange(0,256):
             j = (j + box[i] + rndkey[i]) % 256
