@@ -4,18 +4,20 @@
 	/ {{group}}
 </h2>
 
-<ul class="inline">
-	<li><b>组名称:</b> {{group.name}}</li>
-</ul>
-
-<ul class="inline">
-	<li><b>权限:</b></li>
-{% for i in group.permissions.all %}
-	<li>{{i}}</li>
-{% empty %}
-	<li><i>无</i></li>
-{% endfor %}
-</ul>
+<table class="table">
+	<thead>
+	<tr><th width="180">组名称:</th><td>
+		{{group.name}}
+	</td></tr>
+	<tr><th>权限:</th><td>
+		{% for i in group.permissions.all %}
+			<span class="label label-info">{{i}}</span>
+		{% empty %}
+			无
+		{% endfor %}
+	</td></tr>
+	</thead>
+</table>
 
 <p>
 	<a href="{% url admin:-group-edit group.pk %}" class="btn">修改</a>

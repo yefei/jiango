@@ -4,33 +4,44 @@
 	/ {{user}}
 </h2>
 
-<ul class="inline">
-	<li><b>加入于:</b> {{user.join_at}}</li>
-	<li><b>最近登录于:</b> {{user.login_at}}</li>
-	<li><b>最近登录失败于:</b> {{user.login_fail_at}} ({{user.login_fails}})</li>
-</ul>
-<ul class="inline">
-	<li><b>有效用户:</b> {{user.is_active|yesno:'是,否'}}</li>
-	<li><b>超级用户:</b> {{user.is_superuser|yesno:'是,否'}}</li>
-</ul>
-
-<ul class="inline">
-	<li><b>用户组:</b></li>
-{% for i in user.groups.all %}
-	<li>{{i}}</li>
-{% empty %}
-	<li><i>无</i></li>
-{% endfor %}
-</ul>
-
-<ul class="inline">
-	<li><b>附加权限:</b></li>
-{% for i in user.permissions.all %}
-	<li>{{i}}</li>
-{% empty %}
-	<li><i>无</i></li>
-{% endfor %}
-</ul>
+<table class="table table-info">
+	<thead>
+	<tr><th>用户名:</th><td>
+		{{user.username}}
+	</td></tr>
+	<tr><th>加入于:</th><td>
+		{{user.join_at}}, {{user.join_at|timesince}}前
+	</td></tr>
+	<tr><th>最近登录于:</th><td>
+		{{user.login_at|default:'从未'}}{% if user.login_at %}, {{user.login_at|timesince}}前{% endif %}
+	</td></tr>
+	<tr><th>最近登录失败于:</th><td>{{user.login_fail_at|default:'从未'}} ({{user.login_fails}})</td></tr>
+	<tr><th>状态:</th><td>
+		{% if user.is_active %}
+			<span class="label label-success">有效用户</span>
+		{% else %}
+			<span class="label">无效用户</span>
+		{% endif %}
+		{% if user.is_superuser %}
+			<span class="label label-important">超级用户</span>
+		{% endif %}
+	</td></tr>
+	<tr><th>用户组:</th><td>
+		{% for i in user.groups.all %}
+			<span class="label label-info">{{i}}</span>
+		{% empty %}
+			无
+		{% endfor %}
+	</td></tr>
+	<tr><th>附加权限:</th><td>
+		{% for i in user.permissions.all %}
+			<span class="label label-info">{{i}}</span>
+		{% empty %}
+			无
+		{% endfor %}
+	</td></tr>
+	</thead>
+</table>
 
 <p>
 	<a href="{% url admin:-user-password user.pk %}" class="btn">修改用户密码</a>

@@ -5,7 +5,7 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="csrf-token" content="{{csrf_token}}">
-	<title>{% block title %}admin{% endblock %}</title>
+	<title>{% block title %}管理中心{% endblock %}</title>
 	<link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.css' %}">
 	<link rel="stylesheet" type="text/css" href="{% static 'css/jquery.notify.css' %}">
 	<link rel="stylesheet" type="text/css" href="{% static 'css/admin.css' %}">
@@ -22,7 +22,13 @@
 				<a class="brand" href="{% url admin:-index %}">管理中心</a>
 				<ul class="nav pull-right">
 					{% if user %}
-						<li><a href="{% url admin:-user-show user.pk %}">{{user.username}}</a></li>
+						<li class="dropdown">
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown">{{user.username}} <i class="caret"></i></a>
+							<ul class="dropdown-menu">
+								<li><a href="{% url admin:-user-show user.pk %}">我的信息</a></li>
+								<li><a href="{% url admin:-password %}">修改登陆密码</a></li>
+							</ul>
+						</li>
 						<li><a href="{% url admin:-index %}">系统</a></li>
 						<li><a href="{% url admin:-logout %}">退出</a></li>
 					{% else %}
@@ -32,7 +38,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="container-fluid">
+	<div class="container-fluid" >
 		{% if navigation %}
 		<div class="row">
 			<div class="span2 sidebar">
@@ -43,10 +49,12 @@
 				</ul>
 			</div>
 			<div class="offset2 main">
+				{% include 'admin/browser-check.inc.html' %}
 				{{content}}
 			</div>
 		</div>
 		{% else %}
+			{% include 'admin/browser-check.inc.html' %}
 			{{content}}
 		{% endif %}
 	</div>
