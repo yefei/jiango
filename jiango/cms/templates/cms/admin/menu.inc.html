@@ -1,0 +1,5 @@
+<ul class="nav nav-tabs">
+	<li{% if current_view == 'index' %} class="active"{% endif %}><a href="{% url admin:cms:index %}">仪表板</a></li>
+	<li{% if current_view == 'content' %} class="active"{% endif %}><a href="{% url admin:cms:content %}">内容管理</a></li>
+	<li{% if current_view == 'column' %} class="active"{% endif %}><a href="{% url admin:cms:column %}">栏目管理</a></li>
+</ul>
