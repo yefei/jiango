@@ -130,3 +130,18 @@ class Logger(LogTypes):
         
         return Log.write(level, self.app_label, content, action,
                          view_name, view_args, view_kwargs, remote_ip, user)
+    
+    def debug(self, request, content, *args, **kwargs):
+        return self(request, LogTypes.DEBUG, content, *args, **kwargs)
+    
+    def info(self, request, content, *args, **kwargs):
+        return self(request, LogTypes.INFO, content, *args, **kwargs)
+    
+    def success(self, request, content, *args, **kwargs):
+        return self(request, LogTypes.SUCCESS, content, *args, **kwargs)
+    
+    def warning(self, request, content, *args, **kwargs):
+        return self(request, LogTypes.WARNING, content, *args, **kwargs)
+    
+    def error(self, request, content, *args, **kwargs):
+        return self(request, LogTypes.ERROR, content, *args, **kwargs)
