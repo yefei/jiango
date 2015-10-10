@@ -1,31 +1,31 @@
 <table class="table table-striped">
 	<thead>
 		<tr>
-			<th width="50" style="text-align:center">序号</th>
-			<th width="30">级别</th>
-			<th width="30">动作</th>
+			<th class="number">序号</th>
+			<th class="nowrap">级别</th>
+			<th class="nowrap">动作</th>
 			<th>内容</th>
-			<th width="120">用户</th>
-			<th width="110">时间</th>
+			<th class="user">用户</th>
+			<th class="datetime">时间</th>
 		</tr>
 	</thead>
 	<tbody>
 		{% for i in log_set %}
 		<tr>
-			<td style="text-align:center">{{i.pk}}</td>
-			<td>{{i.get_level_display}}</td>
-			<td>{{i.get_action_display}}</td>
+			<td class="number">{{i.pk}}</td>
+			<td class="nowrap">{{i.get_level_display}}</td>
+			<td class="nowrap">{{i.get_action_display}}</td>
 			<td>{{i.content|truncatechars:60}}
 				<a href="{% url admin:-log-show i.pk %}" class="btn btn-mini pull-right">详细</a>
 			</td>
-			<td>
+			<td class="user">
 				{% if i.user %}
 					<a href="{% url admin:-user-show i.user.pk %}" target="_blank">{{i.user.username}}</a>
 				{% elif i.username %}
 					<span title="已经被删除">{{i.username}}</span>
 				{% endif %}
 			</td>
-			<td><small>{{i.datetime}}</small></td>
+			<td class="datetime">{{i.datetime}}</td>
 		</tr>
 		{% endfor %}
 	</tbody>
