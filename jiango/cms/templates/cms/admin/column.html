@@ -1,1 +1,32 @@
 {% include 'cms/admin/menu.inc.html' with current_view='column' %}
+
+<table class="table" style="margin-top:-20px">
+	<thead>
+		<tr>
+			<th class="number">ID</th>
+			<th>路径</th>
+			<th width="200">栏目名称</th>
+			<th class="datetime">修改日期</th>
+			<th class="user">修改人</th>
+			<th class="number">浏览量</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for i in column_set %}
+		<tr>
+			<td class="number">{{i.pk}}</td>
+			<td>{{i.path}}</td>
+			<td>{{i.name}}</td>
+			<td class="datetime">{{i.update_at}}</td>
+			<td class="user">{{i.update_user}}</td>
+			<td class="number">{{i.views}}</td>
+		</tr>
+		{% endfor %}
+	</tbody>
+	<tfoot>
+		<tr>
+			<td></td>
+			<td colspan="5"><a href="{% url admin:cms:column-create %}" class="btn"><i class="icon-plus"></i> 新建栏目</a></td>
+		</tr>
+	</tfoot>
+</table>
