@@ -4,7 +4,7 @@
 from django.conf.urls import url
 from django.contrib import messages
 from django.shortcuts import redirect
-from jiango.admin.shortcuts import renderer, Logger
+from jiango.admin.shortcuts import renderer, Logger, ModelLogger
 from jiango.admin.auth import get_request_user
 from .models import Column
 from .forms import ColumnForm
@@ -20,7 +20,7 @@ def index(request, response):
 
 @render
 def column(request, response):
-    column_set = Column.objects.select_related('update_user')
+    column_set = Column.objects.select_related('update_user').order_by('path')
     return locals()
 
 
@@ -28,15 +28,16 @@ def column(request, response):
 def column_edit(request, response, column_id=None):
     user = get_request_user(request)
     instance = Column.objects.get(pk=column_id) if column_id else None
+    model_log = ModelLogger(instance)
     form = ColumnForm(request.POST or None, instance=instance)
     if form.is_valid():
         if not instance:
             form.instance.create_user = user
         form.instance.update_user = user
-        form.save()
-        message = (instance and u'修改' or u'创建') + u'栏目'
-        log.success(request, message, log.CREATE)
-        messages.success(request, message + u'成功')
+        obj = form.save()
+        message = (instance and u'修改' or u'创建') + u'栏目: ' + unicode(obj)
+        log.success(request, model_log.message(obj), log.CREATE)
+        messages.success(request, message + u' 成功')
         return redirect('admin:cms:column')
     return locals()
 

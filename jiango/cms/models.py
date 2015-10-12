@@ -41,6 +41,15 @@ class Column(models.Model):
     
     class Meta:
         ordering = ('sort',)
+    
+    def __unicode__(self):
+        return self.path
+    
+    @property
+    def parent_path(self):
+        if self.depth > 0:
+            return '/'.join(self.path.split('/')[:-1])
+        return ''
 
 
 @receiver(signals.pre_save, sender=Column)
@@ -48,9 +57,8 @@ def on_column_pre_save(instance, **kwargs):
     instance.path = instance.path.strip(' /')
     instance.depth = instance.path.count('/')
     if not instance.pk:
-        parent_path = '/'.join(instance.path.split('/')[:-1])
         try:
-            parent_last = Column.objects.children(parent_path).latest('sort')
+            parent_last = Column.objects.children(instance.parent_path).latest('sort')
             instance.sort = parent_last.sort + 1
         except Column.DoesNotExist:
             pass

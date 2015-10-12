@@ -145,3 +145,55 @@ class Logger(LogTypes):
     
     def error(self, request, content, *args, **kwargs):
         return self(request, LogTypes.ERROR, content, *args, **kwargs)
+
+
+class ModelLogger(object):
+    def __init__(self, instance=None):
+        self.instance_values = None
+        self.instance_class_name = None
+        self.instance_verbose_name = None
+        if instance:
+            self.instance_values = self.get_instance_values(instance)
+            self.instance_class_name = str(instance.__class__)
+            self.instance_verbose_name = instance._meta.verbose_name
+    
+    def get_instance_values(self, instance):
+        return [(f.attname, unicode(getattr(instance, f.attname))) for f in instance._meta.local_fields]
+    
+    def diff_values(self, new_instance):
+        if not self.instance_values:
+            return False
+        diff_values = []
+        for attname, orig_value in self.instance_values:
+            new_value = unicode(getattr(new_instance, attname))
+            if new_value != orig_value:
+                diff_values.append((attname, orig_value, new_value))
+        return diff_values
+    
+    def message(self, new_instance=None):
+        if not self.instance_values and not new_instance:
+            return ''
+        if not self.instance_values:
+            self.instance_class_name = str(new_instance.__class__)
+            self.instance_verbose_name = new_instance._meta.verbose_name
+        
+        output = [u'模型: ' + self.instance_class_name, u'名称: ' + self.instance_verbose_name]
+        
+        if not self.instance_values:
+            # 新增类型，无需记录差异数据
+            pass
+        elif not new_instance:
+            # 数据被删除
+            output.append(u'删除之前的数据为:')
+            for attname, orig_value in self.orig_values:
+                output.append(attname + ': ' + orig_value)
+        else:
+            # 数据被更新
+            diff_values = self.diff_values(new_instance)
+            if not diff_values:
+                output.append(u'没有变化')
+            else:
+                output.append(u'更新字段:')
+                for attname, orig_value, new_value in diff_values:
+                    output.append(attname + ': ' + orig_value + ' > ' + new_value)
+        return '\n'.join(output)
