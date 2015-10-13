@@ -2,7 +2,7 @@
 
 <ul class="breadcrumb" style="margin-top:-20px">
   <li><a href="{% url admin:cms:column %}">栏目管理</a></li>
-  <li class="active">创建栏目</li>
+  <li class="active">{% if instance %}修改栏目{% else %}创建栏目{% endif %}</li>
 </ul>
 
 <form method="post" action="" class="form" id="form">

@@ -37,3 +37,9 @@ def autodiscover_installed_apps(module_name, recursion_package=False):
         _find(app, recursion_package and [app_label] or app_label)
     
     return imported_modules
+
+
+def import_object(path):
+    mod_path, cls_name = path.rsplit('.', 1)
+    mod = import_module(mod_path)
+    return getattr(mod, cls_name)
