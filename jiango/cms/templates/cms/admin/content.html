@@ -1,1 +1,56 @@
+{% load bootstrap %}
 {% include 'cms/admin/menu.inc.html' with current_view='content' %}
+
+<style>
+<!--
+.children-column {
+	margin-top:-20px;
+	padding:8px 15px;
+	border:1px solid #ddd;
+	margin-bottom:20px;
+}
+.children-column > ul {
+	display:inline;
+}
+-->
+</style>
+
+<ul class="breadcrumb" style="margin-top:-20px">
+  <li><a href="{% url admin:cms:content %}">内容管理</a></li>
+  {% for i in column_select.breadcrumb %}
+  	<li{% if forloop.last %} class="active"{% endif %}><a href="{% url admin:cms:content-path i.path %}">{{i.name}}</a></li>
+  {% endfor %}
+  {% if is_content_edit %}
+  	<li>{% if content_id %}
+  		编辑内容: {{content.title}}
+  		{% else %}
+  		发布内容
+  		{% endif %}</li>
+  {% endif %}
+</ul>
+{% if column_select.children %}
+<div class="children-column">
+	子栏目：
+   	<ul class="inline">
+  	{% for i in column_select.children %}
+		<li><a href="{% url admin:cms:content-path i.path %}">{{i.name}}</a></li>
+	{% endfor %}
+	</ul>
+</div>
+{% endif %}
+
+{% if not is_content_edit %}
+	{% if column_select.selected %}
+		<a href="{% url admin:cms:content-create column_select.path %}" class="btn">发布内容</a>
+	{% endif %}
+	
+	
+	
+{% else %}
+	
+	<form action="" method="post" class="form">
+		{{form|bootstrap}}
+	</form>
+	
+{% endif %}
+

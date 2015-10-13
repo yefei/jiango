@@ -5,11 +5,13 @@ from django.db import models
 from django.db.models.deletion import SET_NULL
 from django.dispatch import receiver
 from django.db.models import signals
+from django.db.models.query import QuerySet
+from django.utils.datastructures import SortedDict
 from jiango.admin.models import User
 from .config import COLUMN_PATH_HELP
 
 
-class ColumnManager(models.Manager):
+class ColumnQuerySet(QuerySet):
     # 取得指定路径下的栏目, depth 可以选择获取深度， 0为一层 1为二层以此类推
     # Column.objects.children('news')
     def children(self, path='', depth=0):
@@ -25,6 +27,31 @@ class ColumnManager(models.Manager):
             qs = qs.filter(depth__gte=path_depth,
                            depth__lte=path_depth + depth)
         return qs
+    
+    # 返回树形字典
+    def tree(self, path=''):
+        qs = self.filter(path__istartswith=path + '/') if path else self.all()
+        out = SortedDict()
+        for i in qs:
+            ref = out
+            paths = i.path.split('/')
+            for p in paths[:-1]:
+                if not ref.has_key(p):
+                    ref[p] = (None, SortedDict())
+                ref = ref[p][1]
+            ref[paths[-1]] = (i, SortedDict())
+            #out['@'+i.path] = ref[paths[-1]]
+        return out
+
+class ColumnManager(models.Manager):
+    def get_query_set(self):
+        return ColumnQuerySet(self.model, using=self._db)
+    
+    def children(self, path='', depth=0):
+        return self.get_query_set().children(path, depth)
+    
+    def tree(self, path=''):
+        return self.get_query_set().tree(path)
 
 
 class Column(models.Model):
@@ -65,4 +92,7 @@ def on_column_pre_save(instance, **kwargs):
 
 
 class Content(models.Model):
-    column = models.ForeignKey(Column)
+    column = models.ForeignKey(Column, editable=False)
+    path = models.CharField(u'栏目路径', max_length=200, db_index=True, editable=False)
+    depth = models.SmallIntegerField(u'栏目深度', db_index=True, editable=False)
+    title = models.CharField(u'标题', max_length=200)
