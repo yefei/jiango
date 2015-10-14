@@ -1,0 +1,45 @@
+<form action="" method="post">
+	{% csrf_token %}
+	<table class="table">
+		<thead>
+			<tr>
+				<th class="nowrap"><input type="checkbox"></th>
+				<th class="number">ID</th>
+				<th class="nowrap">所属栏目</th>
+				<th>标题</th>
+				<th class="datetime">修改日期</th>
+				<th class="user">修改人</th>
+				<th class="number">浏览量</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for i in content_set %}
+			<tr>
+				<td><input type="checkbox" name="id" value="{{i.pk}}"></td>
+				<td class="number">{{i.pk}}</td>
+				<td class="nowrap">
+					<a href="{{i.column.get_absolute_url}}" target="_blank">{{i.column.name}}</a>
+				</td>
+				<td><a href="{{i.get_absolute_url}}" target="_blank">{{i}}</a>
+					{% if i.is_hidden %}<span class="label">隐藏</span>{% endif %}
+					<div class="pull-right">
+						<a href="{% url admin:cms:content-edit i.column.path, i.pk %}?next={{request.get_full_path|urlencode}}"
+							class="btn btn-mini">修改</a>
+					</div>
+				</td>
+				<td class="datetime">{{i.update_at}}</td>
+				<td class="user">{{i.update_user}}</td>
+				<td class="number">{{i.views}}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan="2"></td>
+				<td colspan="5">
+					<a href="#" class="btn btn-danger"><i class="icon-fire icon-white"></i> 删除选中项</a>
+				</td>
+			</tr>
+		</tfoot>
+	</table>
+</form>

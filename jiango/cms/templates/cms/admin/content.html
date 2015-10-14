@@ -1,4 +1,3 @@
-{% load bootstrap %}
 {% load admin_pagination %}
 {% include 'cms/admin/menu.inc.html' with current_view='content' %}
 
@@ -16,7 +15,7 @@
 -->
 </style>
 
-<ul class="breadcrumb" style="margin-top:-20px">
+<ul class="breadcrumb" style="margin-top:-20px;border:1px solid #ddd;border-top:none;border-bottom:none;">
   <li><a href="{% url admin:cms:content %}">内容管理</a></li>
   {% for i in column_select.breadcrumb %}
   	<li{% if forloop.last %} class="active"{% endif %}><a href="{% url admin:cms:content-path i.path %}">{{i.name}}</a></li>
@@ -83,11 +82,56 @@
 		<h2 style="text-align:center;">当前栏目不可发布内容</h2>
 	{% endif %}
 {% else %}
+	
+	{{form.media}}
+
+	{% if form.non_field_errors %}
+	    <div class="alert alert-error">
+	        <a class="close" data-dismiss="alert">&times;</a>
+	        {% for non_field_error in form.non_field_errors %}
+	             {{ non_field_error }}
+	        {% endfor %}
+	    </div>
+	{% endif %}
+	
 	<form action="" method="post" class="form" enctype="multipart/form-data">
 		{% csrf_token %}
-		{{form|bootstrap}}
-		<div style="text-align:center;margin-top:30px">
-			<button type="submit" class="btn btn-warning btn-large">确定</button>
-		</div>
+		{% for field in form.hidden_fields %}
+		    {{ field }}
+		{% endfor %}
+		<table style="width:100%"><tr>
+			<td style="vertical-align:top;">
+				{% for field in main_fields %}
+				    {% include 'bootstrap/field.html' %}
+				{% endfor %}
+			</td>
+			<td style="width:180px;padding-left:20px;vertical-align:top;">
+				<div data-spy="affix" data-offset-top="100" style="width:180px;top:50px">
+					<button type="submit" class="btn btn-success btn-large btn-block" style="margin-bottom:10px;">保存内容</button>
+					{% for field in meta_fields %}
+					    {% include 'bootstrap/field.html' %}
+					{% endfor %}
+					{% if content %}
+						<div class="well" style="padding:5px 8px 10px;font-size:12px;margin:20px 0;">
+							<ul class="nav nav-list" style="padding:0;">
+								<li class="nav-header">内容信息</li>
+								<li>浏览量: {{content.views}}</li>
+								<li class="divider"></li>
+								<li>创建人: {{content.create_user}}</li>
+								<li>创建于: {{content.create_at}}</li>
+								<li>更新人: {{content.update_user}}</li>
+								<li>更新于: {{content.update_at}}</li>
+							</ul>
+						</div>
+						{% if content.is_deleted %}
+							<a href="?recover={{content.pk}}" class="btn btn-block"><i class="icon-repeat"></i> 恢复删除内容</a>
+						{% else %}
+							<a href="?delete={{content.pk}}" class="btn btn-warning btn-block"
+								onclick="return confirm('您确定要将内容放入回收站吗？')"><i class="icon-trash icon-white"></i> 删除内容</a>
+						{% endif %}
+					{% endif %}
+				</div>
+			</td>
+		</tr></table>
 	</form>
 {% endif %}

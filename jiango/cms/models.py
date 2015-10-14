@@ -19,6 +19,15 @@ CONTENT_TEMPLATE_HELP = u'默认模版: cms/content'
 COLUMN_IMPORTED_OBJECTS = {}
 
 
+# 取得模型相关对象 model, form, index_view, list_view, content_view
+def get_model_object(model, key):
+    if model in CONTENT_MODELS and key in CONTENT_MODELS[model]:
+        cache_key = '-'.join((model, key))
+        if cache_key not in COLUMN_IMPORTED_OBJECTS:
+            COLUMN_IMPORTED_OBJECTS[cache_key] = import_object(CONTENT_MODELS[model][key])
+        return COLUMN_IMPORTED_OBJECTS[cache_key]
+
+
 class ColumnQuerySet(QuerySet):
     # 取得指定路径下的栏目, depth 可以选择获取深度， 0为一层 1为二层以此类推
     # Column.objects.children('news')
@@ -100,13 +109,8 @@ class Column(models.Model):
             return '/'.join(self.path.split('/')[:-1])
         return ''
     
-    # 取得模型相关对象 model, form, index_view, list_view, content_view
     def get_model_object(self, key):
-        if self.model and self.model in CONTENT_MODELS:
-            cache_key = '-'.join((self.model, key))
-            if cache_key not in COLUMN_IMPORTED_OBJECTS:
-                COLUMN_IMPORTED_OBJECTS[cache_key] = import_object(CONTENT_MODELS[self.model][key])
-            return COLUMN_IMPORTED_OBJECTS[cache_key]
+        return get_model_object(self.model, key)
 
 
 @receiver(signals.pre_save, sender=Column)
@@ -154,7 +158,7 @@ class ContentBase(models.Model):
     update_user = models.ForeignKey(User, null=True, on_delete=SET_NULL, editable=False, related_name='+')
     views = models.PositiveIntegerField(u'浏览量', db_index=True, default=0, editable=False)
     is_deleted = models.BooleanField(u'已删除?', db_index=True, default=False, editable=False)
-    is_hidden = models.BooleanField(u'隐藏', db_index=True, default=False)
+    is_hidden = models.BooleanField(u'隐藏 (在前台不显示)', db_index=True, default=False)
     objects = ContentManager()
     
     class Meta:

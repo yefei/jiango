@@ -14,9 +14,10 @@ LIST_PER_PAGE = 30
 # 内容模型
 CONTENT_MODELS = {
     'article': {
-        'name': u'文章模型',
+        'name': u'文章',
         'model': 'jiango.cms.models.Article',
         'form': 'jiango.cms.forms.ArticleForm',
+        #'form_meta_fields': ('is_hidden'),
         #'index_view': 'path.to.views.index',
         #'list_view': 'path.to.views.list',
         #'content_view': 'path.to.views.content',
