@@ -5,6 +5,10 @@ body {
 	padding-top: 40px;
 }
 
+.navbar-fixed-top, .navbar-fixed-bottom {
+    z-index: 530;
+}
+
 .navbar .brand {
 	font-family:'微软雅黑';
 	vertical-align:top;
@@ -40,7 +44,7 @@ body {
 	top: 40px;
 	bottom: 0;
 	left: 0;
-	z-index: 1000;
+	z-index: 500;
 	display: block;
 	padding: 20px;
 	overflow-x: hidden;
