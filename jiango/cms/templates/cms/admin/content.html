@@ -58,6 +58,7 @@
 				<tr>
 					<td class="number">{{i.pk}}</td>
 					<td><a href="{{i.get_absolute_url}}" target="_blank">{{i}}</a>
+						{% if i.is_hidden %}<span class="label">隐藏</span>{% endif %}
 						<div class="pull-right">
 							<a href="{% url admin:cms:content-edit column_select.path, i.pk %}" class="btn btn-mini">修改</a>
 						</div>

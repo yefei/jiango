@@ -1,0 +1,15 @@
+栏目: {{column.path}}<br>
+导航:
+{% for i in breadcrumb %}
+	<a href="{% url cms-column i.path %}">{{i.name}}</a>
+	{% if not forloop.last %}/{% endif %}
+{% endfor %}
+<br>
+{% if column_select.children %}
+	子栏目: 
+	{% for i in column_select.children %}
+		<a href="{% url cms-column i.path %}">{{i.name}}</a>
+		{% if not forloop.last %}|{% endif %}
+	{% endfor %}
+	<br>
+{% endif %}

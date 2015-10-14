@@ -16,7 +16,6 @@ INDEX_TEMPLATE_HELP = u'默认模版: cms/index'
 LIST_TEMPLATE_HELP = u'默认模版: cms/list'
 CONTENT_TEMPLATE_HELP = u'默认模版: cms/content'
 
-
 COLUMN_IMPORTED_OBJECTS = {}
 
 
@@ -132,8 +131,21 @@ def on_column_post_save(instance, **kwargs):
                                                          column_depth=instance.depth)
 
 
+class ContentQuerySet(QuerySet):
+    # 返回可用的内容
+    def available(self):
+        return self.filter(is_deleted=False, is_hidden=False)
+
+class ContentManager(models.Manager):
+    def get_query_set(self):
+        return ContentQuerySet(self.model, using=self._db)
+    
+    def available(self):
+        return self.get_query_set().available()
+
+
 class ContentBase(models.Model):
-    column = models.ForeignKey(Column, editable=False)
+    column = models.ForeignKey(Column, editable=False, related_name='+')
     column_path = models.CharField(u'栏目路径', max_length=200, db_index=True, editable=False)
     column_depth = models.SmallIntegerField(u'栏目深度', db_index=True, editable=False)
     create_at = models.DateTimeField(u'创建日期', auto_now_add=True, db_index=True)
@@ -141,6 +153,9 @@ class ContentBase(models.Model):
     create_user = models.ForeignKey(User, null=True, on_delete=SET_NULL, editable=False, related_name='+')
     update_user = models.ForeignKey(User, null=True, on_delete=SET_NULL, editable=False, related_name='+')
     views = models.PositiveIntegerField(u'浏览量', db_index=True, default=0, editable=False)
+    is_deleted = models.BooleanField(u'已删除?', db_index=True, default=False, editable=False)
+    is_hidden = models.BooleanField(u'隐藏', db_index=True, default=False)
+    objects = ContentManager()
     
     class Meta:
         abstract = True
