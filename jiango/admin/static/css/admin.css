@@ -125,3 +125,19 @@ body {
 .table td.datetime {
 	font-size:12px;
 }
+.table>tfoot>tr>td {
+	padding: 8px 0;
+	padding-top: 20px;
+}
+.table .pagination {
+	margin: 0;
+}
+
+/*
+ * utils
+ */
+i.sep {
+	font-style:normal;
+	color: #ddd;
+	margin: 0 5px;
+}

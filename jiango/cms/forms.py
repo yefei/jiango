@@ -2,9 +2,18 @@
 # Created on 2015-10-10
 # @author: Yefei
 from django import forms
-from jiango.shortcuts import get_object_or_none
-from .models import Column, Article, ArticleContent
-from .config import COLUMN_PATH_RE
+from jiango.importlib import import_object
+from .models import Column
+from .config import COLUMN_PATH_RE, CONTENT_ACTIONS, CONTENT_MODELS
+
+
+IMPORTED_ACTIONS = {}
+
+def get_action_form(action):
+    if action in CONTENT_ACTIONS:
+        if action not in IMPORTED_ACTIONS:
+            IMPORTED_ACTIONS[action] = import_object(CONTENT_ACTIONS[action]['form'])
+        return IMPORTED_ACTIONS[action]
 
 
 class ColumnForm(forms.ModelForm):
@@ -33,27 +42,16 @@ class ColumnEditForm(ColumnForm):
         exclude = ('model',)
 
 
-class ArticleForm(forms.ModelForm):
-    content = forms.CharField(label=u'内容', widget=forms.Textarea)
-    
-    class Meta:
-        model = Article
-    
-    def __init__(self, *args, **kwargs):
-        instance = kwargs.get('instance', None)
-        if instance:
-            content_obj = get_object_or_none(ArticleContent, article=instance)
-            if content_obj:
-                kwargs['initial'] = {'content': content_obj.content}
-        super(ArticleForm, self).__init__(*args, **kwargs)
-    
-    def save(self, commit=True):
-        obj = super(ArticleForm, self).save(commit)
-        content = self.cleaned_data['content']
-        content_obj = get_object_or_none(ArticleContent, article=obj)
-        if content_obj:
-            content_obj.content = content
-            content_obj.save()
-        else:
-            ArticleContent.objects.create(article=obj, content=content)
-        return obj
+class ActionForm(forms.Form):
+    model = forms.ChoiceField(choices=((i,i) for i in CONTENT_MODELS.keys()))
+    action = forms.CharField()
+
+
+class ActionBaseForm(forms.Form):
+    def execute(self):
+        pass
+
+
+class DeleteAction(ActionBaseForm):
+    pass
+

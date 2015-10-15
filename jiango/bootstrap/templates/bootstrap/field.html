@@ -16,7 +16,9 @@
             {% endif %}
         </div>
     {% else %}
-        <label class="control-label" for="{{ field.auto_id }}">{{ field.label }}</label>
+    	{% if field.label %}
+        	<label class="control-label" for="{{ field.auto_id }}">{{ field.label }}</label>
+		{% endif %}
 
         <div class="controls">
             {{ field }}

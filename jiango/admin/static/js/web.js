@@ -86,3 +86,20 @@ $(document).ajaxError(function(event, xhr, ajaxSettings, thrownError){
 		}
 	}
 });
+
+/**
+ * 全选/取消全选
+ * 如果 input 在 form 中则使用 form 的 context 否则使用 body
+ * 使用样例:
+ * 		<input type="checkbox" data-spy="checkall" data-for="[name='id']">
+ */
+$(window).on('load', function () {
+	$('input[type="checkbox"][data-spy="checkall"][data-for]').each(function(){
+		var context = this.form || document.body;
+		var checkfor = $(this).data('for');
+		$(this).click(function(){
+			var is = $(this).is(':checked');
+			$(checkfor, context).prop('checked', is);
+		});
+	});
+});

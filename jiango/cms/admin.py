@@ -11,8 +11,9 @@ from jiango.admin.shortcuts import renderer, Logger, ModelLogger, Alert
 from jiango.admin.auth import get_request_user
 from .util import column_path_wrap
 from .models import Column, get_model_object
-from .forms import ColumnForm, ColumnEditForm
-from .config import CONTENT_MODELS
+from .forms import ColumnForm, ColumnEditForm, ActionForm
+from .config import CONTENT_MODELS, CONTENT_ACTIONS
+
 
 render = renderer('cms/admin/')
 log = Logger('cms')
@@ -51,11 +52,23 @@ def content(request, response, column_select):
         Model = column.get_model_object('model')
         if Model:
             can_create_content = True
+            actions = CONTENT_ACTIONS
             content_set = Model.objects.filter(is_deleted=False, column=column).select_related('update_user')
             content_set = Paging(content_set, request).page()
     else:
         # 没有选择任何栏目则统计已知模型中的数据
         pass
+    return locals()
+
+
+@render
+def content_action(request, response):
+    action_form = ActionForm(request.POST)
+    if not action_form.is_valid():
+        raise Alert(Alert.ERROR, action_form.errors)
+    selected = request.POST.getlist('id')
+    if not selected:
+        raise Alert(Alert.ERROR, u'您没有勾选需要操作的内容')
     return locals()
 
 
@@ -156,6 +169,7 @@ urlpatterns = [
     url(r'^content/path/(?P<path>.*)/$', content, name='content-path'),
     url(r'^content/create/(?P<path>.*)/$', content_edit, name='content-create'),
     url(r'^content/edit/(?P<path>.*)/(?P<content_id>\d+)/$', content_edit, name='content-edit'),
+    url(r'^content/action/$', content_action, name='content-action'),
     
     url(r'^recycle/$', recycle, name='recycle'),
     url(r'^recycle/(?P<model>\w+)/$', recycle, name='recycle-model'),

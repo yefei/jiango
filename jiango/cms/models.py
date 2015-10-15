@@ -168,15 +168,3 @@ class ContentBase(models.Model):
     @models.permalink
     def get_absolute_url(self):
         return ('cms-content', [self.column_path, self.pk])
-
-
-class Article(ContentBase):
-    title = models.CharField(u'标题', max_length=200)
-    
-    def __unicode__(self):
-        return self.title
-
-
-class ArticleContent(models.Model):
-    article = models.OneToOneField(Article, primary_key=True, editable=False)
-    content = models.TextField(u'内容')

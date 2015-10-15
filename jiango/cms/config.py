@@ -3,6 +3,7 @@
 # @author: Yefei
 import re
 from django.conf import settings
+from django.utils.datastructures import SortedDict
 
 
 COLUMN_PATH_RE = re.compile(u'^[_\-\w\u4e00-\uE814]+$')
@@ -13,17 +14,33 @@ LIST_PER_PAGE = 30
 
 # 内容模型
 CONTENT_MODELS = {
-    'article': {
-        'name': u'文章',
-        'model': 'jiango.cms.models.Article',
-        'form': 'jiango.cms.forms.ArticleForm',
-        #'form_meta_fields': ('is_hidden'),
-        #'index_view': 'path.to.views.index',
-        #'list_view': 'path.to.views.list',
-        #'content_view': 'path.to.views.content',
-    },
+#    # 示例内容模型
+#    # 添加 jiango.cms.article 到 INSTALLED_APPS 才可使用
+#    'article': {
+#        'name': u'文章',
+#        'model': 'jiango.cms.article.models.Article',
+#        'form': 'jiango.cms.article.forms.ArticleForm',
+#        #'form_meta_fields': ('field',),
+#        #'index_view': 'path.to.views.index',
+#        #'list_view': 'path.to.views.list',
+#        #'content_view': 'path.to.views.content',
+#        #'actions': {}, # 如同 CONTENT_ACTIONS 配置，区别是只针对这个模型
+#    },
 }
 
 # 扩展模型
 if hasattr(settings, "JIANGO_CMS_MODELS"):
     CONTENT_MODELS.update(settings.JIANGO_CMS_MODELS)
+
+# 通用动作
+CONTENT_ACTIONS = SortedDict()
+CONTENT_ACTIONS['delete'] =  {
+    'name': u'删除内容',
+    'icon': 'icon-trash icon-white',
+    'button_class': 'btn-warning',
+    'form': 'jiango.cms.forms.DeleteAction',
+}
+
+# 扩展通用动作
+if hasattr(settings, "JIANGO_CMS_ACTIONS"):
+    CONTENT_MODELS.update(settings.JIANGO_CMS_ACTIONS)
