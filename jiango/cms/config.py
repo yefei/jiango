@@ -32,9 +32,11 @@ CONTENT_MODELS = {
 if hasattr(settings, "JIANGO_CMS_MODELS"):
     CONTENT_MODELS.update(settings.JIANGO_CMS_MODELS)
 
+# 内容列表分页数
+CONTENT_PER_PAGE = 100
 
 # 单次操作最多条数
-CONTENT_ACTION_MAX_RESULTS = 1000
+CONTENT_ACTION_MAX_RESULTS = 100
 
 # 通用动作
 CONTENT_ACTIONS = SortedDict()

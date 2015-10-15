@@ -12,7 +12,7 @@ from jiango.admin.auth import get_request_user
 from .util import column_path_wrap
 from .models import Column, get_model_object
 from .forms import ColumnForm, ColumnEditForm, ActionForm, RecycleClearForm
-from .config import CONTENT_MODELS, CONTENT_ACTION_MAX_RESULTS
+from .config import CONTENT_MODELS, CONTENT_ACTION_MAX_RESULTS, CONTENT_PER_PAGE
 
 
 render = renderer('cms/admin/')
@@ -55,7 +55,7 @@ def content(request, response, column_select):
             # 批量操作动作
             actions = column.get_content_actions()
             content_set = Model.objects.filter(is_deleted=False, column=column).select_related('update_user')
-            content_set = Paging(content_set, request).page()
+            content_set = Paging(content_set, request, CONTENT_PER_PAGE).page()
     else:
         # 没有选择任何栏目则统计已知模型中的数据
         pass
@@ -127,7 +127,7 @@ def recycle(request, response, model=None):
                 log.success(request, u'%s\nID: %s' % (msg, ','.join(selected)), log.DELETE)
                 messages.success(request, u'已完成' + msg)
         
-        content_set = Paging(content_set, request).page()
+        content_set = Paging(content_set, request, CONTENT_PER_PAGE).page()
     else:
         # 没有选择任何模型，则调用所有模型删除统计
         stats = {}
