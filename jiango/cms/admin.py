@@ -11,7 +11,7 @@ from jiango.admin.shortcuts import renderer, Logger, ModelLogger, Alert
 from jiango.admin.auth import get_request_user
 from .util import column_path_wrap
 from .models import Column, get_model_object
-from .forms import ColumnForm, ColumnEditForm, ActionForm
+from .forms import ColumnForm, ColumnEditForm, ActionForm, RecycleClearForm
 from .config import CONTENT_MODELS, CONTENT_ACTION_MAX_RESULTS
 
 
@@ -107,7 +107,7 @@ def content_action(request, response):
 @render
 def recycle(request, response, model=None):
     models = CONTENT_MODELS
-    selected_model = models.get(model, None)
+    selected_model = models.get(model)
     # 无效的 model
     if model and selected_model is None:
         return redirect('admin:cms:recycle')
@@ -115,12 +115,55 @@ def recycle(request, response, model=None):
     if selected_model:
         Model = get_model_object(model, 'model')
         content_set = Model.objects.filter(is_deleted=True).select_related('column','update_user')
+        
+        if request.method == 'POST':
+            action = request.POST.get('action')
+            selected = request.POST.getlist('pk')
+            if not selected:
+                raise Alert(Alert.ERROR, u'您没有勾选需要操作的内容')
+            if action == 'fire':
+                content_set.filter(pk__in=selected).delete()
+                msg = u'回收站批量删除: ' + selected_model.get('name')
+                log.success(request, u'%s\nID: %s' % (msg, ','.join(selected)), log.DELETE)
+                messages.success(request, u'已完成' + msg)
+        
         content_set = Paging(content_set, request).page()
     else:
-        # 没有选择任何模型，则调用所有模型最近删除项
-        pass
-    
+        # 没有选择任何模型，则调用所有模型删除统计
+        stats = {}
+        total_count = 0
+        for m,i in models.items():
+            M = get_model_object(m, 'model')
+            if not M: break
+            count = M.objects.filter(is_deleted=True).count()
+            total_count += count
+            stats[m] = {'name': i.get('name'), 'count': count}
     return locals()
+
+
+@render
+def recycle_clear(request, response, model):
+    is_clear_mode = True
+    models = CONTENT_MODELS
+    selected_model = models.get(model)
+    model_name = selected_model.get('name')
+    # 无效的 model
+    if selected_model is None:
+        return redirect('admin:cms:recycle')
+    
+    Model = get_model_object(model, 'model')
+    content_set = Model.objects.filter(is_deleted=True)
+    content_count = content_set.count()
+    
+    form = RecycleClearForm(content_count, request.POST or None)
+    if form.is_valid():
+        content_set.delete()
+        msg = u'清空回收站: ' + model_name
+        log.success(request, u'%s\n数量: %d' % (msg, content_count), log.DELETE)
+        messages.success(request, u'已完成' + msg)
+        return redirect('admin:cms:recycle')
+    
+    return 'recycle', locals()
 
 
 @render
@@ -205,6 +248,7 @@ urlpatterns = [
     
     url(r'^recycle/$', recycle, name='recycle'),
     url(r'^recycle/(?P<model>\w+)/$', recycle, name='recycle-model'),
+    url(r'^recycle/(?P<model>\w+)/clear/$', recycle_clear, name='recycle-model-clear'),
 ]
 
 PERMISSIONS = {

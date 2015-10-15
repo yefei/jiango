@@ -64,6 +64,20 @@ class ActionForm(forms.Form):
             return CONTENT_ACTIONS[action].get('name')
 
 
+class RecycleClearForm(forms.Form):
+    count = forms.IntegerField(label=u'请输入页面上显示的数量')
+    
+    def __init__(self, content_count, *args, **kwargs):
+        super(RecycleClearForm, self).__init__(*args, **kwargs)
+        self.content_count = content_count
+    
+    def clean_count(self):
+        count = self.cleaned_data['count']
+        if count != self.content_count:
+            raise forms.ValidationError(u'需要被数量不正确，建议检查回收站中是否有新增内容')
+        return count
+
+
 class ActionBaseForm(forms.Form):
     log_action = LogTypes.NONE
     
