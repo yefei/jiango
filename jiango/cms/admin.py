@@ -4,7 +4,7 @@
 from django.conf.urls import url
 from django.contrib import messages
 from django.shortcuts import redirect
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, QueryDict
 from jiango.shortcuts import update_instance
 from jiango.pagination import Paging
 from jiango.admin.shortcuts import renderer, Logger, ModelLogger, Alert
@@ -12,7 +12,7 @@ from jiango.admin.auth import get_request_user
 from .util import column_path_wrap
 from .models import Column, get_model_object
 from .forms import ColumnForm, ColumnEditForm, ActionForm
-from .config import CONTENT_MODELS, CONTENT_ACTIONS
+from .config import CONTENT_MODELS, CONTENT_ACTION_MAX_RESULTS
 
 
 render = renderer('cms/admin/')
@@ -52,7 +52,8 @@ def content(request, response, column_select):
         Model = column.get_model_object('model')
         if Model:
             can_create_content = True
-            actions = CONTENT_ACTIONS
+            # 批量操作动作
+            actions = column.get_content_actions()
             content_set = Model.objects.filter(is_deleted=False, column=column).select_related('update_user')
             content_set = Paging(content_set, request).page()
     else:
@@ -63,12 +64,43 @@ def content(request, response, column_select):
 
 @render
 def content_action(request, response):
-    action_form = ActionForm(request.POST)
+    # 二次确认提交才有此值
+    action_form_data = request.POST.get('__action_form_data')
+    action_form_post = QueryDict(action_form_data) if action_form_data else request.POST
+    
+    # 判断批量选择数据是否合法
+    action_form = ActionForm(action_form_post)
     if not action_form.is_valid():
         raise Alert(Alert.ERROR, action_form.errors)
-    selected = request.POST.getlist('id')
+    
+    selected = action_form_post.getlist('pk')
     if not selected:
         raise Alert(Alert.ERROR, u'您没有勾选需要操作的内容')
+    if len(selected) > CONTENT_ACTION_MAX_RESULTS:
+        raise Alert(Alert.ERROR, u'超过最大选择条数: %d' % CONTENT_ACTION_MAX_RESULTS)
+    
+    # 为二次确认提交准备
+    if not action_form_data:
+        action_form_data = action_form_post.urlencode()
+    
+    back = action_form.cleaned_data.get('back')
+    Model = action_form.get_model_object()
+    Form = action_form.get_form_object()
+    action_name = action_form.get_action_name()
+    content_set = Model.objects.filter(pk__in=selected).select_related('column','update_user')
+    
+    if request.POST.get('__confirm') == 'yes':
+        form = Form(content_set, request.POST, request.FILES)
+        if form.is_valid():
+            form.execute()
+            msg = u'批量执行: ' + action_name
+            log.success(request, u'%s\nID: %s\n表单数据: %s' % (msg, ','.join(selected), form.cleaned_data), form.log_action)
+            messages.success(request, u'已完成' + msg)
+            if back:
+                return HttpResponseRedirect(back)
+            return redirect('admin:cms:content')
+    else:
+        form = Form(content_set)
     return locals()
 
 

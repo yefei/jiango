@@ -9,7 +9,7 @@ from django.db.models.query import QuerySet
 from django.utils.datastructures import SortedDict
 from jiango.importlib import import_object
 from jiango.admin.models import User
-from .config import COLUMN_PATH_HELP, CONTENT_MODELS, LIST_PER_PAGE
+from .config import COLUMN_PATH_HELP, CONTENT_MODELS, LIST_PER_PAGE, CONTENT_ACTIONS
 
 
 INDEX_TEMPLATE_HELP = u'默认模版: cms/index'
@@ -26,6 +26,14 @@ def get_model_object(model, key):
         if cache_key not in COLUMN_IMPORTED_OBJECTS:
             COLUMN_IMPORTED_OBJECTS[cache_key] = import_object(CONTENT_MODELS[model][key])
         return COLUMN_IMPORTED_OBJECTS[cache_key]
+
+
+def get_model_actions(model):
+    actions = CONTENT_ACTIONS
+    model_actions = CONTENT_MODELS[model].get('actions')
+    if model_actions:
+        actions.update(model_actions)
+    return actions
 
 
 class ColumnQuerySet(QuerySet):
@@ -111,6 +119,9 @@ class Column(models.Model):
     
     def get_model_object(self, key):
         return get_model_object(self.model, key)
+    
+    def get_content_actions(self):
+        return get_model_actions(self.model)
 
 
 @receiver(signals.pre_save, sender=Column)
@@ -163,8 +174,11 @@ class ContentBase(models.Model):
     
     class Meta:
         abstract = True
-        ordering = ('-update_at',)
+        ordering = ('-pk',)
     
     @models.permalink
     def get_absolute_url(self):
         return ('cms-content', [self.column_path, self.pk])
+    
+    def is_available(self):
+        return not self.is_deleted and not self.is_hidden

@@ -36,6 +36,8 @@ def content_show(request, response, column_select, content_id):
     Model = column.get_model_object('model')
     if Model is None:
         raise Http404()
-    content = get_object_or_404(Model.objects.available(), pk=content_id)
+    content = get_object_or_404(Model, pk=content_id)
+    if not content.is_available() or content.column != column:
+        raise Http404()
     incr_and_update_instance(content, views=1)
     return column.content_template, 'content', locals()

@@ -32,10 +32,20 @@ CONTENT_MODELS = {
 if hasattr(settings, "JIANGO_CMS_MODELS"):
     CONTENT_MODELS.update(settings.JIANGO_CMS_MODELS)
 
+
+# 单次操作最多条数
+CONTENT_ACTION_MAX_RESULTS = 1000
+
 # 通用动作
 CONTENT_ACTIONS = SortedDict()
+CONTENT_ACTIONS['hide'] =  {
+    'name': u'隐藏/显示',
+    'icon': 'icon-eye-close',
+    #'button_class': '',
+    'form': 'jiango.cms.forms.HideAction',
+}
 CONTENT_ACTIONS['delete'] =  {
-    'name': u'删除内容',
+    'name': u'删除',
     'icon': 'icon-trash icon-white',
     'button_class': 'btn-warning',
     'form': 'jiango.cms.forms.DeleteAction',

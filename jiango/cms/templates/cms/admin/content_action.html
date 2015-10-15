@@ -1,0 +1,54 @@
+{% load admin_pagination %}
+{% include 'cms/admin/menu.inc.html' with current_view='content' %}
+
+<ul class="breadcrumb" style="margin-top:-20px;border:1px solid #ddd;border-top:none;">
+  <li><a href="{% url admin:cms:content %}">内容管理</a></li>
+  <li>批量操作: {{action_name}}</li>
+</ul>
+
+<form action="" method="post" class="form" enctype="multipart/form-data">
+	{% csrf_token %}
+	<input type="hidden" name="__action_form_data" value="{{action_form_data|escape}}">
+	<input type="hidden" name="__confirm" value="yes">
+	<table style="width:100%"><tr>
+		<td style="vertical-align:top;">
+			<table class="table">
+				<thead>
+					<tr>
+						<th class="number">ID</th>
+						<th class="nowrap">所属栏目</th>
+						<th>标题</th>
+						<th class="datetime">修改日期</th>
+						<th class="user">修改人</th>
+						<th class="number">浏览量</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for i in content_set %}
+					<tr>
+						<td class="number">{{i.pk}}</td>
+						<td class="nowrap">
+							<a href="{{i.column.get_absolute_url}}" target="_blank">{{i.column.name}}</a>
+						</td>
+						<td><a href="{{i.get_absolute_url}}" target="_blank">{{i}}</a>
+							{% if i.is_hidden %}<span class="label">隐藏</span>{% endif %}
+						</td>
+						<td class="datetime">{{i.update_at}}</td>
+						<td class="user">{{i.update_user}}</td>
+						<td class="number">{{i.views}}</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</td>
+		<td style="width:180px;padding-left:20px;vertical-align:top;">
+			<div data-spy="affix" data-offset-top="100" style="width:180px;top:50px">
+				{% if back %}
+					<a href="{{back}}" class="btn btn-block"><i class="icon-arrow-left"></i> 返回</a>
+				{% endif %}
+				<button type="submit" class="btn btn-success btn-large btn-block" style="margin-bottom:10px;">确定{{action_name}}</button>
+				{{form|bootstrap}}
+			</div>
+		</td>
+	</tr></table>
+</form>

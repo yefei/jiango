@@ -66,7 +66,7 @@ class ReversePaging(SafePaginator):
             return self.page_url(page_obj.next_page_number())
 
 
-def paginate(page_obj, window=4):
+def paginate(page_obj, window=1):
     assert isinstance(page_obj, Page), "%r is not %r object" % (page_obj, Page)
     assert isinstance(page_obj.paginator, (Paging, ReversePaging)), "%r is not %r object" % (page_obj.paginator, Paging)
     
@@ -82,7 +82,7 @@ def paginate(page_obj, window=4):
     current_start = page_obj.number-1-window
     if current_start < 0:
         current_start = 0
-    current_end = page_obj.number-1+window
+    current_end = page_obj.number+window
     if current_end < 0:
         current_end = 0
     current = set(page_range[current_start:current_end])
@@ -144,6 +144,7 @@ def paginate(page_obj, window=4):
         page_urls.append((page, paginator.page_url(page) if page else None))
     
     return {
+        'count': paginator.count,
         'pages': pages,
         'page_urls': page_urls,
         'previous_url': paginator.previous_url(page_obj),
