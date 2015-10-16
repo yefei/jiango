@@ -7,6 +7,7 @@ from django.dispatch import receiver
 from django.db.models import signals
 from django.db.models.query import QuerySet
 from django.utils.datastructures import SortedDict
+from django.utils.functional import cached_property
 from jiango.importlib import import_object
 from jiango.admin.models import User
 from .config import COLUMN_PATH_HELP, CONTENT_MODELS, LIST_PER_PAGE, CONTENT_ACTIONS
@@ -37,7 +38,7 @@ def get_model_actions(model):
 
 
 class ColumnQuerySet(QuerySet):
-    # 取得指定路径下的栏目, depth 可以选择获取深度， 0为一层 1为二层以此类推
+    # 取得指定路径下的栏目, depth 可以选择获取深度，-1所有层 0为一层 1为二层以此类推
     # Column.objects.children('news')
     def children(self, path='', depth=0):
         path = path.strip(' /')
@@ -46,11 +47,12 @@ class ColumnQuerySet(QuerySet):
         if path != '':
             qs = qs.filter(path__istartswith=path + '/')
             path_depth += 1
-        if depth == 0:
-            qs = qs.filter(depth=path_depth)
-        else:
-            qs = qs.filter(depth__gte=path_depth,
-                           depth__lte=path_depth + depth)
+        if depth > -1:
+            if depth == 0:
+                qs = qs.filter(depth=path_depth)
+            else:
+                qs = qs.filter(depth__gte=path_depth,
+                               depth__lte=path_depth + depth)
         return qs
     
     # 返回树形字典
@@ -117,11 +119,23 @@ class Column(models.Model):
             return '/'.join(self.path.split('/')[:-1])
         return ''
     
+    def children(self, depth=0):
+        return Column.objects.children(self.path, depth)
+    
     def get_model_object(self, key):
-        return get_model_object(self.model, key)
+        if self.model:
+            return get_model_object(self.model, key)
     
     def get_content_actions(self):
-        return get_model_actions(self.model)
+        if self.model:
+            return get_model_actions(self.model)
+    
+    @cached_property
+    def content_count(self):
+        Model = self.get_model_object('model')
+        if Model:
+            return Model.objects.filter(column=self).count()
+        return 0
 
 
 @receiver(signals.pre_save, sender=Column)

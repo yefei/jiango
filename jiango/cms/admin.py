@@ -7,12 +7,11 @@ from django.shortcuts import redirect
 from django.http import HttpResponseRedirect, QueryDict
 from jiango.shortcuts import update_instance
 from jiango.pagination import Paging
-from jiango.utils.model import get_deleted_objects
 from jiango.admin.shortcuts import renderer, Logger, ModelLogger, Alert
 from jiango.admin.auth import get_request_user
 from .util import column_path_wrap
 from .models import Column, get_model_object
-from .forms import ColumnForm, ColumnEditForm, ActionForm, RecycleClearForm
+from .forms import ColumnForm, ColumnEditForm, ActionForm, RecycleClearForm, ColumnDeleteForm
 from .config import CONTENT_MODELS, CONTENT_ACTION_MAX_RESULTS, CONTENT_PER_PAGE
 
 
@@ -48,8 +47,22 @@ def column_edit(request, response, column_id=None):
 def column_delete(request, response, column_id):
     user = get_request_user(request)
     instance = Column.objects.get(pk=column_id)
-    model_log = ModelLogger(instance)
-    deletable_objects, protected = get_deleted_objects(Column.objects.filter(pk=column_id))
+    # 删除确认表单
+    form = ColumnDeleteForm(request.POST or None)
+    if form.is_valid():
+        msg = u'删除栏目: ' + unicode(instance)
+        logs = [msg, ModelLogger(instance).message()]
+        # 删除子栏目
+        for i in instance.children(-1):
+            logs.append(u'子栏目: ' + unicode(i))
+            logs.append(ModelLogger(i).message())
+            i.delete()
+        instance.delete()
+        log.success(request, '\n'.join(logs), log.DELETE)
+        messages.success(request, msg + u' 完成')
+        return redirect('admin:cms:column')
+    deleted_columns = [instance]
+    deleted_columns.extend(list(instance.children(-1)))
     return locals()
 
 

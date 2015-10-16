@@ -6,15 +6,34 @@
   <li class="active">删除栏目</li>
 </ul>
 
+<style>
+<!--
+.deleted-columns {
+	margin-top: 20px;
+}
+.deleted-columns li {
+	margin-bottom: 10px;
+}
+-->
+</style>
+
 <blockquote>
 	<h2>删除栏目 {{instance.path}}: {{instance.name}} 确认</h2>
 	<p>删除栏目将会连带删除以下关联数据:</p>
-	{% for deletable_object in deletable_objects %}
-        <ul>{{ deletable_object|unordered_list }}</ul>
-    {% endfor %}
+    <ul class="deleted-columns">
+    	{% for i in deleted_columns %}
+    		<li>栏目: <strong>{{i.path}}: {{i.name}}</strong>
+	    	{% if i.content_count %}
+	    		以及栏目下的内容 <strong>{{i.content_count}}</strong> 条(包括回收站中)
+	    		<a href="{% url admin:cms:content-path instance.path %}" target="_blank">查看内容</a>
+	    	{% endif %}
+	    	</li>
+    	{% endfor %}
+    </ul>
 	<form action="" method="post" style="margin-top:20px">
 		{% csrf_token %}
-		<button type="submit" class="btn btn-danger">
+		{{form|bootstrap}}
+		<button type="submit" class="btn btn-danger" style="margin-top:20px;margin-left:25px">
 			<i class="icon-fire icon-white"></i> 确定删除
 		</button>
 	</form>

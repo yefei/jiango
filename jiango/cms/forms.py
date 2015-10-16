@@ -35,7 +35,7 @@ class ColumnEditForm(ColumnForm):
 
 
 class ColumnDeleteForm(forms.Form):
-    pass
+    confrim = forms.BooleanField(label=u'我确定要删除以上数据')
 
 
 class ActionForm(forms.Form):

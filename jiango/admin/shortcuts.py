@@ -185,7 +185,7 @@ class ModelLogger(object):
         elif not new_instance:
             # 数据被删除
             output.append(u'删除之前的数据为:')
-            for attname, orig_value in self.orig_values:
+            for attname, orig_value in self.instance_values:
                 output.append(attname + ': ' + orig_value)
         else:
             # 数据被更新
