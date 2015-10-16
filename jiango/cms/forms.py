@@ -4,7 +4,8 @@
 from django import forms
 from jiango.importlib import import_object
 from jiango.admin.models import LogTypes
-from .models import Column, get_model_object, get_model_actions
+from .utils import get_model_object, get_model_actions
+from .models import Column
 from .config import COLUMN_PATH_RE, CONTENT_ACTIONS, CONTENT_MODELS
 
 

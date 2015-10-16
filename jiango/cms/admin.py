@@ -7,10 +7,11 @@ from django.shortcuts import redirect
 from django.http import HttpResponseRedirect, QueryDict
 from jiango.shortcuts import update_instance
 from jiango.pagination import Paging
-from jiango.admin.shortcuts import renderer, Logger, ModelLogger, Alert
+from jiango.admin.shortcuts import renderer, Logger, ModelLogger, Alert, has_perm
 from jiango.admin.auth import get_request_user
-from .util import column_path_wrap
-from .models import Column, get_model_object
+from .models import Column
+from .utils import get_model_object, get_all_actions
+from .shortcuts import column_path_wrap
 from .forms import ColumnForm, ColumnEditForm, ActionForm, RecycleClearForm, ColumnDeleteForm
 from .config import CONTENT_MODELS, CONTENT_ACTION_MAX_RESULTS, CONTENT_PER_PAGE
 
@@ -25,7 +26,7 @@ def column(request, response):
     return locals()
 
 
-@render
+@render(perm='cms.column.edit')
 def column_edit(request, response, column_id=None):
     user = get_request_user(request)
     instance = Column.objects.get(pk=column_id) if column_id else None
@@ -43,7 +44,7 @@ def column_edit(request, response, column_id=None):
     return locals()
 
 
-@render
+@render(perm='cms.column.delete')
 def column_delete(request, response, column_id):
     user = get_request_user(request)
     instance = Column.objects.get(pk=column_id)
@@ -96,6 +97,10 @@ def content_action(request, response):
     if not action_form.is_valid():
         raise Alert(Alert.ERROR, action_form.errors)
     
+    # 权限检查
+    has_perm(request, 'cms.action.%s' % action_form.cleaned_data.get('action'))
+    
+    # 选定数据检查
     selected = action_form_post.getlist('pk')
     if not selected:
         raise Alert(Alert.ERROR, u'您没有勾选需要操作的内容')
@@ -145,6 +150,7 @@ def recycle(request, response, model=None):
             if not selected:
                 raise Alert(Alert.ERROR, u'您没有勾选需要操作的内容')
             if action == 'fire':
+                has_perm(request, 'cms.recycle.fire')
                 content_set.filter(pk__in=selected).delete()
                 msg = u'回收站批量删除: ' + selected_model.get('name')
                 log.success(request, u'%s\nID: %s' % (msg, ','.join(selected)), log.DELETE)
@@ -164,7 +170,7 @@ def recycle(request, response, model=None):
     return locals()
 
 
-@render
+@render(perm='cms.recycle.clear')
 def recycle_clear(request, response, model):
     is_clear_mode = True
     models = CONTENT_MODELS
@@ -204,17 +210,27 @@ def content_edit(request, response, column_select, content_id=None):
     content = Model.objects.get(column=column, pk=content_id) if content_id else None
     model_log = ModelLogger(content)
     
+    # 权限检查
+    if not content:
+        has_perm(request, 'cms.content.create')
+    elif content.create_user == user:
+        has_perm(request, 'cms.content.update.self')
+    else:
+        has_perm(request, 'cms.content.update.other')
+    
     # 删除操作
     delete_id = request.GET.get('delete')
     if content and not content.is_deleted and content_id == delete_id:
+        has_perm(request, 'cms.action.delete')
         update_instance(content, is_deleted=True)
         log.success(request, model_log.message(content), log.DELETE)
         messages.success(request, u'删除内容: %s 成功' % unicode(content))
         return redirect('admin:cms:content-path', column.path)
     
-    # 恢复删除
+    # 删除恢复
     recover_id = request.GET.get('recover')
     if content and content.is_deleted and content_id == recover_id:
+        has_perm(request, 'cms.content.recover')
         update_instance(content, is_deleted=False)
         log.success(request, model_log.message(content), log.UPDATE)
         messages.success(request, u'恢复删除内容: %s 成功' % unicode(content))
@@ -276,4 +292,19 @@ urlpatterns = [
 ]
 
 PERMISSIONS = {
+    'column.edit': u'栏目|创建/编辑',
+    'column.delete': u'栏目|删除',
+    'recycle.fire': u'回收站|批量删除',
+    'recycle.clear': u'回收站|清空',
+    'content.create': u'内容|创建',
+    'content.update.self': u'内容|修改本人内容',
+    'content.update.other': u'内容|修改他人内容',
+    'content.recover': u'内容|删除恢复',
 }
+
+# 批量操作权限
+def _load_actions():
+    for a,i in get_all_actions().items():
+        perm = 'action.%s' % a
+        PERMISSIONS[perm] = u'内容|%s' % i['name']
+_load_actions()

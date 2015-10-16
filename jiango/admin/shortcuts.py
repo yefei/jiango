@@ -49,7 +49,7 @@ def has_perm(request, codename):
         perm_name = perm.name
     except Permission.DoesNotExist:
         perm_name = codename
-    raise Alert(Alert.ERROR, u'你没有%s权限' % perm_name)
+    raise Alert(Alert.ERROR, u'你没有 "%s" 权限' % perm_name)
 
 
 def renderer(prefix=None, default_extends_layout=True,

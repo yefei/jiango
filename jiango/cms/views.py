@@ -4,7 +4,7 @@
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from jiango.shortcuts import renderer, incr_and_update_instance
-from .util import column_path_wrap
+from .shortcuts import column_path_wrap
 
 
 render = renderer('cms/')

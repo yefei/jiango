@@ -8,33 +8,14 @@ from django.db.models import signals
 from django.db.models.query import QuerySet
 from django.utils.datastructures import SortedDict
 from django.utils.functional import cached_property
-from jiango.importlib import import_object
 from jiango.admin.models import User
-from .config import COLUMN_PATH_HELP, CONTENT_MODELS, LIST_PER_PAGE, CONTENT_ACTIONS
+from .utils import get_model_object, get_model_actions
+from .config import COLUMN_PATH_HELP, CONTENT_MODELS, LIST_PER_PAGE
 
 
 INDEX_TEMPLATE_HELP = u'默认模版: cms/index'
 LIST_TEMPLATE_HELP = u'默认模版: cms/list'
 CONTENT_TEMPLATE_HELP = u'默认模版: cms/content'
-
-COLUMN_IMPORTED_OBJECTS = {}
-
-
-# 取得模型相关对象 model, form, index_view, list_view, content_view
-def get_model_object(model, key):
-    if model in CONTENT_MODELS and key in CONTENT_MODELS[model]:
-        cache_key = '-'.join((model, key))
-        if cache_key not in COLUMN_IMPORTED_OBJECTS:
-            COLUMN_IMPORTED_OBJECTS[cache_key] = import_object(CONTENT_MODELS[model][key])
-        return COLUMN_IMPORTED_OBJECTS[cache_key]
-
-
-def get_model_actions(model):
-    actions = CONTENT_ACTIONS
-    model_actions = CONTENT_MODELS[model].get('actions')
-    if model_actions:
-        actions.update(model_actions)
-    return actions
 
 
 class ColumnQuerySet(QuerySet):
@@ -70,6 +51,7 @@ class ColumnQuerySet(QuerySet):
                 ref = ref[p][1]
             col[0] = i
         return out
+
 
 class ColumnManager(models.Manager):
     def get_query_set(self):
@@ -153,17 +135,17 @@ def on_column_pre_save(instance, **kwargs):
 @receiver(signals.post_save, sender=Column)
 def on_column_post_save(instance, **kwargs):
     # 如果 path 有更改同步更新内容中的 path 和 depth
-    if instance.model:
-        model = instance.get_model_object('model')
-        if model:
-            model.objects.filter(column=instance).update(column_path=instance.path,
-                                                         column_depth=instance.depth)
+    Model = instance.get_model_object('model')
+    if Model:
+        Model.objects.filter(column=instance).update(column_path=instance.path,
+                                                     column_depth=instance.depth)
 
 
 class ContentQuerySet(QuerySet):
     # 返回可用的内容
     def available(self):
         return self.filter(is_deleted=False, is_hidden=False)
+
 
 class ContentManager(models.Manager):
     def get_query_set(self):

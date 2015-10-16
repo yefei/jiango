@@ -20,7 +20,7 @@ class Command(BaseCommand):
         
         from jiango.admin.loader import loaded_modules
         
-        perms = SortedDict([('admin.' + codename, u'管理系统/' + name) for codename, name in ADMIN_PERMISSIONS.items()])
+        perms = SortedDict([('admin.' + codename, u'管理系统|' + name) for codename, name in ADMIN_PERMISSIONS.items()])
         
         for module, app_label in loaded_modules.items():
             app_perms = getattr(module, 'PERMISSIONS', {})
@@ -28,7 +28,7 @@ class Command(BaseCommand):
             if isfunction(verbose_name):
                 verbose_name = verbose_name(None)
             for codename, name in app_perms.items():
-                perms['.'.join((app_label, codename))] = '/'.join((verbose_name, name))
+                perms['.'.join((app_label, codename))] = '|'.join((verbose_name, name))
         
         # 更新删除检查
         for i in Permission.objects.all():

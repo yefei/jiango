@@ -25,7 +25,7 @@ class Permission(models.Model):
         ordering = ('codename',)
     
     def __unicode__(self):
-        return ' / '.join(self.name.split('/'))
+        return ' | '.join(self.name.split('|'))
 
 
 class Group(models.Model):
