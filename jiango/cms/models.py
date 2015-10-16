@@ -8,6 +8,7 @@ from django.db.models import signals
 from django.db.models.query import QuerySet
 from django.utils.datastructures import SortedDict
 from django.utils.functional import cached_property
+from jiango.shortcuts import update_instance
 from jiango.admin.models import User
 from .utils import get_model_object, get_model_actions
 from .config import COLUMN_PATH_HELP, CONTENT_MODELS, LIST_PER_PAGE
@@ -118,6 +119,13 @@ class Column(models.Model):
         if Model:
             return Model.objects.filter(column=self).count()
         return 0
+    
+    # 同步更新内容中的 path 和 depth
+    def update_content_path(self):
+        Model = self.get_model_object('model')
+        if Model:
+            Model.objects.filter(column=self).update(column_path=self.path,
+                                                     column_depth=self.depth)
 
 
 @receiver(signals.pre_save, sender=Column)
@@ -130,15 +138,19 @@ def on_column_pre_save(instance, **kwargs):
             instance.sort = parent_last.sort + 1
         except Column.DoesNotExist:
             pass
+    # 修改子栏目的父路径
+    if instance.pk:
+        col = Column.objects.get(pk=instance.pk)
+        if col.path != instance.path:
+            for i in col.children(-1):
+                path = instance.path + i.path[len(col.path):]
+                update_instance(i, path=path)
+                i.update_content_path()
 
 
 @receiver(signals.post_save, sender=Column)
 def on_column_post_save(instance, **kwargs):
-    # 如果 path 有更改同步更新内容中的 path 和 depth
-    Model = instance.get_model_object('model')
-    if Model:
-        Model.objects.filter(column=instance).update(column_path=instance.path,
-                                                     column_depth=instance.depth)
+    instance.update_content_path()
 
 
 class ContentQuerySet(QuerySet):

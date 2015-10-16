@@ -79,7 +79,7 @@ class RecycleClearForm(forms.Form):
     def clean_count(self):
         count = self.cleaned_data['count']
         if count != self.content_count:
-            raise forms.ValidationError(u'需要被数量不正确，建议检查回收站中是否有新增内容')
+            raise forms.ValidationError(u'需要被清空数量不正确，建议检查回收站中是否有新增内容')
         return count
 
 
