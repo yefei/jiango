@@ -20,6 +20,7 @@
 			<td><a href="{{i.get_absolute_url}}" target="_blank">{{i.path}}</a>
 				<div class="pull-right">
 					<a href="{% url admin:cms:column-edit i.pk %}" class="btn btn-mini">修改</a>
+					<a href="{% url admin:cms:column-delete i.pk %}" class="btn btn-mini">删除</a>
 				</div>
 			</td>
 			<td class="nowrap">{{i.name}}</td>

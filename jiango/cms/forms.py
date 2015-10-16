@@ -34,6 +34,10 @@ class ColumnEditForm(ColumnForm):
         exclude = ('model',)
 
 
+class ColumnDeleteForm(forms.Form):
+    pass
+
+
 class ActionForm(forms.Form):
     model = forms.ChoiceField(choices=((i,i) for i in CONTENT_MODELS.keys()))
     action = forms.CharField()

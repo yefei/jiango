@@ -7,6 +7,7 @@ from django.shortcuts import redirect
 from django.http import HttpResponseRedirect, QueryDict
 from jiango.shortcuts import update_instance
 from jiango.pagination import Paging
+from jiango.utils.model import get_deleted_objects
 from jiango.admin.shortcuts import renderer, Logger, ModelLogger, Alert
 from jiango.admin.auth import get_request_user
 from .util import column_path_wrap
@@ -40,6 +41,15 @@ def column_edit(request, response, column_id=None):
         log.success(request, model_log.message(obj), log.CREATE)
         messages.success(request, (instance and u'修改' or u'创建') + u'栏目: ' + unicode(obj) + u' 成功')
         return redirect('admin:cms:column')
+    return locals()
+
+
+@render
+def column_delete(request, response, column_id):
+    user = get_request_user(request)
+    instance = Column.objects.get(pk=column_id)
+    model_log = ModelLogger(instance)
+    deletable_objects, protected = get_deleted_objects(Column.objects.filter(pk=column_id))
     return locals()
 
 
@@ -239,6 +249,7 @@ urlpatterns = [
     url(r'^column/$', column, name='column'),
     url(r'^column/create/$', column_edit, name='column-create'),
     url(r'^column/(?P<column_id>\d+)/$', column_edit, name='column-edit'),
+    url(r'^column/(?P<column_id>\d+)/delete/$', column_delete, name='column-delete'),
     
     url(r'^content/$', content, name='content'),
     url(r'^content/path/(?P<path>.*)/$', content, name='content-path'),

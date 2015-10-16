@@ -1,0 +1,21 @@
+{% include 'cms/admin/menu.inc.html' with current_view='column' %}
+
+<ul class="breadcrumb" style="margin-top:-20px">
+  <li><a href="{% url admin:cms:column %}">栏目管理</a></li>
+  <li><a href="{% url admin:cms:column-edit instance.pk %}">{{instance.path}}: {{instance.name}}</a></li>
+  <li class="active">删除栏目</li>
+</ul>
+
+<blockquote>
+	<h2>删除栏目 {{instance.path}}: {{instance.name}} 确认</h2>
+	<p>删除栏目将会连带删除以下关联数据:</p>
+	{% for deletable_object in deletable_objects %}
+        <ul>{{ deletable_object|unordered_list }}</ul>
+    {% endfor %}
+	<form action="" method="post" style="margin-top:20px">
+		{% csrf_token %}
+		<button type="submit" class="btn btn-danger">
+			<i class="icon-fire icon-white"></i> 确定删除
+		</button>
+	</form>
+</blockquote>
