@@ -87,7 +87,7 @@ def renderer(prefix=None, default_extends_layout=True,
                 else:
                     if isinstance(result, HttpResponse):
                         return result
-                    content = render_to_string(request, result, func.__name__, prefix, template_ext)
+                    content = render_to_string(request, result, func.__name__.rstrip('_'), prefix, template_ext)
                     if not extends_layout:
                         response.content = content
                         return response

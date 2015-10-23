@@ -97,7 +97,7 @@ def renderer(prefix=None, template_ext='html', content_type=settings.DEFAULT_CON
                     raise
             if isinstance(result, HttpResponse):
                 return result
-            response.content = render_to_string(request, result, func.__name__, prefix, template_ext)
+            response.content = render_to_string(request, result, func.__name__.rstrip('_'), prefix, template_ext)
             return response
         return wrapper
     return do_renderer
