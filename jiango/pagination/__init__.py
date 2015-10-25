@@ -67,6 +67,8 @@ class ReversePaging(SafePaginator):
 
 
 def paginate(page_obj, window=1):
+    if not page_obj:
+        return None
     assert isinstance(page_obj, Page), "%r is not %r object" % (page_obj, Page)
     assert isinstance(page_obj.paginator, (Paging, ReversePaging)), "%r is not %r object" % (page_obj.paginator, Paging)
     

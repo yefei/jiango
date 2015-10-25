@@ -101,9 +101,15 @@ body {
 /*
  * Table
  */
-.table-info th {
-	width: 180px;
+.table-info thead th {
+	width:10px;
+	white-space:nowrap;
+	vertical-align:top;
 }
+.table-info thead td {
+	vertical-align:top;
+}
+
 .table th.nowrap,
 .table td.nowrap,
 .table th.user,
