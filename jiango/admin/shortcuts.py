@@ -54,13 +54,13 @@ def has_perm(request, codename):
 
 def renderer(prefix=None, default_extends_layout=True,
              template_ext='html', content_type=settings.DEFAULT_CONTENT_TYPE):
-    
     def render(func=None, extends_layout=default_extends_layout,
                login=True, logout=False, perm=None):
         def do_wrapper(func):
             @wraps(func)
             def wrapper(request, *args, **kwargs):
                 response = HttpResponse(content_type=content_type)
+                content = ''
                 
                 if logout:
                     _func = logout_required(func)

@@ -9,6 +9,7 @@ from django.utils.http import urlquote
 from django.utils import timezone
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
+from jiango.shortcuts import update_instance
 from .models import User
 from .config import COOKIE_NAME, AUTH_SLAT_TIMEOUT, REQUEST_ADMIN_FIELD, LOGIN_NEXT_FIELD, SECRET_KEY_DIGEST
 
@@ -53,17 +54,14 @@ def get_user_from_auth_token(value):
 
 
 def set_login(user):
-    user.login_at = timezone.now()
-    user.login_token = hashlib.md5(str(uuid4())).hexdigest()
-    user.login_fails = 0
-    User.objects.filter(pk=user.pk).update(login_at=user.login_at,
-                                           login_token=user.login_token,
-                                           login_fails=user.login_fails)
+    update_instance(user,
+                    login_at=timezone.now(),
+                    login_token=hashlib.md5(str(uuid4())).hexdigest(),
+                    login_fails=0)
 
 
 def set_logout(user):
-    user.login_token = None
-    User.objects.filter(pk=user.pk).update(login_token=None)
+    update_instance(user, login_token=None)
 
 
 def set_login_cookie(response, user):
