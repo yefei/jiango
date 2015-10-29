@@ -21,7 +21,7 @@ from django.utils.importlib import import_module
 
 # Built-in serializers
 BUILTIN_SERIALIZERS = {
-    "json"   : "jiango.serializers.json",
+    "json": "jiango.serializers.json",
 }
 
 # Check for PyYaml and register the serializer if it's available.
@@ -61,7 +61,7 @@ def get_serializer_formats():
 
 def get_serializer_mimetypes():
     mimetypes = {}
-    for f,m in _serializers.items():
+    for f, m in _serializers.items():
         if not m.mimetypes:
             continue
         for t in m.mimetypes:

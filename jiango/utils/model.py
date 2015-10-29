@@ -27,7 +27,7 @@ def get_deleted_objects(queryset, using=None):
 class NestedObjects(Collector):
     def __init__(self, *args, **kwargs):
         super(NestedObjects, self).__init__(*args, **kwargs)
-        self.edges = {} # {from_instance: [to_instances]}
+        self.edges = {}  # {from_instance: [to_instances]}
         self.protected = set()
 
     def add_edge(self, source, target):

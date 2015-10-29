@@ -18,7 +18,7 @@ class QuerySetSerializer(Serializer):
                 value = related.natural_key()
             else:
                 value = None
-        elif hasattr(obj, field.get_cache_name()): # For select_related()
+        elif hasattr(obj, field.get_cache_name()):  # For select_related()
             value = getattr(obj, field.name)
         else:
             value = getattr(obj, field.get_attname())

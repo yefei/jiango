@@ -1,12 +1,14 @@
 import os
 from django.conf import settings
 
-thispath = lambda *p: os.path.join(os.path.dirname(__file__), *p)
+
+def thispath(*p):
+    return os.path.join(os.path.dirname(__file__), *p)
 
 
-CAPTCHA_AGE = getattr(settings,'CAPTCHA_AGE', 60 * 15)
+CAPTCHA_AGE = getattr(settings, 'CAPTCHA_AGE', 60 * 15)
 
-CAPTCHA_OUTPUT_FORMAT = getattr(settings,'CAPTCHA_OUTPUT_FORMAT', """
+CAPTCHA_OUTPUT_FORMAT = getattr(settings, 'CAPTCHA_OUTPUT_FORMAT', """
 %(hidden_field)s
 %(text_field)s
 <div class="help-block">
@@ -16,7 +18,7 @@ CAPTCHA_OUTPUT_FORMAT = getattr(settings,'CAPTCHA_OUTPUT_FORMAT', """
 
 CAPTCHA_CHARS = 'ABCDEFGHJKLMNPRSTWXZV'
 
-CAPTCHA_LENGTH = getattr(settings, 'CAPTCHA_LENGTH', 4) # Chars
+CAPTCHA_LENGTH = getattr(settings, 'CAPTCHA_LENGTH', 4)  # Chars
 
 CAPTCHA_DRAWS = {
     'default': {
@@ -27,7 +29,7 @@ CAPTCHA_DRAWS = {
             'BACKGROUND_COLOR': '#E0E8F3',
             'FONT_COLOR': '#000000',
             'FONT_SIZE': 30,
-            'FONT_PATH': thispath('fonts','verdana.ttf'),
+            'FONT_PATH': thispath('fonts', 'verdana.ttf'),
         }
     }
 }

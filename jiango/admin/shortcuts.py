@@ -16,11 +16,11 @@ class Alert(Exception):
     SUCCESS = 25
     WARNING = 30
     ERROR = 40
-    TAGS = {DEBUG:'debug',
-            INFO:'info',
-            SUCCESS:'success',
-            WARNING:'warning',
-            ERROR:'error'}
+    TAGS = {DEBUG: 'debug',
+            INFO: 'info',
+            SUCCESS: 'success',
+            WARNING: 'warning',
+            ERROR: 'error'}
     
     def __init__(self, level, message, buttons=None, back=True):
         self.level = level
@@ -78,11 +78,11 @@ def renderer(prefix=None, default_extends_layout=True,
                 except (Alert, ObjectDoesNotExist) as e:
                     result = {}
                     if isinstance(e, Alert):
-                        result = {'message':e.message, 'tag':e.tag, 'buttons':e.buttons}
+                        result = {'message': e.message, 'tag': e.tag, 'buttons': e.buttons}
                         if e.back and 'HTTP_REFERER' in request.META:
                             result['buttons'][u'返回'] = request.META['HTTP_REFERER']
                     elif isinstance(e, ObjectDoesNotExist):
-                        result = {'message':u'所访问的对象不存在，可能已经被删除。\n%s' % e, 'tag':'error'}
+                        result = {'message': u'所访问的对象不存在，可能已经被删除。\n%s' % e, 'tag':'error'}
                     content = render_to_string(request, result, '/admin/alert', prefix, template_ext)
                 else:
                     if isinstance(result, HttpResponse):
@@ -94,7 +94,7 @@ def renderer(prefix=None, default_extends_layout=True,
                 
                 from .loader import get_navigation
                 user = get_request_user(request)
-                base_dictionary = {'content':content,
+                base_dictionary = {'content': content,
                                    'navigation': user and get_navigation(request),
                                    'user': user}
                 response.content = render_to_string(request, base_dictionary, 'admin/layout')
@@ -119,13 +119,13 @@ class Logger(LogTypes):
         if form:
             content = '%s\n\n%s' % (content, form.errors.as_text())
         
-        if action == None:
+        if action is None:
             action = LogTypes.NONE
         
-        if remote_ip == None:
+        if remote_ip is None:
             remote_ip = request.META.get('REMOTE_ADDR')
         
-        if user == None:
+        if user is None:
             user = get_request_user(request)
         
         return Log.write(level, self.app_label, content, action,
@@ -156,8 +156,9 @@ class ModelLogger(object):
             self.instance_values = self.get_instance_values(instance)
             self.instance_class_name = str(instance.__class__)
             self.instance_verbose_name = instance._meta.verbose_name
-    
-    def get_instance_values(self, instance):
+
+    @staticmethod
+    def get_instance_values(instance):
         return [(f.attname, unicode(getattr(instance, f.attname))) for f in instance._meta.local_fields]
     
     def diff_values(self, new_instance):

@@ -12,7 +12,7 @@ class ParamError(APIError):
     pass
 
 
-class LoginRequerd(APIError):
+class LoginRequired(APIError):
     status_code = 401
 
 
@@ -28,9 +28,9 @@ class FormError(APIError):
     def __init__(self, form):
         errors = []
         if not form.is_valid():
-            for f,e in form.errors.items():
+            for f, e in form.errors.items():
                 label = None
                 if f != NON_FIELD_ERRORS:
                     label = form[f].label
-                errors.append({'field':f, 'message':e, 'label':label})
+                errors.append({'field': f, 'message': e, 'label': label})
         super(FormError, self).__init__(errors)

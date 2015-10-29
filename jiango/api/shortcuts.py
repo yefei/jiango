@@ -33,7 +33,7 @@ def render(func):
             value = func(request, response, *args, **kwargs)
             
         except (APIError, ObjectDoesNotExist), e:
-            value = {'type':e.__class__.__name__, 'message':e.message}
+            value = {'type': e.__class__.__name__, 'message': e.message}
             status = e.status_code if hasattr(e, 'status_code') else 422
         
         response.content = serializer.serialize(value)

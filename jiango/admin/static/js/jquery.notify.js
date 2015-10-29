@@ -42,7 +42,7 @@
 		});
 		
 		if (el.data('notify-sticky')) {
-			dataSettings['sticky'] = el.data('notify-sticky') == 'yes' ? true : false;
+			dataSettings['sticky'] = el.data('notify-sticky') == 'yes';
 		}
 		
 		this.opts = $.extend({}, settings, dataSettings, typeof options == 'object' && options);

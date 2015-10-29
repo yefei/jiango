@@ -12,7 +12,7 @@ class CaptchaField(MultiValueField):
         'invalid': _(u'Incorrect challenge')
     }
     
-    def __init__(self, *args,**kwargs):
+    def __init__(self, *args, **kwargs):
         fields = (
             CharField(show_hidden_initial=True), 
             CharField(),
@@ -21,8 +21,8 @@ class CaptchaField(MultiValueField):
         kwargs['label'] = kwargs.get('label', _(u'Captcha'))
         output_format = kwargs.pop('output_format', settings.CAPTCHA_OUTPUT_FORMAT)
         
-        super(CaptchaField,self).__init__(fields=fields,
-                widget=CaptchaWidget(output_format=output_format), *args, **kwargs)
+        super(CaptchaField, self).__init__(fields=fields,
+                                           widget=CaptchaWidget(output_format=output_format), *args, **kwargs)
 
     def compress(self, data_list):
         if data_list:

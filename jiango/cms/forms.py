@@ -15,7 +15,7 @@ class ColumnForm(forms.ModelForm):
     
     def clean_path(self):
         path = self.cleaned_data['path'].strip(' /')
-        paths = filter(lambda v: v!='', path.split('/'))
+        paths = filter(lambda v: v != '', path.split('/'))
         for slug in paths:
             if slug.isdigit() or not COLUMN_PATH_RE.search(slug):
                 raise forms.ValidationError(u"目录 '%s' 不符合规则" % slug)
@@ -36,21 +36,26 @@ class ColumnEditForm(ColumnForm):
 
 
 class ColumnDeleteForm(forms.Form):
-    confrim = forms.BooleanField(label=u'我确定要删除以上数据')
+    confirm = forms.BooleanField(label=u'我确定要删除以上数据')
 
 
 class ActionForm(forms.Form):
-    model = forms.ChoiceField(choices=((i,i) for i in CONTENT_MODELS.keys()))
+    model = forms.ChoiceField(choices=((i, i) for i in CONTENT_MODELS.keys()))
     action = forms.CharField()
     back = forms.CharField(required=False)
-    
+
+    def __init__(self, *args, **kwargs):
+        super(ActionForm, self).__init__(*args, **kwargs)
+        self._model_object = None
+        self._form_object = None
+
     def clean_model(self):
         model = self.cleaned_data['model']
         self._model_object = get_model_object(model, 'model')
         return model
     
     def get_model_object(self):
-        return getattr(self, '_model_object')
+        return self._model_object
     
     def clean_action(self):
         action = self.cleaned_data['action']
@@ -61,7 +66,7 @@ class ActionForm(forms.Form):
         return action
     
     def get_form_object(self):
-        return getattr(self, '_form_object')
+        return self._form_object
     
     def get_action_name(self):
         action = self.cleaned_data.get('action')

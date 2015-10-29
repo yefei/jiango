@@ -31,7 +31,7 @@ class Permission(models.Model):
 class Group(models.Model):
     name = models.CharField(u'名称', max_length=80, unique=True)
     permissions = models.ManyToManyField(Permission, verbose_name=u'权限', blank=True)
-    permissions.help_text = None # 强制去除默认的 选择多个值 提示
+    permissions.help_text = None  # 强制去除默认的 选择多个值 提示
     
     def __unicode__(self):
         return self.name
@@ -81,7 +81,7 @@ class User(models.Model):
         return self.login_fail_lock_remain > 0 and self.login_fails >= LOGIN_MAX_FAILS
     
     def update_login_fails(self, fails=1):
-        updates = {'login_fails':self.login_fails}
+        updates = {'login_fails': self.login_fails}
         if self.login_fail_at is None or self.login_fail_lock_remain == 0:
             updates['login_fail_at'] = timezone.now()
             updates['login_fails'] = 0
@@ -116,7 +116,7 @@ class User(models.Model):
     
     @property
     def is_login(self):
-        return self.login_token != None
+        return self.login_token is not None
     
     @property
     def online_remain(self):
@@ -199,9 +199,9 @@ class Log(models.Model):
         if view_kwargs:
             _view_kwargs = serialize('json', view_kwargs)
         return cls.objects.create(level=level, action=action, app_label=app_label,
-                   content=content,view_name=view_name,
-                   view_args=_view_args, view_kwargs=_view_kwargs,
-                   remote_ip=remote_ip, user=user, username=(unicode(user) if user else None))
+                                  content=content, view_name=view_name,
+                                  view_args=_view_args, view_kwargs=_view_kwargs,
+                                  remote_ip=remote_ip, user=user, username=(unicode(user) if user else None))
     
     @cached_property
     def view_url(self):

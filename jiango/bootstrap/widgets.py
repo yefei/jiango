@@ -16,7 +16,8 @@ class CheckboxSelectMultiple(widgets.CheckboxSelectMultiple):
         self.label_class = label_class
     
     def render(self, name, value, attrs=None, choices=()):
-        if value is None: value = []
+        if value is None:
+            value = []
         has_id = attrs and 'id' in attrs
         final_attrs = self.build_attrs(attrs, name=name)
         output = []
@@ -46,7 +47,7 @@ class RadioSelect(widgets.RadioSelect):
         self.label_class = label_class
     
     def render(self, name, value, attrs=None, choices=()):
-        r =  self.get_renderer(name, value, attrs, choices)
+        r = self.get_renderer(name, value, attrs, choices)
         return mark_safe('\n'.join([unicode(i).replace('<label', '<label class="%s"' % self.label_class) for i in r]))
 
 

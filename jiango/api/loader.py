@@ -33,7 +33,7 @@ def api(func_or_path=None, name=None):
     def wrapper(func):
         if func.__module__ not in loaded_apis:
             loaded_apis[func.__module__] = []
-        loaded_apis[func.__module__].append((func, None if func_or_path==func else func_or_path, name))
+        loaded_apis[func.__module__].append((func, None if func_or_path == func else func_or_path, name))
         return func
     
     # @api() 带参数

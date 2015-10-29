@@ -67,7 +67,7 @@ class ColumnManager(models.Manager):
 
 class Column(models.Model):
     model = models.CharField(u'内容模型', max_length=50, blank=True, default='',
-                             choices=((k, i['name']) for k,i in CONTENT_MODELS.items()),
+                             choices=((k, i['name']) for k, i in CONTENT_MODELS.items()),
                              help_text=u'如不选则为不可发布类型，选定模型后不可再次修改')
     name = models.CharField(u'栏目名称', max_length=100)
     path = models.CharField(u'栏目路径', max_length=200, unique=True, help_text=COLUMN_PATH_HELP)
@@ -94,7 +94,7 @@ class Column(models.Model):
     
     @models.permalink
     def get_absolute_url(self):
-        return ('cms-column', [self.path])
+        return 'cms-column', [self.path]
     
     @property
     def parent_path(self):
@@ -186,7 +186,7 @@ class ContentBase(models.Model):
     
     @models.permalink
     def get_absolute_url(self):
-        return ('cms-content', [self.column_path, self.pk])
+        return 'cms-content', [self.column_path, self.pk]
     
     def is_available(self):
         return not self.is_deleted and not self.is_hidden

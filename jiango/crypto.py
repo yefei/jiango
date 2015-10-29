@@ -55,7 +55,7 @@ class CryptoData(object):
         box = range(0, 256)
         rndkey = [ord(cryptkey[i % 16]) for i in xrange(0, 256)]
         j = 0
-        for i in xrange(0,256):
+        for i in xrange(0, 256):
             j = (j + box[i] + rndkey[i]) % 256
             box[i], box[j] = box[j], box[i]
         a = j = 0

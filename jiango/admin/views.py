@@ -89,7 +89,7 @@ def set_password(request, response, user_id=None):
             log(request, log.WARNING, u'修改 %s 的登陆密码时验证当前密码错误被强制退出' % target_user, log.LOGOUT)
             set_logout_cookie(response)
             raise Alert(Alert.ERROR, u'修改登陆密码时验证当前密码错误被强制退出',
-                        {u'重新登陆':reverse('admin:-login')}, back=False)
+                        {u'重新登陆': reverse('admin:-login')}, back=False)
     else:
         form = SetPasswordForm(user)
     return locals()

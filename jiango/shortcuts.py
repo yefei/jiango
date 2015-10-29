@@ -6,31 +6,32 @@ from django.http import HttpResponse
 from django.conf import settings
 from django.template.loader import render_to_string as _render_to_string
 from django.template.context import RequestContext
-from django.shortcuts import _get_queryset
 from django.db.models.expressions import F
+from django.db.models.query import QuerySet
+from django.db.models.manager import Manager
 from jiango.serializers import get_serializer
 
 
 # 让客户端浏览器重新载入当前地址
 class HttpReload(Exception):
-    # remove_getvars 是否需要清除指定的 GETs
+    # remove_get_vars 是否需要清除指定的 GETs
     # 如果为列表参数则删除列表中指定的 GET 变量
     # 如果为 True 则删除所有 GET 变量
     # None 就什么都不做,直接重载当前地址
-    def __init__(self, remove_getvars=None):
-        self.remove_getvars = remove_getvars
+    def __init__(self, remove_get_vars=None):
+        self.remove_get_vars = remove_get_vars
     
     def response(self, request, response=None):
-        if response == None:
+        if response is None:
             response = HttpResponse()
         response.status_code = 302
-        if request.GET and self.remove_getvars == True:
+        if request.GET and self.remove_get_vars is True:
             location = request.path
-        elif request.GET and isinstance(self.remove_getvars, (tuple, list)):
-            getvars = request.GET.copy()
-            for k in self.remove_getvars:
-                del getvars[k]
-            location = '%s%s' % (request.path, getvars and ('?' + getvars.urlencode()) or '')
+        elif request.GET and isinstance(self.remove_get_vars, (tuple, list)):
+            get_vars = request.GET.copy()
+            for k in self.remove_get_vars:
+                del get_vars[k]
+            location = '%s%s' % (request.path, get_vars and ('?' + get_vars.urlencode()) or '')
         else:
             location = request.get_full_path()
         response['Location'] = location
@@ -157,6 +158,16 @@ def render_serialize(func_or_format):
     return do_renderer(func_or_format) 
 
 
+def _get_queryset(klass):
+    if isinstance(klass, QuerySet):
+        return klass
+    elif isinstance(klass, Manager):
+        manager = klass
+    else:
+        manager = klass._default_manager
+    return manager.all()
+
+
 def get_object_or_none(klass, *args, **kwargs):
     queryset = _get_queryset(klass)
     try:
@@ -169,7 +180,7 @@ def update_instance(instance, **fields):
     if not fields:
         return
     updates = {}
-    for f,v in fields.items():
+    for f, v in fields.items():
         setattr(instance, f, v)
         updates[f] = v
     instance._default_manager.filter(pk=instance.pk).update(**updates)
@@ -180,7 +191,7 @@ def incr_and_update_instance(instance, **fields):
     if not fields:
         return
     updates = {}
-    for f,v in fields.items():
+    for f, v in fields.items():
         setattr(instance, f, getattr(instance, f) + v)
         updates[f] = F(f) + v
     instance._default_manager.filter(pk=instance.pk).update(**updates)

@@ -42,7 +42,8 @@ class Paging(SafePaginator):
 
 
 class ReversePaging(SafePaginator):
-    def __init__(self, object_list, request, viewname, view_args=None, view_kwargs=None, per_page=30, field_name='page', *args, **kwargs):
+    def __init__(self, object_list, request, viewname, view_args=None, view_kwargs=None, per_page=30, field_name='page',
+                 *args, **kwargs):
         self.request = request
         self.viewname = viewname
         self.view_args = view_args

@@ -12,6 +12,6 @@ class SQLDebugMiddleware(object):
             sys.stdout.write("SQL %s\n" % ('=' * 26))
             for query in connection.queries:
                 sys.stdout.write("[%s] %s\n" % (query['time'],
-                    re.sub('SELECT (.*) FROM', 'SELECT ... FROM', query['sql'])))
+                                                re.sub('SELECT (.*) FROM', 'SELECT ... FROM', query['sql'])))
             sys.stdout.write("%s\n" % ('=' * 30))
         return response

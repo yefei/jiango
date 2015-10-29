@@ -115,7 +115,7 @@ def content_action(request, response):
     Model = action_form.get_model_object()
     Form = action_form.get_form_object()
     action_name = action_form.get_action_name()
-    content_set = Model.objects.filter(pk__in=selected).select_related('column','update_user')
+    content_set = Model.objects.filter(pk__in=selected).select_related('column', 'update_user')
     
     if request.POST.get('__confirm') == 'yes':
         form = Form(content_set, request.POST, request.FILES)
@@ -142,7 +142,7 @@ def recycle(request, response, model=None):
     
     if selected_model:
         Model = get_model_object(model, 'model')
-        content_set = Model.objects.filter(is_deleted=True).select_related('column','update_user')
+        content_set = Model.objects.filter(is_deleted=True).select_related('column', 'update_user')
         
         if request.method == 'POST':
             action = request.POST.get('action')
@@ -161,9 +161,10 @@ def recycle(request, response, model=None):
         # 没有选择任何模型，则调用所有模型删除统计
         stats = {}
         total_count = 0
-        for m,i in models.items():
+        for m, i in models.items():
             M = get_model_object(m, 'model')
-            if not M: break
+            if not M:
+                break
             count = M.objects.filter(is_deleted=True).count()
             total_count += count
             stats[m] = {'name': i.get('name'), 'count': count}
@@ -260,7 +261,8 @@ def content_edit(request, response, column_select, content_id=None):
     meta_fields = []
     meta_fields_name = ['is_hidden']
     _t = column.get_model_object('form_meta_fields')
-    if _t: meta_fields_name.extend(_t)
+    if _t:
+        meta_fields_name.extend(_t)
     
     for i in form.visible_fields():
         if i.name in meta_fields_name:
@@ -302,9 +304,10 @@ PERMISSIONS = {
     'content.recover': u'内容|删除恢复',
 }
 
+
 # 批量操作权限
 def _load_actions():
-    for a,i in get_all_actions().items():
+    for a, i in get_all_actions().items():
         perm = 'action.%s' % a
         PERMISSIONS[perm] = u'内容|%s' % i['name']
 _load_actions()

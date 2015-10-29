@@ -13,7 +13,11 @@ class AuthenticationForm(forms.Form):
     username = forms.CharField(label=u'用户名')
     password = forms.CharField(label=u'密码', widget=forms.PasswordInput)
     salt = forms.CharField(initial=get_temp_salt, widget=forms.HiddenInput)
-    
+
+    def __init__(self, *args, **kwargs):
+        super(AuthenticationForm, self).__init__(*args, **kwargs)
+        self.user = None
+
     def clean(self):
         salt = self.cleaned_data.get('salt')
         salt_verify = verify_temp_salt(salt)
@@ -94,11 +98,11 @@ class SetPasswordForm(forms.Form):
 class UserForm(forms.ModelForm):
     class Meta:
         model = User
-        widgets = {'groups':FilteredSelectMultiple(u'用户组'),
-                   'permissions':FilteredSelectMultiple(u'权限')}
+        widgets = {'groups': FilteredSelectMultiple(u'用户组'),
+                   'permissions': FilteredSelectMultiple(u'权限')}
 
 
 class GroupForm(forms.ModelForm):
     class Meta:
         model = Group
-        widgets = {'permissions':FilteredSelectMultiple(u'权限')}
+        widgets = {'permissions': FilteredSelectMultiple(u'权限')}

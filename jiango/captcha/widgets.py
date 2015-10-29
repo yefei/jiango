@@ -14,6 +14,7 @@ class CaptchaWidget(MultiWidget):
             TextInput(attrs),
         )
         super(CaptchaWidget, self).__init__(widgets, attrs)
+        self.output_attrs = {}
     
     def decompress(self, value):
         if value:
@@ -32,7 +33,7 @@ class CaptchaWidget(MultiWidget):
         final_attrs = self.build_attrs(attrs)
         self.output_attrs = {
             'id': final_attrs.get('id', None),
-            'image_url': reverse('jiango-captcha-image', kwargs={'key':key, 'ext':draw.image_ext}),
+            'image_url': reverse('jiango-captcha-image', kwargs={'key': key, 'ext': draw.image_ext}),
             'api_url': reverse('jiango-captcha-json'),
             'new_challenge': _('Get a new challenge'),
         }

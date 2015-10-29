@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 # Created on 2014-8-18
 # @author: Yefei
+import imp
+import os
 from django.utils.importlib import import_module
 
 
 def autodiscover_installed_apps(module_name, recursion_package=False):
-    import imp, os
     from django.conf import settings
     
     imported_modules = []

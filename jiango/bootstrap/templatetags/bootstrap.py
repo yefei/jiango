@@ -11,17 +11,17 @@ register = template.Library()
 @register.filter
 def bootstrap(element):
     if isinstance(element, BoundField):
-        template = get_template("bootstrap/field.html")
+        tpl = get_template("bootstrap/field.html")
         context = Context({'field': element})
     else:
         has_management = getattr(element, 'management_form', None)
         if has_management:
-            template = get_template("bootstrap/formset.html")
+            tpl = get_template("bootstrap/formset.html")
             context = Context({'formset': element})
         else:
-            template = get_template("bootstrap/form.html")
+            tpl = get_template("bootstrap/form.html")
             context = Context({'form': element})
-    return template.render(context)
+    return tpl.render(context)
 
 
 @register.filter
