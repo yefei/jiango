@@ -46,7 +46,8 @@ def autodiscover(module_name):
         return
     LOADING = True
     for namesapce, module in autodiscover_installed_apps(module_name):
-        loaded_modules[module] = namesapce
+        if hasattr(module, 'urlpatterns'):
+            loaded_modules[module] = namesapce
     # autodiscover was successful, reset loading flag.
     LOADING = False
 
