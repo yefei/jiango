@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from jiango.shortcuts import render_to_string, HttpReload
-from .auth import login_required, logout_required, get_request_user
+from .auth import login_redirect, logout_redirect, get_request_user
 from .models import Permission, Log, LogTypes
 
 
@@ -63,16 +63,16 @@ def renderer(prefix=None, default_extends_layout=True,
                 content = ''
                 
                 if logout:
-                    _func = logout_required(func)
+                    if get_request_user(request):
+                        return logout_redirect(request)
                 elif login:
-                    _func = login_required(func)
-                else:
-                    _func = func
+                    if not get_request_user(request):
+                        return login_redirect(request)
                 
                 try:
                     if perm:
                         has_perm(request, perm)
-                    result = _func(request, response, *args, **kwargs)
+                    result = func(request, response, *args, **kwargs)
                 except HttpReload as e:
                     return e.response(request, response)
                 except (Alert, ObjectDoesNotExist) as e:
