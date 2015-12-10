@@ -34,7 +34,7 @@ def render(func):
             
         except (APIError, ObjectDoesNotExist), e:
             value = {'type': e.__class__.__name__, 'message': e.message}
-            status = e.status_code if hasattr(e, 'status_code') else 422
+            status = e.status_code if hasattr(e, 'status_code') else 409
         
         response.content = serializer.serialize(value)
         response.status_code = status
