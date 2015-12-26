@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
 import os
 from setuptools import setup
 
+VERSION = "0.4.1"
 
 def fullsplit(path, result=None):
     """
@@ -23,6 +25,9 @@ root_dir = os.path.dirname(__file__)
 if root_dir != '':
     os.chdir(root_dir)
 
+# django admin commands 必须要要 py 文件
+commands = []
+
 for dirpath, dirnames, filenames in os.walk('jiango'):
     # Ignore dirnames that start with '.'
     for i, dirname in enumerate(dirnames):
@@ -31,11 +36,15 @@ for dirpath, dirnames, filenames in os.walk('jiango'):
         packages.append('.'.join(fullsplit(dirpath)))
     elif filenames:
         data_files.append([dirpath, [os.path.join(dirpath, f) for f in filenames]])
+    
+    p = os.path.split(dirpath)
+    if os.path.split(p[0])[1] == 'management' and p[1] == 'commands':
+        commands += [os.path.join(dirpath, f) for f in filenames if f != '__init__.py']
 
 
-setup(
+x = setup(
     name = "jiango",
-    version = "0.4.1",
+    version = VERSION,
     author = 'Yefei',
     author_email = '316606233@qq.com',
     url = 'http://djangobbs.com',
@@ -44,3 +53,15 @@ setup(
     packages = packages,
     data_files = data_files
 )
+
+print "=" * 32
+print 
+
+if commands:
+    import zipfile
+    for c,v,f in x.dist_files:
+        z = zipfile.ZipFile(f, 'a')
+        for p in commands:
+            print 'append:', p
+            z.write(p, p)
+        z.close()
