@@ -11,7 +11,7 @@ def intval(value, default=None, max_value=None, min_value=None):
             raise ParamError('Ensure this value %r is less than or equal to %d.' % (value, max_value))
         if min_value is not None and value < min_value:
             raise ParamError('Ensure this value %r is greater than or equal to %d.' % (value, min_value))
-    except ValueError:
+    except (ValueError, TypeError):
         if default is None:
             raise ParamError('Value %r is not a number.' % value)
         value = default
