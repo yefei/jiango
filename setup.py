@@ -2,7 +2,7 @@
 import os
 from setuptools import setup
 
-VERSION = "0.4.1"
+VERSION = "0.4.2"
 
 def fullsplit(path, result=None):
     """
@@ -54,14 +54,18 @@ x = setup(
     data_files = data_files
 )
 
-print "=" * 32
-print 
+# 以 pyc 文件发布的时候才需要追加 commands
+def append_commands():
+    print "=" * 32
+    print 
 
-if commands:
-    import zipfile
-    for c,v,f in x.dist_files:
-        z = zipfile.ZipFile(f, 'a')
-        for p in commands:
-            print 'append:', p
-            z.write(p, p)
-        z.close()
+    if commands:
+        import zipfile
+        for c,v,f in x.dist_files:
+            z = zipfile.ZipFile(f, 'a')
+            for p in commands:
+                print 'append:', p
+                z.write(p, p)
+            z.close()
+
+# append_commands()
