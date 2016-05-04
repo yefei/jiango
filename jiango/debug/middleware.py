@@ -2,7 +2,6 @@
 # Created on 2012-9-26
 # @author: Yefei
 import sys
-import re
 from django.db import connection
 
 
@@ -11,7 +10,6 @@ class SQLDebugMiddleware(object):
         if connection.queries:
             sys.stdout.write("SQL %s\n" % ('=' * 26))
             for query in connection.queries:
-                sys.stdout.write("[%s] %s\n" % (query['time'],
-                                                re.sub('SELECT (.*) FROM', 'SELECT ... FROM', query['sql'])))
+                sys.stdout.write("[%s] %s\n" % (query['time'], query['sql']))
             sys.stdout.write("%s\n" % ('=' * 30))
         return response
