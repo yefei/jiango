@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from setuptools import find_packages, setup
 
-VERSION = "0.4.2"
+VERSION = "0.4.3"
 
 setup(
     name='jiango',
