@@ -25,8 +25,15 @@ def autodiscover(module_name):
     LOADING = False
 
 
-def register(path, func, name=None):
-    urlpatterns.append(url(r'^%s\.(?P<output_format>%s)$' % (path, '|'.join(formats)), render(func), name=name))
+# 如果 output_format=None 则默认支持所有系统支持的格式，否则会增加 URL 后缀
+def register(path, func, name=None, output_format=None):
+    if output_format:
+        u = url(r'^%s$' % path,
+                render(func), kwargs = {'output_format':output_format}, name = name)
+    else:
+        u = url(r'^%s\.(?P<output_format>%s)$' % (path, '|'.join(formats)),
+                render(func), name = name)
+    urlpatterns.append(u)
 
 
 def api(func_or_path=None, name=None):
@@ -44,16 +51,17 @@ def api(func_or_path=None, name=None):
     return wrapper(func_or_path)
 
 
-def api_urls(namespace='api', module_name='api'):
+# 如果设置 output_format 则会省略 URL 后缀
+def api_urls(namespace='api', module_name='api', output_format=None):
     autodiscover(module_name)
     
     for module, namesapces in loaded_modules.iteritems():
         for func, func_or_path, name in loaded_apis.get(module, []):
             if func_or_path and func_or_path.startswith('/'):
-                path = func_or_path
+                path = func_or_path[1:]
             else:
                 path = '/'.join(namesapces + [func_or_path or func.__name__])
             name = '-'.join(namesapces + [name or func.__name__])
-            register(path, func, name)
+            register(path, func, name, output_format)
     
     return include(urlpatterns, namespace)
