@@ -13,7 +13,16 @@ formats = get_serializer_formats()
 mimetypes = get_serializer_mimetypes()
 
 
-def render(func):
+def default_exception_func(e):
+    value = {'type': e.__class__.__name__, 'message': e.message}
+    status = e.status_code if hasattr(e, 'status_code') else 422
+    return value, status
+
+
+def render(func, exception_func=None):
+    if exception_func is None:
+        exception_func = default_exception_func
+    
     @wraps(func)
     def wrapper(request, output_format, *args, **kwargs):
         status = 200
@@ -33,8 +42,7 @@ def render(func):
             value = func(request, response, *args, **kwargs)
             
         except (APIError, ObjectDoesNotExist), e:
-            value = {'type': e.__class__.__name__, 'message': e.message}
-            status = e.status_code if hasattr(e, 'status_code') else 409
+            value, status = exception_func(e)
         
         response.content = serializer.serialize(value)
         response.status_code = status

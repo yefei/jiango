@@ -5,7 +5,7 @@ from django.forms.forms import NON_FIELD_ERRORS
 
 
 class APIError(Exception):
-    status_code = 409
+    status_code = 422
 
 
 class ParamError(APIError):
