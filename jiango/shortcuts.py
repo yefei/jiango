@@ -9,6 +9,7 @@ from django.template.context import RequestContext
 from django.db.models.expressions import F
 from django.db.models.query import QuerySet
 from django.db.models.manager import Manager
+from django.contrib.messages import add_message, constants as message_constants
 from jiango.serializers import get_serializer
 
 
@@ -36,6 +37,25 @@ class HttpReload(Exception):
             location = request.get_full_path()
         response['Location'] = location
         return response
+
+
+class AlertMessage(HttpReload):
+    DEBUG = message_constants.DEBUG
+    INFO = message_constants.INFO
+    SUCCESS = message_constants.SUCCESS
+    WARNING = message_constants.WARNING
+    ERROR = message_constants.ERROR
+    
+    def __init__(self, level, message, extra_tags='', fail_silently=False, remove_get_vars=None):
+        self.level = level
+        self.message = message
+        self.extra_tags = extra_tags
+        self.fail_silently = fail_silently
+        self.remove_get_vars = remove_get_vars
+    
+    def response(self, request, response=None):
+        add_message(request, self.level, self.message, self.extra_tags, self.fail_silently)
+        return super(AlertMessage, self).response(request, response)
 
 
 def render_to_string(request, result, default_template, prefix=None, template_ext='html'):

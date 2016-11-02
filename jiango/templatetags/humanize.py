@@ -26,7 +26,7 @@ def filesize(value):
     size, unit = humanize_size(int(value))
     if unit is None:
         return size
-    return '%.2f %s' %(size, unit)
+    return '%.2f %sB' %(size, unit)
 
 
 @register.filter(is_safe=True)

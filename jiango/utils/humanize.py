@@ -42,7 +42,7 @@ def humanize_second(seconds):
                     ))
 
 
-SIZE_UNITS = ['K','M','G','T','P','E','Z','Y']
+SIZE_UNITS = [None,'K','M','G','T','P','E','Z','Y']
 
 def humanize_size(size, step=1024, units=SIZE_UNITS):
     if size < step:
