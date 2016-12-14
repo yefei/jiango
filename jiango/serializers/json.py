@@ -3,6 +3,7 @@ Serialize data to/from JSON
 """
 from __future__ import absolute_import
 import json
+import datetime
 from django.db.models import Model
 from django.db.models.query import QuerySet, ValuesQuerySet
 from django.core.serializers.json import DjangoJSONEncoder
@@ -17,6 +18,14 @@ MIME_TYPES = ('text/json',
 
 class JSONEncoder(DjangoJSONEncoder):
     def default(self, o):
+        if isinstance(o, datetime.datetime):
+            r = o.isoformat()
+            if o.microsecond:
+                r = r[:19] + r[26:]
+            if r.endswith('+00:00'):
+                r = r[:-6] + 'Z'
+            return r
+
         if isinstance(o, ValuesQuerySet):
             return list(o)
         
