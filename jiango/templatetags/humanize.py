@@ -16,7 +16,7 @@ def naturalsecond(seconds):
     minutes, seconds = divmod(seconds, 60)
     return ''.join(((u'%d天' % days if days else ''),
                     (u'%d小时' % hours if hours else ''),
-                    (u'%d分' % minutes if minutes else ''),
+                    (u'%d分钟' % minutes if minutes else ''),
                     (u'%d秒' % seconds if seconds else ''),
                     ))
 
