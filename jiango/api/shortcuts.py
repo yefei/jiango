@@ -43,7 +43,10 @@ def render(func, exception_func=None):
             
         except (APIError, ObjectDoesNotExist), e:
             value, status = exception_func(e)
-        
+
+        if isinstance(value, HttpResponse):
+            return value
+
         response.content = serializer.serialize(value)
         response.status_code = status
         return response
