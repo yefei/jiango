@@ -44,3 +44,20 @@ def import_object(path):
     mod_path, cls_name = path.rsplit('.', 1)
     mod = import_module(mod_path)
     return getattr(mod, cls_name)
+
+
+def recursion_import(name):
+    mod = import_module(name)
+    try:
+        app_path = mod.__path__
+    except AttributeError:
+        return
+    module_names = []
+    for f in os.listdir(app_path[0]):
+        module_name = os.path.basename(os.path.splitext(os.path.join(app_path[0], f))[0])
+        if module_name != '__init__':
+            n = '%s.%s' % (name, module_name)
+            if n not in module_names:
+                module_names.append(n)
+                recursion_import(n)
+    return module_names

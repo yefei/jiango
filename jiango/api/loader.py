@@ -2,7 +2,7 @@
 # Created on 2012-9-19
 # @author: Yefei
 from django.conf.urls import url, include
-from jiango.importlib import autodiscover_installed_apps
+from jiango.importlib import autodiscover_installed_apps, recursion_import
 from .shortcuts import formats, render
 
 
@@ -30,10 +30,10 @@ def autodiscover(module_name):
 def register(path, func, name=None, output_format=None, exception_func=None):
     if output_format:
         u = url(r'^%s$' % path,
-                render(func, exception_func), kwargs = {'output_format':output_format}, name = name)
+                render(func, exception_func), kwargs={'output_format': output_format}, name=name)
     else:
         u = url(r'^%s\.(?P<output_format>%s)$' % (path, '|'.join(formats)),
-                render(func, exception_func), name = name)
+                render(func, exception_func), name=name)
     urlpatterns.append(u)
 
 
@@ -52,17 +52,27 @@ def api(func_or_path=None, name=None):
     return wrapper(func_or_path)
 
 
-# 如果设置 output_format 则会省略 URL 后缀
+def register_loaded_api_urls(module, namesapces, output_format, exception_func):
+    for func, func_or_path, name in loaded_apis.get(module, []):
+        if func_or_path and func_or_path.startswith('/'):
+            path = func_or_path[1:]
+        else:
+            path = '/'.join(namesapces + [func_or_path or func.__name__])
+        name = '-'.join(namesapces + [name or func.__name__])
+        register(path, func, name, output_format, exception_func)
+
+
+# 指定的 module 名称导入。如果设置 output_format 则会省略 URL 后缀
 def api_urls(namespace='api', module_name='api', output_format=None, exception_func=None):
     autodiscover(module_name)
-    
     for module, namesapces in loaded_modules.iteritems():
-        for func, func_or_path, name in loaded_apis.get(module, []):
-            if func_or_path and func_or_path.startswith('/'):
-                path = func_or_path[1:]
-            else:
-                path = '/'.join(namesapces + [func_or_path or func.__name__])
-            name = '-'.join(namesapces + [name or func.__name__])
-            register(path, func, name, output_format, exception_func)
-    
+        register_loaded_api_urls(module, namesapces, output_format, exception_func)
+    return include(urlpatterns, namespace)
+
+
+# 包导入，遍历并导入指定包中的所有 module 当作 API 接口使用
+def api_package_urls(package, namespace='api', output_format=None, exception_func=None):
+    for module in recursion_import(package):
+        namesapces = module[len(package)+1:].split('.')
+        register_loaded_api_urls(module, namesapces, output_format, exception_func)
     return include(urlpatterns, namespace)
