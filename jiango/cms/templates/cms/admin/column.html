@@ -1,39 +1,39 @@
-{% include 'cms/admin/menu.inc.html' with current_view='column' %}
-
-<table class="table" style="margin-top:-20px">
-	<thead>
-		<tr>
-			<th class="number">ID</th>
-			<th class="nowrap">模型</th>
-			<th>路径</th>
-			<th class="nowrap">栏目名称</th>
-			<th class="datetime">修改日期</th>
-			<th class="user">修改人</th>
-			<th class="number">浏览量</th>
-		</tr>
-	</thead>
-	<tbody>
-		{% for i in column_set %}
-		<tr>
-			<td class="number">{{i.pk}}</td>
-			<td class="nowrap">{{i.get_model_display|default:'不可发布'}}</td>
-			<td><a href="{{i.get_absolute_url}}" target="_blank">{{i.path}}</a>
-				<div class="pull-right">
-					<a href="{% url admin:cms:column-edit i.pk %}" class="btn btn-mini">修改</a>
-					<a href="{% url admin:cms:column-delete i.pk %}" class="btn btn-mini">删除</a>
-				</div>
-			</td>
-			<td class="nowrap">{{i.name}}</td>
-			<td class="datetime">{{i.update_at}}</td>
-			<td class="user">{{i.update_user}}</td>
-			<td class="number">{{i.views}}</td>
-		</tr>
-		{% endfor %}
-	</tbody>
-	<tfoot>
-		<tr>
-			<td></td>
-			<td colspan="6"><a href="{% url admin:cms:column-create %}" class="btn"><i class="icon-plus"></i> 新建栏目</a></td>
-		</tr>
-	</tfoot>
-</table>
+<section class="content">
+<div class="nav-tabs-custom">
+    {% include 'cms/admin/menu.inc.html' with current_view='column' %}
+    <div class="tab-content">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th class="number">ID</th>
+                    <th class="nowrap">模型</th>
+                    <th>路径</th>
+                    <th class="nowrap">栏目名称</th>
+                    <th class="datetime">修改日期</th>
+                    <th class="user">修改人</th>
+                    <th class="number">浏览量</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in column_set %}
+                <tr>
+                    <td class="number">{{i.pk}}</td>
+                    <td class="nowrap">{{i.get_model_display|default:'不可发布'}}</td>
+                    <td><a href="{{i.get_absolute_url}}" target="_blank">{{i.path}}</a>
+                        <div class="pull-right">
+                            <a href="{% url admin:cms:column-edit i.pk %}">修改</a>
+                            <a href="{% url admin:cms:column-delete i.pk %}">删除</a>
+                        </div>
+                    </td>
+                    <td class="nowrap">{{i.name}}</td>
+                    <td class="datetime">{{i.update_at}}</td>
+                    <td class="user">{{i.update_user}}</td>
+                    <td class="number">{{i.views}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="{% url admin:cms:column-create %}" class="btn btn-default"><i class="icon-plus"></i> 新建栏目</a>
+    </div>
+</div>
+</section>

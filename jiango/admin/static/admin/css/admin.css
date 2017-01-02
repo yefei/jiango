@@ -1,0 +1,55 @@
+@CHARSET "UTF-8";
+
+body {
+	font-family: 'Source Sans Pro', 'Helvetica Neue', Helvetica, Arial, '微软雅黑', sans-serif;
+}
+
+.main-sidebar {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	z-index: 500;
+	display: block;
+	overflow-x: hidden;
+	overflow-y: auto;
+	margin:0;
+	border-right: 1px solid #d2d6de;
+}
+
+.table th.nowrap,
+.table td.nowrap,
+.table th.user,
+.table td.user,
+.table th.number,
+.table td.number,
+.table th.datetime,
+.table td.datetime {
+	white-space:nowrap;
+	width:10px;
+}
+.table th.number,
+.table td.number {
+	text-align:right;
+}
+.table td.number {
+	font-family:Consolas;
+}
+.table td.datetime {
+	font-size:12px;
+}
+.table>tfoot>tr>td {
+	padding: 8px 0;
+	padding-top: 20px;
+}
+.table .pagination {
+	margin: 0;
+}
+
+/*
+ * utils
+ */
+i.sep {
+	font-style:normal;
+	color: #ddd;
+	margin: 0 5px;
+}

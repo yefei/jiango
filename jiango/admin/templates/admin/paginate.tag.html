@@ -1,28 +1,26 @@
-<div class="pagination">
-	<ul>
-		<li class="disabled"><span>总数: {{count}}</span></li>
-		{% if previous_url %}
-			<li><a href="{{previous_url}}">&laquo;</a></li>
-		{% else %}
-			<li class="disabled"><span>&laquo;</span></li>
-		{% endif %}
-		
-		{% for page, url in page_urls %}
-	        {% if page %}
-	            {% ifequal page page_obj.number %}
-	                <li class="active"><span>{{page}}</span></li>
-	            {% else %}
-	                <li><a href="{{url}}">{{page}}</a></li>
-	            {% endifequal %}
-	        {% else %}
-	            <li class="disabled"><span>...</span></li>
-	        {% endif %}
-	    {% endfor %}
-		
-		{% if next_url %}
-			<li><a href="{{next_url}}">&raquo;</a></li>
-		{% else %}
-			<li class="disabled"><span>&raquo;</span></li>
-		{% endif %}
-	</ul>
-</div>
+<ul class="pagination pagination-sm no-margin pull-right">
+    <li class="disabled"><span>总数: {{count}}</span></li>
+    {% if previous_url %}
+        <li><a href="{{previous_url}}">&laquo;</a></li>
+    {% else %}
+        <li class="disabled"><span>&laquo;</span></li>
+    {% endif %}
+
+    {% for page, url in page_urls %}
+        {% if page %}
+            {% ifequal page page_obj.number %}
+                <li class="active"><span>{{page}}</span></li>
+            {% else %}
+                <li><a href="{{url}}">{{page}}</a></li>
+            {% endifequal %}
+        {% else %}
+            <li class="disabled"><span>...</span></li>
+        {% endif %}
+    {% endfor %}
+
+    {% if next_url %}
+        <li><a href="{{next_url}}">&raquo;</a></li>
+    {% else %}
+        <li class="disabled"><span>&raquo;</span></li>
+    {% endif %}
+</ul>

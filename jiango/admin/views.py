@@ -27,7 +27,7 @@ def index(request, response):
     return locals()
 
 
-@render(logout=True)
+@render(logout=True, extends_layout=False)
 def login(request, response):
     secret_key = SECRET_KEY_DIGEST
     if request.method == 'POST':
@@ -51,7 +51,7 @@ def login(request, response):
 
 
 # login=False 防止用户已经退出后再刷新此页，然后跳转到登陆页面，登陆完了又退出
-@render(login=False)
+@render(login=False, extends_layout=False)
 def logout(request, response):
     user = get_request_user(request)
     if user:

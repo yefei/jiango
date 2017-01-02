@@ -1,18 +1,19 @@
-<h1 class="page-header">
-	{% if tag == 'debug' %}调试
-	{% elif tag == 'info' %}提示信息
-	{% elif tag == 'success' %}成功
-	{% elif tag == 'warning' %}注意
-	{% elif tag == 'error' %}错误
-	{% endif %}
-</h1>
+<section class="content-header">
+    <h1>
+        {% if tag == 'debug' %}调试
+        {% elif tag == 'info' %}提示信息
+        {% elif tag == 'success' %}成功
+        {% elif tag == 'warning' %}注意
+        {% elif tag == 'error' %}错误
+        {% endif %}
+    </h1>
+</section>
 
-<div class="admin-alert">
-	<p>{{message|linebreaksbr}}</p>
-</div>
-
-<div class="admin-alert-buttons">
-	{% for name,link in buttons.items %}
-		<a href="{{link}}" class="btn">{{name}}</a>
+<section class="content">
+    <div class="callout callout-danger">
+        <p>{{message|linebreaksbr}}</p>
+    </div>
+    {% for name,link in buttons.items %}
+		<a href="{{link}}" class="btn btn-default">{{name}}</a>
 	{% endfor %}
-</div>
+</section>

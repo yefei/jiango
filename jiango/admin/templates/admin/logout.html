@@ -1,4 +1,16 @@
-<div style="margin:30px 0;text-align:center;">
-	<h3 style="margin-bottom:30px;">你已经成功退出</h3>
-	<a href="{% url admin:-login %}" class="btn">重新登陆</a>
-</div>
+{% extends 'admin/layout.html' %}
+{% load bootstrap  %}
+{% load staticfiles %}
+
+{% block body %}
+    <body class="hold-transition login-page">
+    <div class="login-box">
+        <div class="login-logo">
+            <a href="{% url admin:-index %}">你已经成功<b>退出</b></a>
+        </div>
+        <div class="login-box-body">
+            <a href="{% url admin:-login %}" class="btn btn-primary btn-block">重新登陆</a>
+        </div>
+    </div>
+    </body>
+{% endblock %}

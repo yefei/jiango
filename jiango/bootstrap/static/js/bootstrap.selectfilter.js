@@ -160,7 +160,7 @@ window.SelectFilter = {
         }
         var from_box = document.getElementById(field_id);
         from_box.id += '_from'; // change its ID
-        from_box.className = 'filtered';
+        from_box.className = 'form-control filtered';
 
         var ps = from_box.parentNode.getElementsByTagName('p');
         for (var i=0; i<ps.length; i++) {
@@ -176,31 +176,31 @@ window.SelectFilter = {
         }
         
         var selector_div = quickElement('div', from_box.parentNode);
-        	selector_div.className = 'row-fluid';
+        	selector_div.className = 'row';
         	
         var selector_available = quickElement('div', selector_div, '');
-        	selector_available.className = 'span6';
+        	selector_available.className = 'col-md-6';
         
         quickElement('div', selector_available, '可用的'+field_name+' (双击选取)');
         
         var filter_div = quickElement('div', selector_available, '', 'id', field_id + '_filter');
-        var filter_input = quickElement('input', filter_div, '', 'type', 'text', 'placeholder', "输入关键词筛选");
+        var filter_input = quickElement('input', filter_div, '', 'type', 'text', 'placeholder', "输入关键词筛选", 'class', 'form-control');
         	filter_input.id = field_id + '_input';
 
         selector_available.appendChild(from_box);
         
         var choose_all = quickElement('a', selector_available, '全选', 'href', 'javascript: (function(){ SelectBox.move_all("' + field_id + '_from", "' + field_id + '_to");})()', 'id', field_id + '_add_all_link');
-        	choose_all.className = 'btn btn-mini';
+        	choose_all.className = 'btn btn-default btn-sm';
         
         var selector_chosen = quickElement('div', selector_div, '');
-        	selector_chosen.className = 'span6';
+        	selector_chosen.className = 'col-md-6';
         
         quickElement('div', selector_chosen, '已选择的'+field_name+' (双击去除)');
         
-        var to_box = quickElement('select', selector_chosen, '', 'id', field_id + '_to', 'multiple', 'multiple', 'size', from_box.size, 'name', from_box.getAttribute('name'));
+        var to_box = quickElement('select', selector_chosen, '', 'id', field_id + '_to', 'multiple', 'multiple', 'size', from_box.size, 'name', from_box.getAttribute('name'), 'class', 'form-control');
         
         var clear_all = quickElement('a', selector_chosen, '全删', 'href', 'javascript: (function() { SelectBox.move_all("' + field_id + '_to", "' + field_id + '_from");})()', 'id', field_id + '_remove_all_link');
-        clear_all.className = 'btn btn-mini';
+        clear_all.className = 'btn btn-default btn-sm';
         
         from_box.setAttribute('name', from_box.getAttribute('name') + '_old');
 

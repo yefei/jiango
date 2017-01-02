@@ -96,6 +96,7 @@ def renderer(prefix=None, default_extends_layout=True,
                 user = get_request_user(request)
                 base_dictionary = {'content': content,
                                    'navigation': user and get_navigation(request),
+                                   'sidebar_collapse': request.COOKIES.get('admin-sidebar-collapse') == '1',
                                    'user': user}
                 response.content = render_to_string(request, base_dictionary, 'admin/layout')
                 return response

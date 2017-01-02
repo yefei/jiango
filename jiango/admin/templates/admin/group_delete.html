@@ -1,15 +1,22 @@
-<h2 class="page-header">
-	<a href="{% url admin:-index %}">系统</a>
-	/ <a href="{% url admin:-group-list %}">用户组</a>
-	/ <a href="{% url admin:-group-show group.pk %}">{{group}}</a>
-	/ 删除用户组
-</h2>
+<section class="content-header">
+    <h1>
+        <a href="{% url admin:-index %}">系统</a> /
+        <a href="{% url admin:-group-list %}">用户组</a> /
+        <a href="{% url admin:-group-show group.pk %}">{{group}}</a> /
+        删除用户组
+    </h1>
+</section>
 
-<blockquote>
-	<p>您确定要删除用户组 <b>{{group}}</b> 吗？</p>
-</blockquote>
-
-<form method="post" action="">
-	{% csrf_token %}
-	<button type="submit" class="btn btn-danger btn-large">确认删除</button>
-</form>
+<section class="content">
+    <div class="box">
+        <div class="box-body">
+            <h2>您确定要删除用户组 <b>{{group}}</b> 吗？</h2>
+        </div>
+        <div class="box-footer">
+            <form method="post" action="">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-large pull-right">确认删除</button>
+            </form>
+        </div>
+    </div>
+</section>

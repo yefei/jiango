@@ -1,50 +1,60 @@
-<h2 class="page-header">
-	<a href="{% url admin:-index %}">系统</a>
-	/ <a href="{% url admin:-user-list %}">管理员</a>
-	/ {{user}}
-</h2>
+<section class="content-header">
+    <h1>
+        <a href="{% url admin:-index %}">系统</a>
+	    / <a href="{% url admin:-user-list %}">管理员</a>
+	    / {{user}}
+    </h1>
+</section>
 
-<table class="table table-info">
-	<thead>
-	<tr><th>用户名:</th><td>
-		{{user.username}}
-	</td></tr>
-	<tr><th>加入于:</th><td>
-		{{user.join_at}}, {{user.join_at|timesince}}前
-	</td></tr>
-	<tr><th>最近登录于:</th><td>
-		{{user.login_at|default:'从未'}}{% if user.login_at %}, {{user.login_at|timesince}}前{% endif %}
-	</td></tr>
-	<tr><th>最近登录失败于:</th><td>{{user.login_fail_at|default:'从未'}} ({{user.login_fails}})</td></tr>
-	<tr><th>状态:</th><td>
-		{% if user.is_active %}
-			<span class="label label-success">有效用户</span>
-		{% else %}
-			<span class="label">无效用户</span>
-		{% endif %}
-		{% if user.is_superuser %}
-			<span class="label label-important">超级用户</span>
-		{% endif %}
-	</td></tr>
-	<tr><th>用户组:</th><td>
-		{% for i in user.groups.all %}
-			<span class="label label-info">{{i}}</span>
-		{% empty %}
-			无
-		{% endfor %}
-	</td></tr>
-	<tr><th>附加权限:</th><td>
-		{% for i in user.permissions.all %}
-			<span class="label label-info">{{i}}</span>
-		{% empty %}
-			无
-		{% endfor %}
-	</td></tr>
-	</thead>
-</table>
-
-<p>
-	<a href="{% url admin:-user-password user.pk %}" class="btn">修改用户密码</a>
-	<a href="{% url admin:-user-edit user.pk %}" class="btn">修改用户</a>
-	<a href="{% url admin:-user-delete user.pk %}" class="btn btn-danger pull-right">删除用户</a>
-</p>
+<section class="content">
+    <div class="box">
+        <div class="box-body">
+            <table class="table table-info">
+                <thead>
+                <tr><th>用户名:</th><td>
+                    {{user.username}}
+                </td></tr>
+                <tr><th>加入于:</th><td>
+                    {{user.join_at}}, {{user.join_at|timesince}}前
+                </td></tr>
+                <tr><th>最近登录于:</th><td>
+                    {{user.login_at|default:'从未'}}{% if user.login_at %}, {{user.login_at|timesince}}前{% endif %}
+                </td></tr>
+                <tr><th>最近登录失败于:</th><td>{{user.login_fail_at|default:'从未'}} ({{user.login_fails}})</td></tr>
+                <tr><th>状态:</th><td>
+                    {% if user.is_active %}
+                        <span class="label label-success">有效用户</span>
+                    {% else %}
+                        <span class="label label-default">无效用户</span>
+                    {% endif %}
+                    {% if user.is_superuser %}
+                        <span class="label label-warning">超级用户</span>
+                    {% endif %}
+                    {% if user.is_online %}
+                        <span class="label label-success">在线</span>
+                    {% endif %}
+                </td></tr>
+                <tr><th>用户组:</th><td>
+                    {% for i in user.groups.all %}
+                        <span class="label label-info">{{i}}</span>
+                    {% empty %}
+                        无
+                    {% endfor %}
+                </td></tr>
+                <tr><th>附加权限:</th><td>
+                    {% for i in user.permissions.all %}
+                        <span class="label label-info">{{i}}</span>
+                    {% empty %}
+                        无
+                    {% endfor %}
+                </td></tr>
+                </thead>
+            </table>
+        </div>
+        <div class="box-footer">
+            <a href="{% url admin:-user-password user.pk %}" class="btn btn-default">修改用户密码</a>
+            <a href="{% url admin:-user-edit user.pk %}" class="btn btn-default">修改用户</a>
+            <a href="{% url admin:-user-delete user.pk %}" class="btn btn-danger pull-right">删除用户</a>
+        </div>
+    </div>
+</section>

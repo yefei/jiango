@@ -1,6 +1,6 @@
 {% load admin_pagination %}
 {% load bootstrap %}
-{% include 'cms/admin/menu.inc.html' with current_view='recycle' %}
+
 
 <style>
 <!--
@@ -25,98 +25,107 @@
 -->
 </style>
 
-<ul class="nav nav-pills" style="margin-top:-20px;background-color:#f5f5f5;">
-	<li{% if not model %} class="active"{% endif %}><a href="{% url admin:cms:recycle %}">统计</a></li>
-	<li style="line-height:33px;"><i class="sep">|</i></li>
-	{% for m,i in models.items %}
-		<li{% if model == m %} class="active"{% endif %}><a href="{% url admin:cms:recycle-model m %}">{{i.name}}</a></li>
-	{% endfor %}
-	{% if model and content_set %}
-		<li class="pull-right"><a href="{% url admin:cms:recycle-model-clear model %}"><i class="icon-fire"></i> 清空回收站</a></li>
-	{% endif %}
-</ul>
+<section class="content">
 
-{% if is_clear_mode %}
-	
-	<blockquote>
-		<h2>清空{{model_name}}回收站确认</h2>
-		<p>将要被清空的数量为: <strong>{{content_count}}</strong></p>
-		<form action="" method="post" style="margin-top:20px">
-			{% csrf_token %}
-			{{form|bootstrap}}
-			<button type="submit" class="btn btn-danger">
-				<i class="icon-fire icon-white"></i> 确定清空
-			</button>
-		</form>
-	</blockquote>
-	
-{% elif content_set %}
+<div class="nav-tabs-custom">
+    {% include 'cms/admin/menu.inc.html' with current_view='recycle' %}
+    <div class="tab-content">
+        <ul class="nav nav-pills" style="background-color:#f5f5f5;">
+            <li{% if not model %} class="active"{% endif %}><a href="{% url admin:cms:recycle %}">统计</a></li>
+            <li style="line-height:33px;"><i class="sep">|</i></li>
+            {% for m,i in models.items %}
+                <li{% if model == m %} class="active"{% endif %}><a href="{% url admin:cms:recycle-model m %}">{{i.name}}</a></li>
+            {% endfor %}
+            {% if model and content_set %}
+                <li class="pull-right"><a href="{% url admin:cms:recycle-model-clear model %}"><i class="icon-fire"></i> 清空回收站</a></li>
+            {% endif %}
+        </ul>
 
-	<form action="" method="post" style="margin-top:-20px;">
-		{% csrf_token %}
-		<table class="table">
-			<thead>
-				<tr>
-					<th class="nowrap"><input type="checkbox" data-spy="checkall" data-for="[name='pk']"></th>
-					<th class="number">ID</th>
-					<th class="nowrap">所属栏目</th>
-					<th>标题</th>
-					<th class="datetime">修改日期</th>
-					<th class="user">修改人</th>
-					<th class="number">浏览量</th>
-				</tr>
-			</thead>
-			<tbody>
-				{% for i in content_set %}
-				<tr>
-					<td><input type="checkbox" name="pk" value="{{i.pk}}"></td>
-					<td class="number">{{i.pk}}</td>
-					<td class="nowrap">
-						<a href="{{i.column.get_absolute_url}}" target="_blank">{{i.column.name}}</a>
-					</td>
-					<td><a href="{{i.get_absolute_url}}" target="_blank">{{i}}</a>
-						{% if i.is_hidden %}<span class="label">隐藏</span>{% endif %}
-						<div class="pull-right">
-							<a href="{% url admin:cms:content-edit i.column.path, i.pk %}?next={{request.get_full_path|urlencode}}"
-								class="btn btn-mini">修改</a>
-						</div>
-					</td>
-					<td class="datetime">{{i.update_at}}</td>
-					<td class="user">{{i.update_user}}</td>
-					<td class="number">{{i.views}}</td>
-				</tr>
-				{% endfor %}
-			</tbody>
-			<tfoot>
-				<tr>
-					<td colspan="7">
-						<div class="pull-left">
-							<button type="submit" class="btn btn-danger" name="action" value="fire">
-								<i class="icon-fire icon-white"></i> 彻底删除选中项
-							</button>
-						</div>
-						<div class="pull-right">
-							{% paginate content_set %}
-						</div>
-					</td>
-				</tr>
-			</tfoot>
-		</table>
-	</form>
+        {% if is_clear_mode %}
 
-{% else %}
+            <blockquote>
+                <h2>清空{{model_name}}回收站确认</h2>
+                <p>将要被清空的数量为: <strong>{{content_count}}</strong></p>
+                <form action="" method="post" style="margin-top:20px">
+                    {% csrf_token %}
+                    {{form|bootstrap}}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="icon-fire icon-white"></i> 确定清空
+                    </button>
+                </form>
+            </blockquote>
 
-	{% if total_count > 0 %}
-		<div class="recycle-stats">
-		{% for m,i in stats.items %}
-			<a href="{% url admin:cms:recycle-model m %}" class="item">
-				<div style="margin-top:30px">{{i.name}}</div>
-				<strong>{{i.count}}</strong>
-			</a>
-		{% endfor %}
-		</div>
-	{% else %}
-		<h2 style="text-align:center;">回收站中没有任何内容</h2>
-	{% endif %}
-	
-{% endif %}
+        {% elif content_set %}
+
+            <form action="" method="post" style="margin-top:-20px;">
+                {% csrf_token %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th class="nowrap"><input type="checkbox" data-spy="checkall" data-for="[name='pk']"></th>
+                            <th class="number">ID</th>
+                            <th class="nowrap">所属栏目</th>
+                            <th>标题</th>
+                            <th class="datetime">修改日期</th>
+                            <th class="user">修改人</th>
+                            <th class="number">浏览量</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for i in content_set %}
+                        <tr>
+                            <td><input type="checkbox" name="pk" value="{{i.pk}}"></td>
+                            <td class="number">{{i.pk}}</td>
+                            <td class="nowrap">
+                                <a href="{{i.column.get_absolute_url}}" target="_blank">{{i.column.name}}</a>
+                            </td>
+                            <td><a href="{{i.get_absolute_url}}" target="_blank">{{i}}</a>
+                                {% if i.is_hidden %}<span class="label">隐藏</span>{% endif %}
+                                <div class="pull-right">
+                                    <a href="{% url admin:cms:content-edit i.column.path i.pk %}?next={{request.get_full_path|urlencode}}"
+                                        class="btn btn-default btn-xs">修改</a>
+                                </div>
+                            </td>
+                            <td class="datetime">{{i.update_at}}</td>
+                            <td class="user">{{i.update_user}}</td>
+                            <td class="number">{{i.views}}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="7">
+                                <div class="pull-left">
+                                    <button type="submit" class="btn btn-danger" name="action" value="fire">
+                                        <i class="icon-fire icon-white"></i> 彻底删除选中项
+                                    </button>
+                                </div>
+                                <div class="pull-right">
+                                    {% paginate content_set %}
+                                </div>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </form>
+
+        {% else %}
+
+            {% if total_count > 0 %}
+                <div class="recycle-stats">
+                {% for m,i in stats.items %}
+                    <a href="{% url admin:cms:recycle-model m %}" class="item">
+                        <div style="margin-top:30px">{{i.name}}</div>
+                        <strong>{{i.count}}</strong>
+                    </a>
+                {% endfor %}
+                </div>
+            {% else %}
+                <h2 style="text-align:center;">回收站中没有任何内容</h2>
+            {% endif %}
+
+        {% endif %}
+    </div>
+</div>
+
+</section>

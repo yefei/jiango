@@ -1,24 +1,28 @@
 {% load bootstrap  %}
 
-<h2 class="page-header">
-	<a href="{% url admin:-index %}">系统</a>
-	/ <a href="{% url admin:-user-list %}">管理员</a>
-	{% if user %}
-		/ <a href="{% url admin:-user-show user.pk %}">{{user}}</a>
-		/ 编辑管理员
-	{% else %}
-		/ 添加管理员
-	{% endif %}
-</h2>
+<section class="content-header">
+    <h1>
+        <a href="{% url admin:-index %}">系统</a>
+        / <a href="{% url admin:-user-list %}">管理员</a>
+        {% if user %}
+            / <a href="{% url admin:-user-show user.pk %}">{{user}}</a>
+            / 编辑管理员
+        {% else %}
+            / 添加管理员
+        {% endif %}
+    </h1>
+</section>
 
-<div class="panel panel-warning" style="width:600px;">
-	<div class="panel-body">
-		<form method="post" action="" class="form" id="form">
-			{% csrf_token %}
-			{{form|bootstrap}}
-			<div style="text-align:center;margin-top:30px">
-				<button type="submit" class="btn btn-warning btn-large">确定</button>
-			</div>
-		</form>
-	</div>
-</div>
+<section class="content">
+    <div class="box">
+        <form method="post" action="" class="form" id="form">
+            {% csrf_token %}
+            <div class="box-body">
+                {{form|bootstrap}}
+            </div>
+            <div class="box-footer">
+                <button type="submit" class="btn btn-warning btn-large">确定</button>
+            </div>
+        </form>
+    </div>
+</section>

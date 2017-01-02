@@ -1,29 +1,56 @@
+{% extends 'admin/layout.html' %}
 {% load bootstrap  %}
 {% load staticfiles %}
 
-<div class="panel panel-warning" style="width:400px;margin:0 auto;margin-top:50px;">
-	<div class="panel-heading">管理登陆</div>
-	<div class="panel-body">
-		<form method="post" action="" class="form" id="login-form">
-			{% csrf_token %}
-			{{form|bootstrap}}
-			<div style="text-align:center;margin-top:30px">
-				<button type="submit" class="btn btn-warning btn-large">登陆</button>
-			</div>
-		</form>
-	</div>
-</div>
+{% block body %}
+    <body class="hold-transition login-page">
+    <div class="login-box">
+        <div class="login-logo">
+            <a href="{% url admin:-index %}"><b>管理</b>后台</a>
+        </div>
+        <div class="login-box-body">
+            {% for non_field_error in form.non_field_errors %}
+                <p class="login-box-msg">{{ non_field_error }}</p>
+            {% endfor %}
+            <form action="" method="post" id="login-form">
+                {% csrf_token %}
+                {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+                <div class="form-group has-feedback {{ form.password.errors|yesno:'has-error,' }}">
+                    {% ff form.username class="form-control" placeholder="用户名" %}
+                    <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                    {% for error in form.username.errors %}
+                        <span class="help-block {{ form.error_css_class }}">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                <div class="form-group has-feedback {{ form.password.errors|yesno:'has-error,' }}">
+                    {% ff form.password class="form-control" placeholder="密码" %}
+                    <span class="glyphicon glyphicon-lock form-control-feedback"></span>
+                    {% for error in form.password.errors %}
+                        <span class="help-block {{ form.error_css_class }}">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <button type="submit" class="btn btn-primary btn-block btn-flat">登陆</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
 
-<script src="{% static 'js/md5.js' %}"></script>
-<script type="text/javascript">
-<!--
-$('#login-form').submit(function(e){
-	var salt = $(this).find('input[name=salt]').val();
-	var SECRET_KEY = '{{secret_key}}';
-	$.each($(this).find('input[type=password]'), function(){
-		var self = $(this);
-		self.val(MD5(salt + MD5(MD5(self.val())+SECRET_KEY)));
-	});
-});
-//-->
-</script>
+    <script src="{% static 'admin/js/md5.js' %}"></script>
+    <script type="text/javascript">
+    <!--
+    $('#login-form').submit(function(e){
+        var salt = $(this).find('input[name=salt]').val();
+        var SECRET_KEY = '{{secret_key}}';
+        $.each($(this).find('input[type=password]'), function(){
+            var self = $(this);
+            self.val(MD5(salt + MD5(MD5(self.val())+SECRET_KEY)));
+        });
+    });
+    //-->
+    </script>
+
+    </body>
+{% endblock %}

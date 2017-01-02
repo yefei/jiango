@@ -16,6 +16,8 @@ from .forms import ColumnForm, ColumnEditForm, ActionForm, RecycleClearForm, Col
 from .config import CONTENT_MODELS, CONTENT_ACTION_MAX_RESULTS, CONTENT_PER_PAGE
 
 
+icon = 'fa fa-file-text-o'
+verbose_name = u'内容管理'
 render = renderer('cms/admin/')
 log = Logger('cms')
 
@@ -273,24 +275,22 @@ def content_edit(request, response, column_select, content_id=None):
     return 'content', locals()
 
 
-verbose_name = u'内容管理'
-
 urlpatterns = [
     url(r'^$', content, name='index'),
-    url(r'^column/$', column, name='column'),
-    url(r'^column/create/$', column_edit, name='column-create'),
-    url(r'^column/(?P<column_id>\d+)/$', column_edit, name='column-edit'),
-    url(r'^column/(?P<column_id>\d+)/delete/$', column_delete, name='column-delete'),
+    url(r'^/column$', column, name='column'),
+    url(r'^/column/create$', column_edit, name='column-create'),
+    url(r'^/column/(?P<column_id>\d+)$', column_edit, name='column-edit'),
+    url(r'^/column/(?P<column_id>\d+)/delete$', column_delete, name='column-delete'),
     
-    url(r'^content/$', content, name='content'),
-    url(r'^content/path/(?P<path>.*)/$', content, name='content-path'),
-    url(r'^content/create/(?P<path>.*)/$', content_edit, name='content-create'),
-    url(r'^content/edit/(?P<path>.*)/(?P<content_id>\d+)/$', content_edit, name='content-edit'),
-    url(r'^content/action/$', content_action, name='content-action'),
+    url(r'^/content$', content, name='content'),
+    url(r'^/content/path/(?P<path>.*)$', content, name='content-path'),
+    url(r'^/content/create/(?P<path>.*)$', content_edit, name='content-create'),
+    url(r'^/content/edit/(?P<path>.*)/(?P<content_id>\d+)$', content_edit, name='content-edit'),
+    url(r'^/content/action$', content_action, name='content-action'),
     
-    url(r'^recycle/$', recycle, name='recycle'),
-    url(r'^recycle/(?P<model>\w+)/$', recycle, name='recycle-model'),
-    url(r'^recycle/(?P<model>\w+)/clear/$', recycle_clear, name='recycle-model-clear'),
+    url(r'^/recycle$', recycle, name='recycle'),
+    url(r'^/recycle/(?P<model>\w+)$', recycle, name='recycle-model'),
+    url(r'^/recycle/(?P<model>\w+)/clear$', recycle_clear, name='recycle-model-clear'),
 ]
 
 PERMISSIONS = {

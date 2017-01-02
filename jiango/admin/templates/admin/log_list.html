@@ -1,10 +1,19 @@
 {% load admin_pagination %}
 
-<h2 class="page-header">
-	<a href="{% url admin:-index %}">系统</a>
-	/ 日志
-</h2>
+<section class="content-header">
+    <h1>
+        <a href="{% url admin:-index %}">系统</a> /
+        日志
+    </h1>
+</section>
 
-{% include 'admin/log-table.inc.html' %}
-
-{% paginate log_set %}
+<section class="content">
+    <div class="box">
+        <div class="box-body table-responsive no-padding">
+           {% include 'admin/log-table.inc.html' %}
+        </div>
+        <div class="box-footer">
+            {% paginate log_set %}
+        </div>
+    </div>
+</section>

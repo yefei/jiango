@@ -1,32 +1,28 @@
-<table class="table table-striped">
-	<thead>
-		<tr>
-			<th class="number">序号</th>
-			<th class="nowrap">级别</th>
-			<th class="nowrap">动作</th>
-			<th>内容</th>
-			<th class="user">用户</th>
-			<th class="datetime">时间</th>
-		</tr>
-	</thead>
-	<tbody>
-		{% for i in log_set %}
-		<tr>
-			<td class="number">{{i.pk}}</td>
-			<td class="nowrap">{{i.get_level_display}}</td>
-			<td class="nowrap">{{i.get_action_display}}</td>
-			<td>{{i.content|truncatechars:60}}
-				<a href="{% url admin:-log-show i.pk %}" class="btn btn-mini pull-right">详细</a>
-			</td>
-			<td class="user">
-				{% if i.user %}
-					<a href="{% url admin:-user-show i.user.pk %}" target="_blank">{{i.user.username}}</a>
-				{% elif i.username %}
-					<span title="已经被删除">{{i.username}}</span>
-				{% endif %}
-			</td>
-			<td class="datetime">{{i.datetime}}</td>
-		</tr>
-		{% endfor %}
-	</tbody>
+<table class="table table-hover">
+    <tr>
+        <th class="number">序号</th>
+        <th class="nowrap">级别</th>
+        <th class="nowrap">动作</th>
+        <th>内容</th>
+        <th class="datetime">时间</th>
+        <th class="user">用户</th>
+    </tr>
+    {% for i in log_set %}
+    <tr>
+        <td class="number">{{i.pk}}</td>
+        <td class="nowrap">{{i.get_level_display}}</td>
+        <td class="nowrap">{{i.get_action_display}}</td>
+        <td>{{i.content|truncatechars:60}}
+            <a href="{% url admin:-log-show i.pk %}" class="pull-right">详细</a>
+        </td>
+        <td class="datetime">{{i.datetime}}</td>
+        <td class="user">
+            {% if i.user %}
+                <a href="{% url admin:-user-show i.user.pk %}" target="_blank">{{i.user.username}}</a>
+            {% elif i.username %}
+                <span title="已经被删除">{{i.username}}</span>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
 </table>

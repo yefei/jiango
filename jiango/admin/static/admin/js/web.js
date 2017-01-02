@@ -11,7 +11,7 @@ $.ajaxPrefilter(function(options, originalOptions, xhr){
 	}
 });
 
-$.notifySetup({sound: static_prefix + 'audio/notify.wav'});
+$.notifySetup({sound: static_prefix + 'admin/audio/notify.wav'});
 
 /**
  * modal 浮层对话框
