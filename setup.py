@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 from setuptools import find_packages, setup
 
-VERSION = "0.5.0"
+VERSION = "0.5.1"
 
 setup(
     name='jiango',
     version=VERSION,
-    url='http://djangobbs.com',
-    author='Yefei',
+    url='http://y.minecon.cn',
+    author='Feiye',
     author_email='316606233@qq.com',
-    description=('A high-level Python Web framework that encourages '
-                 'rapid development and clean, pragmatic design.'),
+    description='Django Framework Toolkit.',
+    license='BSD',
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
