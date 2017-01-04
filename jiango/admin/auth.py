@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from jiango.shortcuts import update_instance
+from jiango.api import LoginRequired
 from .models import User
 from .config import COOKIE_NAME, AUTH_SLAT_TIMEOUT, REQUEST_ADMIN_FIELD, LOGIN_NEXT_FIELD, SECRET_KEY_DIGEST
 
@@ -94,6 +95,15 @@ def login_required(view_func):
         if get_request_user(request):
             return view_func(request, *args, **kwargs)
         return login_redirect(request)
+    return wrapper
+
+
+def api_login_required(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if get_request_user(request):
+            return view_func(request, *args, **kwargs)
+        raise LoginRequired()
     return wrapper
 
 

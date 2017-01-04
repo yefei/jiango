@@ -3,31 +3,24 @@
 <div class="form-group{% if field.errors %} has-error{% endif %}{% if field.field.required %} required{% endif %}">
     {% if field|is_checkbox %}
         <div class="checkbox">
-            <label>
-                {{ field }} {{ field.label }}
-            </label>
-
-            {% for error in field.errors %}
-                <p class="help-block">{{ error }}</p>
-            {% endfor %}
-
-            {% if field.help_text %}
-            	<p class="help-block">{{ field.help_text|safe }}</p>
-            {% endif %}
+            <label>{{ field }} {{ field.label }}</label>
         </div>
     {% else %}
     	{% if field.label %}
         	<label class="control-label" for="{{ field.auto_id }}">{{ field.label }}</label>
 		{% endif %}
-
-        {%  ff field class="form-control" %}
-
-        {% for error in field.errors %}
-            <p class="help-block">{{ error }}</p>
-        {% endfor %}
-
-        {% if field.help_text %}
-            <p class="help-block">{{ field.help_text|safe }}</p>
+        {% if field|is_radio %}
+            <div class="radio">{% for f in field %}{{ f }} {% endfor %}</div>
+        {% else %}
+            {% ff field class="form-control" %}
         {% endif %}
+    {% endif %}
+
+    {% for error in field.errors %}
+        <p class="help-block">{{ error }}</p>
+    {% endfor %}
+
+    {% if field.help_text %}
+        <p class="help-block">{{ field.help_text|safe }}</p>
     {% endif %}
 </div>
