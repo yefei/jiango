@@ -11,7 +11,6 @@ from .shortcuts import formats, render
 LOADING = False
 loaded_apis = {}
 loaded_modules = {}
-urlpatterns = []
 
 
 def autodiscover(module_name):
@@ -34,7 +33,7 @@ def register(path, func, name=None, output_format=None, exception_func=None):
     else:
         u = url(r'^%s\.(?P<output_format>%s)$' % (path, '|'.join(formats)),
                 render(func, exception_func), name=name)
-    urlpatterns.append(u)
+    return u
 
 
 def api(func_or_path=None, name=None):
@@ -53,26 +52,31 @@ def api(func_or_path=None, name=None):
 
 
 def register_loaded_api_urls(module, namesapces, output_format, exception_func):
+    urlpatterns = []
     for func, func_or_path, name in loaded_apis.get(module, []):
         if func_or_path and func_or_path.startswith('/'):
             path = func_or_path[1:]
         else:
             path = '/'.join(namesapces + [func_or_path or func.__name__])
         name = '-'.join(namesapces + [name or func.__name__])
-        register(path, func, name, output_format, exception_func)
+        u = register(path, func, name, output_format, exception_func)
+        urlpatterns.append(u)
+    return urlpatterns
 
 
 # 指定的 module 名称导入。如果设置 output_format 则会省略 URL 后缀
 def api_urls(namespace='api', module_name='api', output_format=None, exception_func=None):
     autodiscover(module_name)
+    urlpatterns = []
     for module, namesapces in loaded_modules.iteritems():
-        register_loaded_api_urls(module, namesapces, output_format, exception_func)
+        urlpatterns.extend(register_loaded_api_urls(module, namesapces, output_format, exception_func))
     return include(urlpatterns, namespace)
 
 
 # 包导入，遍历并导入指定包中的所有 module 当作 API 接口使用
 def api_package_urls(package, namespace='api', output_format=None, exception_func=None):
+    urlpatterns = []
     for module in recursion_import(package):
         namesapces = module[len(package)+1:].split('.')
-        register_loaded_api_urls(module, namesapces, output_format, exception_func)
+        urlpatterns.extend(register_loaded_api_urls(module, namesapces, output_format, exception_func))
     return include(urlpatterns, namespace)
