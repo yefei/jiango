@@ -22,7 +22,7 @@
     <script src="{% static 'admin/js/web.js' %}"></script>
 </head>
 {% block body %}
-<body class="hold-transition skin-blue-light fixed sidebar-mini{% if sidebar_collapse %} sidebar-collapse{% endif %}">
+<body class="hold-transition skin-blue-light fixed{% if current_sub_menus %} sidebar-mini{% if sidebar_collapse %} sidebar-collapse{% endif %}{% endif %}">
     <div class="wrapper">
         <header class="main-header">
             <a href="{% url admin:-index %}" class="logo">
@@ -30,9 +30,20 @@
                 <span class="logo-lg"><b>管理</b>后台</span>
             </a>
             <nav class="navbar navbar-static-top" role="navigation">
-                <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
-                    <span class="sr-only">展开隐藏菜单</span>
-                </a>
+                {% if current_sub_menus %}
+                    <a href="#" class="sidebar-toggle" data-toggle="offcanvas" role="button">
+                        <span class="sr-only">展开隐藏菜单</span>
+                    </a>
+                {% endif %}
+                {% if navigation %}
+                    <ul class="nav navbar-nav">
+                        {% for i in navigation %}
+                            <li{% if i.is_active %} class="active"{% endif %}>
+                                <a href="{{i.url}}">{{i.verbose_name}}</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
                 <div class="navbar-custom-menu">
                     <ul class="nav navbar-nav">
                         {% if user %}
@@ -40,24 +51,23 @@
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="icon-user"></i> {{user.username}} <i class="caret"></i></a>
                                 <ul class="dropdown-menu">
                                     <li><a href="{% url admin:-user-show user.pk %}">我的信息</a></li>
-                                    <li><a href="{% url admin:-password %}">修改登陆密码</a></li>
+                                    <li><a href="{% url admin:-password %}">修改密码</a></li>
+                                    <li><a href="{% url admin:-logout %}">退出登陆</a></li>
                                 </ul>
                             </li>
-                            <li><a href="{% url admin:-index %}"><i class="icon-cog"></i> 系统</a></li>
-                            <li><a href="{% url admin:-logout %}"><i class="icon-signout"></i> 退出</a></li>
                         {% else %}
-                            <li><a href="{% url admin:-login %}"><i class="icon-signin"></i> 登陆</a></li>
+                            <li><a href="{% url admin:-login %}">登陆</a></li>
                         {% endif %}
                     </ul>
                 </div>
             </nav>
         </header>
 
-        {% if navigation %}
+        {% if current_sub_menus %}
             <aside class="main-sidebar">
                 <section class="sidebar">
                     <ul class="sidebar-menu">
-                        {% for i in navigation %}
+                        {% for i in current_sub_menus %}
                             <li{% if i.is_active %} class="active"{% endif %}>
                                 <a href="{{i.url}}"><i class="{{ i.icon|default:'fa fa-circle-o' }}"></i> <span>{{i.verbose_name}}</span></a>
                             </li>
@@ -67,7 +77,7 @@
             </aside>
         {% endif %}
 
-        <div class="content-wrapper">
+        <div class="content-wrapper"{% if not current_sub_menus %} style="margin-left:0" {% endif %}>
             {% include 'admin/browser-check.inc.html' %}
             {{content}}
         </div>

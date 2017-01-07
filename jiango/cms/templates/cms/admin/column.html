@@ -1,7 +1,4 @@
 <section class="content">
-<div class="nav-tabs-custom">
-    {% include 'cms/admin/menu.inc.html' with current_view='column' %}
-    <div class="tab-content">
         <table class="table">
             <thead>
                 <tr>
@@ -34,6 +31,4 @@
             </tbody>
         </table>
         <a href="{% url admin:cms:column-create %}" class="btn btn-default"><i class="icon-plus"></i> 新建栏目</a>
-    </div>
-</div>
 </section>

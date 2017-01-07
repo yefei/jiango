@@ -1,10 +1,6 @@
 {% load admin_pagination %}
 
 <section class="content">
-
-<div class="nav-tabs-custom">
-    {% include 'cms/admin/menu.inc.html' with current_view='content' %}
-    <div class="tab-content">
         <ul class="breadcrumb">
           <li><a href="{% url admin:cms:content %}">内容管理</a></li>
           <li>批量操作: {{action_name}}</li>
@@ -55,7 +51,4 @@
                 </td>
             </tr></table>
         </form>
-    </div>
-</div>
-
 </section>

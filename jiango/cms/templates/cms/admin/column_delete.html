@@ -10,10 +10,6 @@
 </style>
 
 <section class="content">
-
-<div class="nav-tabs-custom">
-    {% include 'cms/admin/menu.inc.html' with current_view='column' %}
-    <div class="tab-content">
         <ul class="breadcrumb">
           <li><a href="{% url admin:cms:column %}">栏目管理</a></li>
           <li><a href="{% url admin:cms:column-edit instance.pk %}">{{instance.path}}: {{instance.name}}</a></li>
@@ -41,7 +37,4 @@
                 </button>
             </form>
         </blockquote>
-    </div>
-</div>
-
 </section>

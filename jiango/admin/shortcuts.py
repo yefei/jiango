@@ -94,8 +94,17 @@ def renderer(prefix=None, default_extends_layout=True,
                 
                 from .loader import get_navigation
                 user = get_request_user(request)
+                navigation = None
+                current_sub_menus = None
+                if user:
+                    navigation = get_navigation(request)
+                    for i in navigation:
+                        if i['is_active']:
+                            current_sub_menus = i['sub_menus']
+                            break
                 base_dictionary = {'content': content,
-                                   'navigation': user and get_navigation(request),
+                                   'navigation': navigation,
+                                   'current_sub_menus': current_sub_menus,
                                    'sidebar_collapse': request.COOKIES.get('admin-sidebar-collapse') == '1',
                                    'user': user}
                 response.content = render_to_string(request, base_dictionary, 'admin/layout')

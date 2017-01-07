@@ -1,21 +1,5 @@
 @CHARSET "UTF-8";
 
-body {
-	font-family: 'Source Sans Pro', 'Helvetica Neue', Helvetica, Arial, '微软雅黑', sans-serif;
-}
-
-.main-sidebar {
-	position: fixed;
-	bottom: 0;
-	left: 0;
-	z-index: 500;
-	display: block;
-	overflow-x: hidden;
-	overflow-y: auto;
-	margin:0;
-	border-right: 1px solid #d2d6de;
-}
-
 .table th.nowrap,
 .table td.nowrap,
 .table th.user,

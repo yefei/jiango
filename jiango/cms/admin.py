@@ -17,9 +17,14 @@ from .config import CONTENT_MODELS, CONTENT_ACTION_MAX_RESULTS, CONTENT_PER_PAGE
 
 
 icon = 'fa fa-file-text-o'
-verbose_name = u'内容管理'
+verbose_name = u'内容'
 render = renderer('cms/admin/')
 log = Logger('cms')
+
+
+@render
+def index(request, response):
+    return redirect('admin:cms:content')
 
 
 @render
@@ -276,7 +281,7 @@ def content_edit(request, response, column_select, content_id=None):
 
 
 urlpatterns = [
-    url(r'^$', content, name='index'),
+    url(r'^$', index, name='index'),
     url(r'^/column$', column, name='column'),
     url(r'^/column/create$', column_edit, name='column-create'),
     url(r'^/column/(?P<column_id>\d+)$', column_edit, name='column-edit'),
@@ -291,6 +296,12 @@ urlpatterns = [
     url(r'^/recycle$', recycle, name='recycle'),
     url(r'^/recycle/(?P<model>\w+)$', recycle, name='recycle-model'),
     url(r'^/recycle/(?P<model>\w+)/clear$', recycle_clear, name='recycle-model-clear'),
+]
+
+sub_menus = [
+    ('admin:cms:content', u'内容管理', 'fa fa-edit'),
+    ('admin:cms:column', u'栏目管理', 'fa fa-list'),
+    ('admin:cms:recycle', u'回收站', 'fa fa-recycle'),
 ]
 
 PERMISSIONS = {

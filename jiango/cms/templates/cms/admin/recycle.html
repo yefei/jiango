@@ -26,10 +26,6 @@
 </style>
 
 <section class="content">
-
-<div class="nav-tabs-custom">
-    {% include 'cms/admin/menu.inc.html' with current_view='recycle' %}
-    <div class="tab-content">
         <ul class="nav nav-pills" style="background-color:#f5f5f5;">
             <li{% if not model %} class="active"{% endif %}><a href="{% url admin:cms:recycle %}">统计</a></li>
             <li style="line-height:33px;"><i class="sep">|</i></li>
@@ -125,7 +121,4 @@
             {% endif %}
 
         {% endif %}
-    </div>
-</div>
-
 </section>

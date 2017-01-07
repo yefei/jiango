@@ -3,7 +3,7 @@
 <section class="content-header">
     <h1>
         <a href="{% url admin:-index %}">系统</a> /
-        <a href="{% url admin:-group-list %}">用户组</a>
+        <a href="{% url admin:-group %}">管理组</a>
         {% if group %}
             / <a href="{% url admin:-group-show group.pk %}">{{group}}</a>
             / 编辑

@@ -17,9 +17,6 @@
 
 <section class="content">
 
-<div class="nav-tabs-custom">
-    {% include 'cms/admin/menu.inc.html' with current_view='content' %}
-    <div class="tab-content">
         <ul class="breadcrumb" style="border-radius:0;border:1px solid #ddd;">
           <li><a href="{% url admin:cms:content %}">内容管理</a></li>
           {% for i in column_select.breadcrumb %}
@@ -159,6 +156,5 @@
                 </tr></table>
             </form>
         {% endif %}
-    </div>
-</div>
+
 </section>

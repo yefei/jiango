@@ -22,17 +22,17 @@ urlpatterns = [
     url(r'^-/logout$', views.logout, name='-logout'),
     url(r'^-/password$', views.set_password, name='-password'),
     
-    url(r'^-/log$', views.log_list, name='-log-list'),
+    url(r'^-/log$', views.log_list, name='-log'),
     url(r'^-/log/(?P<log_id>\d+)$', views.log_show, name='-log-show'),
     
-    url(r'^-/user$', views.user_list, name='-user-list'),
+    url(r'^-/user$', views.user_list, name='-user'),
     url(r'^-/user/add$', views.user_edit, name='-user-add'),
     url(r'^-/user/(?P<user_id>\d+)$', views.user_show, name='-user-show'),
     url(r'^-/user/(?P<user_id>\d+)/edit$', views.user_edit, name='-user-edit'),
     url(r'^-/user/(?P<user_id>\d+)/password$', views.set_password, name='-user-password'),
     url(r'^-/user/(?P<user_id>\d+)/delete$', views.user_delete, name='-user-delete'),
     
-    url(r'^-/group$', views.group_list, name='-group-list'),
+    url(r'^-/group$', views.group_list, name='-group'),
     url(r'^-/group/add$', views.group_edit, name='-group-add'),
     url(r'^-/group/(?P<group_id>\d+)$', views.group_show, name='-group-show'),
     url(r'^-/group/(?P<group_id>\d+)/edit$', views.group_edit, name='-group-edit'),
@@ -52,21 +52,53 @@ def autodiscover(module_name):
     LOADING = False
 
 
+def get_system_sub_menus(request):
+    return [
+        # url_name, name, icon
+        ('admin:-index', u'系统首页', 'fa fa-dashboard'),
+        ('admin:-log', u'系统日志', 'fa fa-file-text-o'),
+        ('admin:-user', u'管理员', 'fa fa-user'),
+        ('admin:-group', u'管理组', 'fa fa-group'),
+        ('admin:-password', u'修改密码', 'fa fa-lock'),
+    ]
+
+
+def _get_sub_menus(current_view_name, sub_menus):
+    return [dict(url=reverse(_url),
+                 verbose_name=_name,
+                 icon=_icon,
+                 is_active=current_view_name.startswith(_url)) for _url, _name, _icon in sub_menus]
+
+
 def get_navigation(request):
     navigation = []
+    current_view_name = resolve(request.path).view_name
     for module, app_name in loaded_modules.iteritems():
         icon = getattr(module, 'icon', None)
         icon = icon(request) if isfunction(icon) else icon
+
         verbose_name = getattr(module, 'verbose_name', capfirst(app_name))
         verbose_name = verbose_name(request) if isfunction(verbose_name) else verbose_name
         if not verbose_name:
             continue
-        resolver_match = resolve(request.path)
-        is_active = resolver_match.view_name.startswith('admin:' + app_name)
+
+        sub_menus = getattr(module, 'sub_menus', [])
+        sub_menus = sub_menus(request) if isfunction(sub_menus) else sub_menus
+        sub_menus = _get_sub_menus(current_view_name, sub_menus)
+
+        is_active = current_view_name.startswith('admin:%s' % app_name)
+
         navigation.append(dict(url=reverse('admin:%s:index' % app_name),
                                verbose_name=verbose_name,
                                icon=icon,
+                               sub_menus=sub_menus,
                                is_active=is_active))
+
+    navigation.append(dict(url=reverse('admin:-index'),
+                           verbose_name=u'系统',
+                           icon=None,
+                           sub_menus=_get_sub_menus(current_view_name, get_system_sub_menus(request)),
+                           is_active=current_view_name.startswith('admin:-')))
     return navigation
 
 

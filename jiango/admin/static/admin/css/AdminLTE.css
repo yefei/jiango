@@ -12,7 +12,6 @@
 html,
 body {
   min-height: 100%;
-  background-color: #ecf0f5;
 }
 .layout-boxed html,
 .layout-boxed body {
@@ -96,7 +95,6 @@ body {
 .content-wrapper,
 .right-side {
   min-height: 100%;
-  background-color: #ecf0f5;
   z-index: 800;
 }
 .main-footer {
@@ -3226,7 +3224,7 @@ table.text-center th {
 }
 .login-page,
 .register-page {
-/*  background: #d2d6de; */
+  background: #d2d6de;
 }
 .login-box,
 .register-box {

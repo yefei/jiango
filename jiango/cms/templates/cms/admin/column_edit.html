@@ -1,8 +1,4 @@
 <section class="content">
-
-<div class="nav-tabs-custom">
-    {% include 'cms/admin/menu.inc.html' with current_view='column' %}
-    <div class="tab-content">
         <ul class="breadcrumb">
           <li><a href="{% url admin:cms:column %}">栏目管理</a></li>
           <li class="active">{% if instance %}修改栏目{% else %}创建栏目{% endif %}</li>
@@ -14,7 +10,4 @@
                 <button type="submit" class="btn btn-warning btn-large">确定</button>
             </div>
         </form>
-    </div>
-</div>
-
 </section>

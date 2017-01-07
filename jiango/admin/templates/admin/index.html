@@ -5,11 +5,11 @@
 <section class="content">
     <p>当前在线管理员: <b>{{online_count}}</b> 位
         <span class="btn-group">
-            <a href="{% url admin:-user-list %}" class="btn btn-default">查看所有管理员</a>
+            <a href="{% url admin:-user %}" class="btn btn-default">查看所有管理员</a>
             <a href="{% url admin:-user-add %}" class="btn btn-default">添加</a>
         </span>
         &nbsp; &nbsp;
-        <a href="{% url admin:-group-list %}" class="btn btn-default">用户组</a>
+        <a href="{% url admin:-group %}" class="btn btn-default">用户组</a>
         &nbsp; &nbsp;
         <a href="{% url admin:-password %}" class="btn btn-default">修改我的密码</a>
     </p>
@@ -29,7 +29,7 @@
            {% include 'admin/log-table.inc.html' %}
         </div>
         <div class="box-footer text-center">
-            <a href="{% url admin:-log-list %}">共有 {{log_count}} 条日志</a>
+            <a href="{% url admin:-log %}">共有 {{log_count}} 条日志</a>
         </div>
     </div>
 </section>
