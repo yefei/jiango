@@ -186,3 +186,27 @@
 .skin-blue-light .nav-tabs-custom > .nav-tabs {
   border-color: #d2d6de;
 }
+
+/* Table */
+.skin-blue-light .table > thead > tr > th,
+.skin-blue-light .table > tbody > tr > th,
+.skin-blue-light .table > tfoot > tr > th,
+.skin-blue-light .table > thead > tr > td,
+.skin-blue-light .table > tbody > tr > td,
+.skin-blue-light .table > tfoot > tr > td {
+  border-top: 1px solid #ddd;
+}
+.skin-blue-light .table-bordered {
+  border: 1px solid #ddd;
+}
+.skin-blue-light .table-bordered > thead > tr > th,
+.skin-blue-light .table-bordered > tbody > tr > th,
+.skin-blue-light .table-bordered > tfoot > tr > th,
+.skin-blue-light .table-bordered > thead > tr > td,
+.skin-blue-light .table-bordered > tbody > tr > td,
+.skin-blue-light .table-bordered > tfoot > tr > td {
+  border: 1px solid #ddd;
+}
+.skin-blue-light .table > thead > tr > th {
+  border-bottom: 2px solid #d2d6de;
+}

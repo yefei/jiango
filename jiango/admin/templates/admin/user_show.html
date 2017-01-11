@@ -8,20 +8,20 @@
 
 <section class="content">
     <div class="box">
-        <div class="box-body">
+        <div class="box-body no-padding">
             <table class="table table-info">
                 <thead>
-                <tr><th>用户名:</th><td>
+                <tr><td class="nowrap">用户名:</td><td width="100%">
                     {{user.username}}
                 </td></tr>
-                <tr><th>加入于:</th><td>
+                <tr><td class="nowrap">加入于:</td><td>
                     {{user.join_at}}, {{user.join_at|timesince}}前
                 </td></tr>
-                <tr><th>最近登录于:</th><td>
+                <tr><td class="nowrap">最近登录于:</td><td>
                     {{user.login_at|default:'从未'}}{% if user.login_at %}, {{user.login_at|timesince}}前{% endif %}
                 </td></tr>
-                <tr><th>最近登录失败于:</th><td>{{user.login_fail_at|default:'从未'}} ({{user.login_fails}})</td></tr>
-                <tr><th>状态:</th><td>
+                <tr><td class="nowrap">最近登录失败于:</td><td>{{user.login_fail_at|default:'从未'}} ({{user.login_fails}})</td></tr>
+                <tr><td class="nowrap">状态:</td><td>
                     {% if user.is_active %}
                         <span class="label label-success">有效用户</span>
                     {% else %}
@@ -34,14 +34,14 @@
                         <span class="label label-success">在线</span>
                     {% endif %}
                 </td></tr>
-                <tr><th>用户组:</th><td>
+                <tr><td class="nowrap">用户组:</td><td>
                     {% for i in user.groups.all %}
                         <span class="label label-info">{{i}}</span>
                     {% empty %}
                         无
                     {% endfor %}
                 </td></tr>
-                <tr><th>附加权限:</th><td>
+                <tr><td class="nowrap">附加权限:</td><td>
                     {% for i in user.permissions.all %}
                         <span class="label label-info">{{i}}</span>
                     {% empty %}

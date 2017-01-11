@@ -1,31 +1,21 @@
 <section class="content-header">
-    <h1><a href="{% url admin:-index %}">系统</a> / 管理组</h1>
+    <h1><a href="{% url admin:-index %}">系统</a> / 管理组
+        <a href="{% url admin:-group-add %}" class="btn btn-primary btn-sm">添加管理组</a>
+    </h1>
 </section>
 
 <section class="content">
     <div class="row">
         {% for i in group_set %}
-        <div class="col-md-4">
-            <div class="box">
-                <div class="box-header">
-                    <div class="box-title"><a href="{% url admin:-group-show i.pk %}">{{i.name}}</a></div>
+        <div class="col-sm-6 col-md-4 col-lg-3">
+            <div class="small-box bg-aqua-active">
+                <div class="inner">
+                    <h3>{{i.name}}</h3>
+                    <p>{% if i.permissions.all %}{{ i.permissions.all|join:'<br>'|safe }}{% else %}-- 无任何权限 --{% endif %}</p>
                 </div>
-                <div class="box-body">
-                    {% if i.permissions.all %}
-                    <ol>
-                        {% for p in i.permissions.all %}
-                            <li>{{p}}</li>
-                        {% endfor %}
-                    </ol>
-                    {% else %}
-                        <div style="text-align:center">-- 无任何权限 --</div>
-                    {% endif %}
-                </div>
+                <a href="{% url admin:-group-show i.pk %}" class="small-box-footer">查看</a>
             </div>
         </div>
         {% endfor %}
-        <div class="col-md-4">
-            <a href="{% url admin:-group-add %}" class="btn btn-primary">添加管理组</a>
-        </div>
     </div>
 </section>
