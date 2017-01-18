@@ -15,18 +15,9 @@
 .table td.number {
 	text-align:right;
 }
+.table td.datetime,
 .table td.number {
-	font-family:Consolas;
-}
-.table td.datetime {
-	font-size:12px;
-}
-.table>tfoot>tr>td {
-	padding: 8px 0;
-	padding-top: 20px;
-}
-.table .pagination {
-	margin: 0;
+	font-family: 'Consolas', 'Monaco', 'Bitstream Vera Sans Mono', monospace;
 }
 
 /*
