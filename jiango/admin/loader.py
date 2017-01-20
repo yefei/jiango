@@ -16,6 +16,18 @@ LOADING = False
 loaded_modules = SortedDict()
 
 
+def autodiscover(module_name):
+    global LOADING
+    if LOADING:
+        return
+    LOADING = True
+    for namesapce, module in autodiscover_installed_apps(module_name):
+        if hasattr(module, 'urlpatterns'):
+            loaded_modules[module] = namesapce
+    # autodiscover was successful, reset loading flag.
+    LOADING = False
+
+
 urlpatterns = [
     url(r'^$', views.index, name='-index'),
     url(r'^-/login$', views.login, name='-login'),
@@ -39,28 +51,14 @@ urlpatterns = [
     url(r'^-/group/(?P<group_id>\d+)/delete$', views.group_delete, name='-group-delete'),
 ]
 
-
-def autodiscover(module_name):
-    global LOADING
-    if LOADING:
-        return
-    LOADING = True
-    for namesapce, module in autodiscover_installed_apps(module_name):
-        if hasattr(module, 'urlpatterns'):
-            loaded_modules[module] = namesapce
-    # autodiscover was successful, reset loading flag.
-    LOADING = False
-
-
-def get_system_sub_menus(request):
-    return [
-        # url_name, name, icon
-        ('admin:-index', u'系统首页', 'fa fa-dashboard'),
-        ('admin:-log', u'系统日志', 'fa fa-file-text-o'),
-        ('admin:-user', u'管理员', 'fa fa-user'),
-        ('admin:-group', u'管理组', 'fa fa-group'),
-        ('admin:-password', u'修改密码', 'fa fa-lock'),
-    ]
+system_sub_menus = [
+    # url_name, name, icon
+    ('admin:-index', u'系统首页', 'fa fa-dashboard'),
+    ('admin:-log', u'系统日志', 'fa fa-file-text-o'),
+    ('admin:-user', u'管理员', 'fa fa-user'),
+    ('admin:-group', u'管理组', 'fa fa-group'),
+    ('admin:-password', u'修改密码', 'fa fa-lock'),
+]
 
 
 def _get_sub_menus(current_view_name, sub_menus):
@@ -97,7 +95,7 @@ def get_navigation(request):
     navigation.append(dict(url=reverse('admin:-index'),
                            verbose_name=u'系统',
                            icon=None,
-                           sub_menus=_get_sub_menus(current_view_name, get_system_sub_menus(request)),
+                           sub_menus=_get_sub_menus(current_view_name, system_sub_menus),
                            is_active=current_view_name.startswith('admin:-')))
     return navigation
 
