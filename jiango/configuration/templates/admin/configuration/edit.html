@@ -1,0 +1,22 @@
+{% load bootstrap  %}
+
+<section class="content-header">
+    <h1>
+        <a href="{% url admin:-index %}">系统</a> /
+        系统配置 / 修改
+    </h1>
+</section>
+
+<section class="content">
+    <div class="box">
+        <form method="post" action="" class="form" id="form">
+        <div class="box-body">
+            {% csrf_token %}
+            {{form|bootstrap}}
+        </div>
+        <div class="box-footer">
+            <button type="submit" class="btn btn-warning btn-large">确定</button>
+        </div>
+        </form>
+    </div>
+</section>
