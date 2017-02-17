@@ -2,7 +2,6 @@
 # Created on 2015-9-2
 # @author: Yefei
 from functools import wraps
-from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from jiango.serializers import deserialize, get_serializer, get_serializer_formats, get_serializer_mimetypes
 from .utils import Param
@@ -22,13 +21,13 @@ def default_exception_func(e):
 def render(func, exception_func=None):
     if exception_func is None:
         exception_func = default_exception_func
-    
+
     @wraps(func)
     def wrapper(request, output_format, *args, **kwargs):
         status = 200
         serializer = get_serializer(output_format)
         response = HttpResponse(content_type=serializer.mimetype)
-        
+
         try:
             request.param = Param(request.REQUEST)
             request.value = None
@@ -38,10 +37,10 @@ def render(func, exception_func=None):
                     request.value = deserialize(mimetypes[mimetype], request.body)
                 except Exception, e:
                     raise APIError(e.message)
-            
+
             value = func(request, response, *args, **kwargs)
-            
-        except (APIError, ObjectDoesNotExist), e:
+
+        except APIError as e:
             value, status = exception_func(e)
 
         if isinstance(value, HttpResponse):

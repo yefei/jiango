@@ -8,6 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from jiango.shortcuts import render_to_string, HttpReload
 from .auth import login_redirect, logout_redirect, get_request_user
 from .models import Permission, Log, LogTypes
+from . import config
 
 
 class Alert(Exception):
@@ -103,6 +104,7 @@ def renderer(prefix=None, default_extends_layout=True,
                             current_sub_menus = i['sub_menus']
                             break
                 base_dictionary = {'content': content,
+                                   'config': config,
                                    'navigation': navigation,
                                    'current_sub_menus': current_sub_menus,
                                    'sidebar_collapse': request.COOKIES.get('admin-sidebar-collapse') == '1',

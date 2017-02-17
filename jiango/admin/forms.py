@@ -6,7 +6,11 @@ from django import forms
 from jiango.bootstrap.widgets import FilteredSelectMultiple
 from .models import User, Group
 from .auth import get_temp_salt, verify_temp_salt
-from .config import AUTH_SLAT_TIMEOUT, LOGIN_MAX_FAILS
+from .config import AUTH_SLAT_TIMEOUT, LOGIN_MAX_FAILS, SECRET_KEY_DIGEST
+
+
+def md5str(s):
+    return hashlib.md5(s).hexdigest()
 
 
 class AuthenticationForm(forms.Form):
@@ -14,22 +18,25 @@ class AuthenticationForm(forms.Form):
     password = forms.CharField(label=u'密码', widget=forms.PasswordInput)
     salt = forms.CharField(initial=get_temp_salt, widget=forms.HiddenInput)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, client_password_encrypt=True, *args, **kwargs):
         super(AuthenticationForm, self).__init__(*args, **kwargs)
         self.user = None
+        self.client_password_encrypt = client_password_encrypt
 
     def clean(self):
-        salt = self.cleaned_data.get('salt')
-        salt_verify = verify_temp_salt(salt)
-        
-        # 强制更新 POST 来的 salt
-        self.data = self.data.copy()
-        self.data['salt'] = get_temp_salt()
-        
-        if salt_verify is None:
-            raise forms.ValidationError(u'加密数据错误')
-        if salt_verify is False:
-            raise forms.ValidationError(u'登陆验证超时，请在 %d 秒内完成登陆' % AUTH_SLAT_TIMEOUT)
+        salt = ''
+        if self.client_password_encrypt:
+            salt = self.cleaned_data.get('salt')
+            salt_verify = verify_temp_salt(salt)
+
+            # 强制更新 POST 来的 salt
+            self.data = self.data.copy()
+            self.data['salt'] = get_temp_salt()
+
+            if salt_verify is None:
+                raise forms.ValidationError(u'加密数据错误')
+            if salt_verify is False:
+                raise forms.ValidationError(u'登陆验证超时，请在 %d 秒内完成登陆' % AUTH_SLAT_TIMEOUT)
         
         username = self.cleaned_data.get('username')
         password = self.cleaned_data.get('password')
@@ -44,8 +51,13 @@ class AuthenticationForm(forms.Form):
             if self.user.is_login_fail_lock:
                 raise forms.ValidationError(u'密码错误超过 %d 次，账号被锁定 %d 秒' % (
                                         LOGIN_MAX_FAILS, self.user.login_fail_lock_remain))
-            
-            if password != hashlib.md5(salt + str(self.user.password_digest)).hexdigest():
+
+            if self.client_password_encrypt:
+                password_correct = password == md5str(salt + str(self.user.password_digest))
+            else:
+                password_correct = md5str(md5str(password)+SECRET_KEY_DIGEST) == self.user.password_digest
+
+            if password_correct is not True:
                 # 记录错误
                 self.user.update_login_fails()
                 raise forms.ValidationError(u'密码错误')
@@ -67,25 +79,35 @@ class SetPasswordForm(forms.Form):
     confirmation = forms.CharField(label=u'新密码确认', widget=forms.PasswordInput, help_text=u'重复上面输入的密码')
     salt = forms.CharField(initial=get_temp_salt, widget=forms.HiddenInput)
     
-    def __init__(self, user, *args, **kwargs):
+    def __init__(self, user, client_password_encrypt=True, *args, **kwargs):
         self.user = user
         self.current_password_error = False
+        self.client_password_encrypt = client_password_encrypt
         super(SetPasswordForm, self).__init__(*args, **kwargs)
     
     def clean(self):
-        salt = self.cleaned_data.get('salt')
-        salt_verify = verify_temp_salt(salt)
-        
-        # 强制更新 POST 来的 salt
-        self.data = self.data.copy()
-        self.data['salt'] = get_temp_salt()
-        
-        if salt_verify is None:
-            raise forms.ValidationError(u'加密数据错误')
-        if salt_verify is False:
-            raise forms.ValidationError(u'验证超时，请在 %d 秒内完成修改' % AUTH_SLAT_TIMEOUT)
-        
-        if self.cleaned_data['current'] != hashlib.md5(salt + str(self.user.password_digest)).hexdigest():
+        salt = ''
+        if self.client_password_encrypt:
+            salt = self.cleaned_data.get('salt')
+            salt_verify = verify_temp_salt(salt)
+
+            # 强制更新 POST 来的 salt
+            self.data = self.data.copy()
+            self.data['salt'] = get_temp_salt()
+
+            if salt_verify is None:
+                raise forms.ValidationError(u'加密数据错误')
+            if salt_verify is False:
+                raise forms.ValidationError(u'验证超时，请在 %d 秒内完成修改' % AUTH_SLAT_TIMEOUT)
+
+        password = self.cleaned_data['current']
+
+        if self.client_password_encrypt:
+            password_correct = password == md5str(salt + str(self.user.password_digest))
+        else:
+            password_correct = md5str(md5str(password) + SECRET_KEY_DIGEST) == self.user.password_digest
+
+        if password_correct is not True:
             self.current_password_error = True
             raise forms.ValidationError(u'当前密码错误')
         
@@ -93,6 +115,11 @@ class SetPasswordForm(forms.Form):
             raise forms.ValidationError(u'新密码与新密码确认不一致')
         
         return self.cleaned_data
+
+    def get_new_password(self):
+        if self.client_password_encrypt:
+            return self.cleaned_data.get('new')
+        return md5str(md5str(self.cleaned_data.get('new')) + SECRET_KEY_DIGEST)
 
 
 class UserForm(forms.ModelForm):

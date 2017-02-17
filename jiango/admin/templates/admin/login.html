@@ -6,7 +6,7 @@
     <body class="hold-transition login-page">
     <div class="login-box">
         <div class="login-logo">
-            <a href="{% url admin:-index %}"><b>管理</b>后台</a>
+            <a href="{% url admin:-index %}">{{ site_full_name|safe }}</a>
         </div>
         <div class="login-box-body">
             {% for non_field_error in form.non_field_errors %}
@@ -38,6 +38,7 @@
         </div>
     </div>
 
+    {% if client_password_encrypt %}
     <script src="{% static 'admin/js/md5.js' %}"></script>
     <script type="text/javascript">
     <!--
@@ -51,6 +52,7 @@
     });
     //-->
     </script>
+    {% endif %}
 
     </body>
 {% endblock %}
