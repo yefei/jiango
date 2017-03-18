@@ -6,8 +6,8 @@ from django.conf import settings
 from django.utils.datastructures import SortedDict
 
 
-COLUMN_PATH_RE = re.compile(u'^[_\-\w\u4e00-\uE814]+$')
-COLUMN_PATH_HELP = u'可以输入 a-z、0-9、横线、下划线、汉字，目录名不可用纯数字，用 / 来分割目录'
+PATH_RE = re.compile(u'^[_\-\w\u4e00-\uE814]+$')
+PATH_HELP = u'可以输入 a-z、0-9、横线、下划线、汉字，目录名不可用纯数字，用 / 来分割目录'
 
 # 列表页分页默认值
 LIST_PER_PAGE = 30

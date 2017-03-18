@@ -5,23 +5,23 @@ from django import forms
 from jiango.importlib import import_object
 from jiango.admin.models import LogTypes
 from .utils import get_model_object, get_model_actions
-from .models import Column
-from .config import COLUMN_PATH_RE, CONTENT_ACTIONS, CONTENT_MODELS
+from .models import Path
+from .config import PATH_RE, CONTENT_ACTIONS, CONTENT_MODELS
 
 
-class ColumnForm(forms.ModelForm):
+class PathForm(forms.ModelForm):
     class Meta:
-        model = Column
+        model = Path
     
     def clean_path(self):
         path = self.cleaned_data['path'].strip(' /')
         paths = filter(lambda v: v != '', path.split('/'))
         for slug in paths:
-            if slug.isdigit() or not COLUMN_PATH_RE.search(slug):
+            if slug.isdigit() or not PATH_RE.search(slug):
                 raise forms.ValidationError(u"目录 '%s' 不符合规则" % slug)
         # 检查父路径是否存在
         if paths[:-1]:
-            check = Column.objects.filter(path='/'.join(paths[:-1]))
+            check = Path.objects.filter(path='/'.join(paths[:-1]))
             if self.instance.pk:
                 check = check.exclude(pk=self.instance.pk)
             if not check.exists():
@@ -29,13 +29,13 @@ class ColumnForm(forms.ModelForm):
         return '/'.join(paths)
 
 
-class ColumnEditForm(ColumnForm):
+class PathEditForm(PathForm):
     class Meta:
-        model = Column
+        model = Path
         exclude = ('model',)
 
 
-class ColumnDeleteForm(forms.Form):
+class PathDeleteForm(forms.Form):
     confirm = forms.BooleanField(label=u'我确定要删除以上数据')
 
 

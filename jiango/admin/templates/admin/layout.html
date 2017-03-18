@@ -9,7 +9,6 @@
 	<title>{% block title %}{{ config.TITLE_NAME }}{% endblock %}</title>
 	<link rel="stylesheet" type="text/css" href="{% static 'admin/css/bootstrap.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'admin/css/font-awesome.css' %}">
-	<link rel="stylesheet" type="text/css" href="{% static 'admin/css/jquery.notify.css' %}">
 	<link rel="stylesheet" type="text/css" href="{% static 'admin/css/AdminLTE.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'admin/css/skins/skin-blue-light.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'admin/css/admin.css' %}">
@@ -17,7 +16,6 @@
     <script src="{% static 'admin/js/jquery.js' %}"></script>
 	<script src="{% static 'admin/js/bootstrap.js' %}"></script>
     <script src="{% static 'admin/js/jquery.cookie.js' %}"></script>
-	<script src="{% static 'admin/js/jquery.notify.js' %}"></script>
     <script src="{% static 'admin/js/app.js' %}"></script>
     <script src="{% static 'admin/js/web.js' %}"></script>
 </head>
@@ -84,18 +82,19 @@
 
         <div class="content-wrapper"{% if not current_sub_menus %} style="margin-left:0" {% endif %}>
             {% include 'admin/browser-check.inc.html' %}
+            {% if messages %}
+                <div class="content-header">
+                {% for m in messages %}
+                    <div class="alert alert-{{m.tags}} alert-dismissible">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                        {{m.message}}
+                    </div>
+                {% endfor %}
+                </div>
+            {% endif %}
             {{content}}
         </div>
     </div>
-
-	{% if messages %}
-		<div style="display:none;">
-			{% for m in messages %}
-				<p class="notify" data-notify-type="{{m.tags}}">{{m.message}}</p>
-			{% endfor %}
-		</div>
-		<script type="text/javascript">$('.notify').notify();</script>
-	{% endif %}
 </body>
 {% endblock %}
 </html>

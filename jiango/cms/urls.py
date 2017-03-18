@@ -17,7 +17,7 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
-    url(r'^(?P<path>.*)/page.(?P<page>\d+)/$', views.content_list, name='cms-list'),
-    url(r'^(?P<path>.*)/(?P<content_id>\d+)/$', views.content_show, name='cms-content'),
-    url(r'^(?P<path>.*)/$', views.column, name='cms-column'),
+    url(r'^(?P<path>.*)/p(?P<page>\d+)$', views.content_list, name='cms-list'),
+    url(r'^(?P<path>.*)/(?P<content_id>\d+)$', views.content_show, name='cms-content'),
+    url(r'^(?P<path>.*)$', views.index, name='cms-path'),
 ]

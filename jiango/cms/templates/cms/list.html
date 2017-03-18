@@ -1,21 +1,43 @@
+{% load pagination %}
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
 <title>CMS 内容列表</title>
+<style>
+    .pagination ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+    .pagination li {
+        float: left;
+        padding: 3px 5px;
+        background-color: #eee;
+        margin-right: 5px;
+    }
+</style>
 </head>
 <body style="padding:10px 50px;">
 	<h1>CMS 内容列表</h1>
 	<div>
 		看到这个页面是因为在项目模版文件夹下无法找到
-		{% if column.list_template %}<strong>{{column.list_template}}</strong> 或 {% endif %}
+		{% if P.list_template %}<strong>{{P.list_template}}</strong> 或 {% endif %}
 		<strong>cms/list.html</strong> 文件
 	</div>
 	<div style="background-color:#FFFFCB;padding:10px 20px;margin-top:20px;border:1px solid #ccc;line-height:180%;">
-		{% include 'cms/column-info.inc.html' %}
-		创建日期：{{column.create_at}}<br>
-		更新日期：{{column.update_at}}<br>
-		浏览量：{{column.views}}
+		{% include 'cms/path-info.inc.html' %}
+		创建日期：{{P.create_at}}<br>
+		更新日期：{{P.update_at}}<br>
+		浏览量：{{P.views}}
 	</div>
+
+    <ul>
+        {% for i in S %}
+            <li><a href="{{ i.get_absolute_url }}">{{ i }}</a></li>
+        {% endfor %}
+    </ul>
+
+    {% paginate S %}
 </body>
 </html>

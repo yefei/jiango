@@ -15,7 +15,7 @@
                         <thead>
                             <tr>
                                 <th class="number">ID</th>
-                                <th class="nowrap">所属栏目</th>
+                                <th class="nowrap">所属路径</th>
                                 <th>标题</th>
                                 <th class="datetime">修改日期</th>
                                 <th class="user">修改人</th>
@@ -27,7 +27,7 @@
                             <tr>
                                 <td class="number">{{i.pk}}</td>
                                 <td class="nowrap">
-                                    <a href="{{i.column.get_absolute_url}}" target="_blank">{{i.column.name}}</a>
+                                    <a href="{{i.path.get_absolute_url}}" target="_blank">{{i.path.name}}</a>
                                 </td>
                                 <td><a href="{{i.get_absolute_url}}" target="_blank">{{i}}</a>
                                     {% if i.is_hidden %}<span class="label">隐藏</span>{% endif %}

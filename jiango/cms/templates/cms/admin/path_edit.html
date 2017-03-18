@@ -1,7 +1,7 @@
 <section class="content">
         <ul class="breadcrumb">
-          <li><a href="{% url admin:cms:column %}">栏目管理</a></li>
-          <li class="active">{% if instance %}修改栏目{% else %}创建栏目{% endif %}</li>
+          <li><a href="{% url admin:cms:path %}">路径管理</a></li>
+          <li class="active">{% if instance %}修改路径{% else %}创建路径{% endif %}</li>
         </ul>
         <form method="post" action="" class="form" id="form">
             {% csrf_token %}

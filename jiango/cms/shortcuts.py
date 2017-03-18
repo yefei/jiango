@@ -3,15 +3,15 @@
 # @author: Yefei
 from functools import wraps
 from django.http import Http404
-from .models import Column
+from .models import Path
 
 
-class ColumnPathDoesNotExist(Exception):
+class PathDoesNotExist(Exception):
     def __init__(self, path):
         self.path = path
 
 
-class ColumnSelect(object):
+class CurrentPath(object):
     def __init__(self, tree):
         self.tree = tree
         self.breadcrumb = []
@@ -29,7 +29,7 @@ class ColumnSelect(object):
                 try:
                     col, ref = ref[slug]
                 except KeyError:
-                    raise ColumnPathDoesNotExist('/'.join(_path))
+                    raise PathDoesNotExist('/'.join(_path))
                 self.breadcrumb.append(col)
             self.selected = self.breadcrumb[-1]
             for i in ref.values():
@@ -39,14 +39,14 @@ class ColumnSelect(object):
                 self.children.append(i[0])
 
 
-def column_path_wrap(func):
+def path_wrap(func):
     @wraps(func)
     def wrapper(request, response, path='', *args, **kwargs):
-        column_tree = Column.objects.tree()
-        column_select = ColumnSelect(column_tree)
+        path_tree = Path.objects.tree()
+        current_path = CurrentPath(path_tree)
         try:
-            column_select.select(path)
-        except ColumnPathDoesNotExist:
+            current_path.select(path)
+        except PathDoesNotExist:
             raise Http404()
-        return func(request, response, column_select, *args, **kwargs)
+        return func(request, response, current_path, *args, **kwargs)
     return wrapper

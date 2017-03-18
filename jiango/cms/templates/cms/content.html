@@ -8,16 +8,16 @@
 	<h1>CMS 内容页面</h1>
 	<div>
 		看到这个页面是因为在项目模版文件夹下无法找到
-		{% if column.content_template %}<strong>{{column.content_template}}</strong> 或 {% endif %}
+		{% if P.content_template %}<strong>{{P.content_template}}</strong> 或 {% endif %}
 		<strong>cms/content.html</strong> 文件
 	</div>
 	<div style="background-color:#FFFFCB;padding:10px 20px;margin-top:20px;border:1px solid #ccc;line-height:180%;">
 		{% include 'cms/column-info.inc.html' %}
 		<hr>
-		内容：{{content}}<br>
-		发布日期：{{content.create_at}}<br>
-		更新日期：{{content.update_at}}<br>
-		浏览量：{{content.views}}
+		内容：{{C}}<br>
+		发布日期：{{C.create_at}}<br>
+		更新日期：{{C.update_at}}<br>
+		浏览量：{{C.views}}
 	</div>
 </body>
 </html>

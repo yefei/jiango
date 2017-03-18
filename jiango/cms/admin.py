@@ -9,10 +9,10 @@ from jiango.shortcuts import update_instance
 from jiango.pagination import Paging
 from jiango.admin.shortcuts import renderer, Logger, ModelLogger, Alert, has_perm
 from jiango.admin.auth import get_request_user
-from .models import Column
+from .models import Path
 from .utils import get_model_object, get_all_actions
-from .shortcuts import column_path_wrap
-from .forms import ColumnForm, ColumnEditForm, ActionForm, RecycleClearForm, ColumnDeleteForm
+from .shortcuts import path_wrap
+from .forms import PathForm, PathEditForm, ActionForm, RecycleClearForm, PathDeleteForm
 from .config import CONTENT_MODELS, CONTENT_ACTION_MAX_RESULTS, CONTENT_PER_PAGE
 
 
@@ -28,17 +28,17 @@ def index(request, response):
 
 
 @render
-def column(request, response):
-    column_set = Column.objects.select_related('update_user').order_by('path')
+def path(request, response):
+    path_set = Path.objects.select_related('update_user').order_by('path')
     return locals()
 
 
-@render(perm='cms.column.edit')
-def column_edit(request, response, column_id=None):
+@render(perm='cms.path.edit')
+def path_edit(request, response, path_id=None):
     user = get_request_user(request)
-    instance = Column.objects.get(pk=column_id) if column_id else None
+    instance = Path.objects.get(pk=path_id) if path_id else None
     model_log = ModelLogger(instance)
-    Form = ColumnEditForm if instance and instance.model else ColumnForm
+    Form = PathEditForm if instance and instance.model else PathForm
     form = Form(request.POST or None, instance=instance)
     if form.is_valid():
         if not instance:
@@ -46,46 +46,46 @@ def column_edit(request, response, column_id=None):
         form.instance.update_user = user
         obj = form.save()
         log.success(request, model_log.message(obj), log.CREATE)
-        messages.success(request, (instance and u'修改' or u'创建') + u'栏目: ' + unicode(obj) + u' 成功')
-        return redirect('admin:cms:column')
+        messages.success(request, (instance and u'修改' or u'创建') + u'路径: ' + unicode(obj) + u' 成功')
+        return redirect('admin:cms:path')
     return locals()
 
 
-@render(perm='cms.column.delete')
-def column_delete(request, response, column_id):
+@render(perm='cms.path.delete')
+def path_delete(request, response, path_id):
     user = get_request_user(request)
-    instance = Column.objects.get(pk=column_id)
+    instance = Path.objects.get(pk=path_id)
     # 删除确认表单
-    form = ColumnDeleteForm(request.POST or None)
+    form = PathDeleteForm(request.POST or None)
     if form.is_valid():
-        msg = u'删除栏目: ' + unicode(instance)
+        msg = u'删除路径: ' + unicode(instance)
         logs = [msg, ModelLogger(instance).message()]
-        # 删除子栏目
+        # 删除子路径
         for i in instance.children(-1):
-            logs.append(u'子栏目: ' + unicode(i))
+            logs.append(u'子路径: ' + unicode(i))
             logs.append(ModelLogger(i).message())
             i.delete()
         instance.delete()
         log.success(request, '\n'.join(logs), log.DELETE)
         messages.success(request, msg + u' 完成')
-        return redirect('admin:cms:column')
-    deleted_columns = [instance]
-    deleted_columns.extend(list(instance.children(-1)))
+        return redirect('admin:cms:path')
+    deleted_paths = [instance]
+    deleted_paths.extend(list(instance.children(-1)))
     return locals()
 
 
 @render
-@column_path_wrap
-def content(request, response, column_select):
+@path_wrap
+def content(request, response, current_path):
     can_create_content = False
-    column = column_select.selected
-    if column:
-        Model = column.get_model_object('model')
+    path = current_path.selected
+    if path:
+        Model = path.get_model_object('model')
         if Model:
             can_create_content = True
             # 批量操作动作
-            actions = column.get_content_actions()
-            content_set = Model.objects.filter(is_deleted=False, column=column).select_related('update_user')
+            actions = path.get_content_actions()
+            content_set = Model.objects.filter(is_deleted=False, path=path).select_related('update_user')
             content_set = Paging(content_set, request, CONTENT_PER_PAGE).page()
     else:
         # 没有选择任何栏目则统计已知模型中的数据
@@ -204,18 +204,18 @@ def recycle_clear(request, response, model):
 
 
 @render
-@column_path_wrap
-def content_edit(request, response, column_select, content_id=None):
+@path_wrap
+def content_edit(request, response, current_path, content_id=None):
     user = get_request_user(request)
     is_content_edit = True
-    column = column_select.selected
+    path = current_path.selected
     
-    Model = column.get_model_object('model')
-    Form = column.get_model_object('form')
+    Model = path.get_model_object('model')
+    Form = path.get_model_object('form')
     if Model is None or Form is None:
-        raise Alert(Alert.ERROR, u'此栏目 %s 不可添加内容' % column)
+        raise Alert(Alert.ERROR, u'此路径 %s 不可添加内容' % path)
     
-    content = Model.objects.get(column=column, pk=content_id) if content_id else None
+    content = Model.objects.get(path=path, pk=content_id) if content_id else None
     model_log = ModelLogger(content)
     
     # 权限检查
@@ -233,7 +233,7 @@ def content_edit(request, response, column_select, content_id=None):
         update_instance(content, is_deleted=True)
         log.success(request, model_log.message(content), log.DELETE)
         messages.success(request, u'删除内容: %s 成功' % unicode(content))
-        return redirect('admin:cms:content-path', column.path)
+        return redirect('admin:cms:content-path', path.path)
     
     # 删除恢复
     recover_id = request.GET.get('recover')
@@ -242,14 +242,14 @@ def content_edit(request, response, column_select, content_id=None):
         update_instance(content, is_deleted=False)
         log.success(request, model_log.message(content), log.UPDATE)
         messages.success(request, u'恢复删除内容: %s 成功' % unicode(content))
-        return redirect('admin:cms:content-path', column.path)
+        return redirect('admin:cms:content-path', path.path)
     
     if request.method == 'POST':
         form = Form(request.POST, request.FILES, instance=content)
         if form.is_valid():
-            form.instance.column = column
-            form.instance.column_path = column.path
-            form.instance.column_depth = column.depth
+            form.instance.path = path
+            form.instance.path_value = path.path
+            form.instance.path_depth = path.depth
             if not form.instance.create_user:
                 form.instance.create_user = user
             form.instance.update_user = user
@@ -259,7 +259,7 @@ def content_edit(request, response, column_select, content_id=None):
             messages.success(request, (content and u'修改' or u'创建') + u'内容: ' + unicode(obj) + u' 成功')
             if request.GET.get('next'):
                 return HttpResponseRedirect(request.GET.get('next'))
-            return redirect('admin:cms:content-path', column.path)
+            return redirect('admin:cms:content-path', path.path)
     else:
         form = Form(instance=content)
     
@@ -267,7 +267,7 @@ def content_edit(request, response, column_select, content_id=None):
     main_fields = []
     meta_fields = []
     meta_fields_name = ['is_hidden']
-    _t = column.get_model_object('form_meta_fields')
+    _t = path.get_model_object('form_meta_fields')
     if _t:
         meta_fields_name.extend(_t)
     
@@ -282,10 +282,10 @@ def content_edit(request, response, column_select, content_id=None):
 
 urlpatterns = [
     url(r'^$', index, name='index'),
-    url(r'^/column$', column, name='column'),
-    url(r'^/column/create$', column_edit, name='column-create'),
-    url(r'^/column/(?P<column_id>\d+)$', column_edit, name='column-edit'),
-    url(r'^/column/(?P<column_id>\d+)/delete$', column_delete, name='column-delete'),
+    url(r'^/path$', path, name='path'),
+    url(r'^/path/create$', path_edit, name='path-create'),
+    url(r'^/path/(?P<path_id>\d+)$', path_edit, name='path-edit'),
+    url(r'^/path/(?P<path_id>\d+)/delete$', path_delete, name='path-delete'),
     
     url(r'^/content$', content, name='content'),
     url(r'^/content/path/(?P<path>.*)$', content, name='content-path'),
@@ -300,13 +300,13 @@ urlpatterns = [
 
 sub_menus = [
     ('admin:cms:content', u'内容管理', 'fa fa-edit'),
-    ('admin:cms:column', u'栏目管理', 'fa fa-list'),
+    ('admin:cms:path', u'路径管理', 'fa fa-sitemap'),
     ('admin:cms:recycle', u'回收站', 'fa fa-recycle'),
 ]
 
 PERMISSIONS = {
-    'column.edit': u'栏目|创建/编辑',
-    'column.delete': u'栏目|删除',
+    'path.edit': u'路径|创建/编辑',
+    'path.delete': u'路径|删除',
     'recycle.fire': u'回收站|批量删除',
     'recycle.clear': u'回收站|清空',
     'content.create': u'内容|创建',

@@ -19,7 +19,7 @@
 
         <ul class="breadcrumb" style="border-radius:0;border:1px solid #ddd;">
           <li><a href="{% url admin:cms:content %}">内容管理</a></li>
-          {% for i in column_select.breadcrumb %}
+          {% for i in current_path.breadcrumb %}
             <li{% if forloop.last %} class="active"{% endif %}><a href="{% url admin:cms:content-path i.path %}">{{i.name}}</a></li>
           {% endfor %}
           {% if is_content_edit %}
@@ -31,11 +31,11 @@
           {% endif %}
         </ul>
 
-        {% if column_select.children %}
+        {% if current_path.children %}
         <div class="children-column">
-            子栏目：
+            子项：
             <ul class="list-inline">
-            {% for i in column_select.children %}
+            {% for i in current_path.children %}
                 <li><a href="{% url admin:cms:content-path i.path %}">{{i.name}}</a></li>
             {% endfor %}
             </ul>
@@ -46,7 +46,7 @@
             {% if can_create_content %}
                 <form action="{% url admin:cms:content-action %}" method="post">
                     {% csrf_token %}
-                    <input type="hidden" name="model" value="{{column.model}}">
+                    <input type="hidden" name="model" value="{{path.model}}">
                     <input type="hidden" name="back" value="{{request.get_full_path|escape}}">
                     <table class="table" style="margin-top:-20px">
                         <thead>
@@ -88,7 +88,7 @@
                                                 <i class="sep">|</i>
                                             {% endif %}
                                         {% endfor %}
-                                        <a href="{% url admin:cms:content-create column_select.path %}" class="btn btn-sm btn-success"><i class="icon-plus icon-white"></i> 发布内容</a>
+                                        <a href="{% url admin:cms:content-create current_path.path %}" class="btn btn-sm btn-success"><i class="icon-plus icon-white"></i> 发布内容</a>
                                     </div>
                                     <div class="pull-right">
                                         {% paginate content_set %}

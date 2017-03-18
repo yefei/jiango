@@ -8,14 +8,14 @@
 	<h1>CMS 栏目首页</h1>
 	<div>
 		看到这个页面是因为在项目模版文件夹下无法找到
-		{% if column.index_template %}<strong>{{column.index_template}}</strong> 或 {% endif %}
+		{% if P.index_template %}<strong>{{P.index_template}}</strong> 或 {% endif %}
 		<strong>cms/index.html</strong> 文件
 	</div>
 	<div style="background-color:#FFFFCB;padding:10px 20px;margin-top:20px;border:1px solid #ccc;line-height:180%;">
-		{% include 'cms/column-info.inc.html' %}
-		创建日期: {{column.create_at}}<br>
-		更新日期: {{column.update_at}}<br>
-		浏览量: {{column.views}}
+		{% include 'cms/path-info.inc.html' %}
+		创建日期: {{P.create_at}}<br>
+		更新日期: {{P.update_at}}<br>
+		浏览量: {{P.views}}
 	</div>
 </body>
 </html>

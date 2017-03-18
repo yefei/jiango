@@ -1,0 +1,15 @@
+路径: {{current_path.path}}<br>
+导航:
+{% for i in current_path.breadcrumb %}
+	<a href="{% url cms-path i.path %}">{{i.name}}</a>
+	{% if not forloop.last %}/{% endif %}
+{% endfor %}
+<br>
+{% if current_path.children %}
+	子路径:
+	{% for i in current_path.children %}
+		<a href="{% url cms-path i.path %}">{{i.name}}</a>
+		{% if not forloop.last %}|{% endif %}
+	{% endfor %}
+	<br>
+{% endif %}

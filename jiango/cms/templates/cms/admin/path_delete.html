@@ -11,19 +11,19 @@
 
 <section class="content">
         <ul class="breadcrumb">
-          <li><a href="{% url admin:cms:column %}">栏目管理</a></li>
-          <li><a href="{% url admin:cms:column-edit instance.pk %}">{{instance.path}}: {{instance.name}}</a></li>
+          <li><a href="{% url admin:cms:path %}">路径管理</a></li>
+          <li><a href="{% url admin:cms:path-edit instance.pk %}">{{instance.path}}: {{instance.name}}</a></li>
           <li class="active">删除栏目</li>
         </ul>
 
         <blockquote>
-            <h2>删除栏目 {{instance.path}}: {{instance.name}} 确认</h2>
-            <p>删除栏目将会连带删除以下关联数据:</p>
+            <h2>删除路径 {{instance.path}}: {{instance.name}} 确认</h2>
+            <p>删除路径将会连带删除以下关联数据:</p>
             <ul class="deleted-columns">
-                {% for i in deleted_columns %}
+                {% for i in deleted_paths %}
                     <li>栏目: <strong>{{i.path}}: {{i.name}}</strong>
                     {% if i.content_count %}
-                        以及栏目下的内容 <strong>{{i.content_count}}</strong> 条(包括回收站中)
+                        以及路径下的内容 <strong>{{i.content_count}}</strong> 条(包括回收站中)
                         <a href="{% url admin:cms:content-path instance.path %}" target="_blank">查看内容</a>
                     {% endif %}
                     </li>
