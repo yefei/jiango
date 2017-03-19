@@ -48,7 +48,7 @@
                     {% csrf_token %}
                     <input type="hidden" name="model" value="{{path.model}}">
                     <input type="hidden" name="back" value="{{request.get_full_path|escape}}">
-                    <table class="table" style="margin-top:-20px">
+                    <table class="table table-hover" style="margin-top:-20px">
                         <thead>
                             <tr>
                                 <th class="nowrap"><input type="checkbox" data-spy="checkall" data-for="[name='pk']"></th>
@@ -64,10 +64,12 @@
                             <tr>
                                 <th class="nowrap"><input type="checkbox" name="pk" value="{{i.pk}}"></th>
                                 <td class="number">{{i.pk}}</td>
-                                <td><a href="{{i.get_absolute_url}}" target="_blank">{{i}}</a>
-                                    {% if i.is_hidden %}<span class="label">隐藏</span>{% endif %}
+                                <td>
+                                    {% if i.is_hidden %}<span class="label label-default">隐藏</span>{% endif %}
+                                    <a href="{% url admin:cms:content-edit current_path.path i.pk %}">{{i}}</a>
                                     <div class="pull-right">
-                                        <a href="{% url admin:cms:content-edit column_select.path i.pk %}" class="btn btn-xs btn-default">修改</a>
+                                         <a href="{% url admin:cms:content-edit current_path.path i.pk %}" class="btn btn-xs btn-success">编辑</a>
+                                        <a href="{{ i.url }}" class="btn btn-xs btn-default" target="_blank">查看</a>
                                     </div>
                                 </td>
                                 <td class="datetime">{{i.update_at}}</td>
