@@ -20,6 +20,17 @@ def content_render(current_path, content):
     return path.content_template, 'content', dict(current_path=current_path, P=path, content=content, C=content)
 
 
+def list_render(request, current_path, page=1):
+    path = current_path.selected
+    incr_and_update_instance(path, views=1)
+    model = path.get_model_object('model')
+    if model is None:
+        raise Http404()
+    content_set = model.objects.available().filter(path=path)
+    content_set = Paging(content_set, request, path.list_per_page).page()
+    return path.list_template, 'list', dict(current_path=current_path, P=path, content_set=content_set, S=content_set)
+
+
 @render
 @path_wrap
 def index(request, response, current_path):
@@ -35,21 +46,14 @@ def index(request, response, current_path):
             raise Http404()
         return content_render(current_path, content)
     elif path.default_view == Path.VIEW_LIST:
-        return path.list_template, 'list', dict(current_path=current_path, P=path)
+        return list_render(request, current_path)
     return path.index_template, 'index', dict(current_path=current_path, P=path)
 
 
 @render
 @path_wrap
 def content_list(request, response, current_path, page):
-    path = current_path.selected
-    incr_and_update_instance(path, views=1)
-    model = path.get_model_object('model')
-    if model is None:
-        raise Http404()
-    content_set = model.objects.available().filter(path=path)
-    content_set = Paging(content_set, request, path.list_per_page).page()
-    return path.list_template, 'list', dict(current_path=current_path, P=path, content_set=content_set, S=content_set)
+    return list_render(request, current_path, page)
 
 
 @render

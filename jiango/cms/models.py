@@ -90,7 +90,7 @@ class Path(models.Model):
     list_template = models.CharField(u'列表模版', max_length=100, blank=True, default='', help_text=LIST_TEMPLATE_HELP)
     list_per_page = models.PositiveSmallIntegerField(u'列表页数据分页条数', default=LIST_PER_PAGE)
     content_template = models.CharField(u'内容模版', max_length=200, blank=True, default='', help_text=CONTENT_TEMPLATE_HELP)
-    default_view = models.SmallIntegerField(u'默认视图', choices=VIEW_CHOICES, default=VIEW_INDEX, db_index=True)
+    default_view = models.SmallIntegerField(u'默认视图', choices=VIEW_CHOICES, default=VIEW_LIST, db_index=True)
     
     create_at = models.DateTimeField(u'创建日期', auto_now_add=True, db_index=True)
     update_at = models.DateTimeField(u'更新日期', auto_now=True, db_index=True)
@@ -110,6 +110,8 @@ class Path(models.Model):
     @models.permalink
     def get_absolute_url(self):
         return 'cms-path', [self.path]
+
+    url = get_absolute_url
     
     @property
     def parent_path(self):
@@ -202,6 +204,8 @@ class ContentBase(models.Model):
     @models.permalink
     def get_absolute_url(self):
         return 'cms-content', [self.path_value, self.pk]
+
+    url = get_absolute_url
     
     def is_available(self):
         return not self.is_deleted and not self.is_hidden

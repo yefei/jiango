@@ -29,7 +29,18 @@ def index(request, response):
 
 @render
 def path(request, response):
-    path_set = Path.objects.select_related('update_user').order_by('path')
+    path_tree = Path.objects.select_related('update_user').tree()
+    print path_tree
+
+    def each(tree):
+        values = []
+        for path, children in tree.values():
+            values.append(path)
+            if children:
+                values.extend(each(children))
+        return values
+
+    path_set = each(path_tree)
     return locals()
 
 
