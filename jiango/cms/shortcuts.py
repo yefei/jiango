@@ -13,24 +13,29 @@ class PathDoesNotExist(Exception):
 
 class CurrentPath(object):
     def __init__(self, tree):
-        self.tree = tree
-        self.breadcrumb = []
-        self.children = []
-        self.selected = None
-        self.path = ''
+        self.tree = tree  # 数据库返回的树形路径结构
+        self.breadcrumb = []  # 当前路径导航
+        self.currents = []  # 当前路径同级别其他路径项
+        self.children = []  # 当前路径子路径列表
+        self.selected = None  # 当前路径对象
+        self.path = ''  # 当前路径
     
     def select(self, path=''):
         if path:
             self.path = path
             ref = self.tree
             _path = []
+            parent = None
             for slug in path.split('/'):
+                parent = ref
                 _path.append(slug)
                 try:
                     col, ref = ref[slug]
                 except KeyError:
                     raise PathDoesNotExist('/'.join(_path))
                 self.breadcrumb.append(col)
+            for i in parent.values():
+                self.currents.append(i[0])
             self.selected = self.breadcrumb[-1]
             for i in ref.values():
                 self.children.append(i[0])
