@@ -61,11 +61,25 @@ system_sub_menus = [
 ]
 
 
-def _get_sub_menus(current_view_name, sub_menus):
-    return [dict(url=reverse(_url),
-                 verbose_name=_name,
-                 icon=_icon,
-                 is_active=current_view_name.startswith(_url)) for _url, _name, _icon in sub_menus]
+def _get_sub_menus(request, current_view_name, sub_menus):
+    menus = []
+    for i in sub_menus:
+        value = dict(
+            url=reverse(i[0]),
+            is_active=current_view_name.startswith(i[0]),
+            verbose_name=i[0],
+            icon=None,
+            append=None,
+        )
+        l = len(i)
+        if l > 1:
+            value['verbose_name'] = i[1]
+            if l > 2:
+                value['icon'] = i[2]
+                if l > 3:
+                    value['append'] = i[3](request) if isfunction(i[3]) else i[3]
+        menus.append(value)
+    return menus
 
 
 def get_navigation(request):
@@ -82,7 +96,7 @@ def get_navigation(request):
 
         sub_menus = getattr(module, 'sub_menus', [])
         sub_menus = sub_menus(request) if isfunction(sub_menus) else sub_menus
-        sub_menus = _get_sub_menus(current_view_name, sub_menus)
+        sub_menus = _get_sub_menus(request, current_view_name, sub_menus)
 
         is_active = current_view_name.startswith('admin:%s' % app_name)
 
@@ -95,7 +109,7 @@ def get_navigation(request):
     navigation.append(dict(url=reverse('admin:-index'),
                            verbose_name=u'系统',
                            icon=None,
-                           sub_menus=_get_sub_menus(current_view_name, system_sub_menus),
+                           sub_menus=_get_sub_menus(request, current_view_name, system_sub_menus),
                            is_active=current_view_name.startswith('admin:-')))
     return navigation
 

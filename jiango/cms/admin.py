@@ -30,7 +30,6 @@ def index(request, response):
 @render
 def path(request, response):
     path_tree = Path.objects.select_related('update_user').tree()
-    print path_tree
 
     def each(tree):
         values = []

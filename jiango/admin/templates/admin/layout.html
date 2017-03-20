@@ -73,6 +73,7 @@
                         {% for i in current_sub_menus %}
                             <li{% if i.is_active %} class="active"{% endif %}>
                                 <a href="{{i.url}}"><i class="{{ i.icon|default:'fa fa-circle-o' }}"></i> <span>{{i.verbose_name}}</span></a>
+                                {% if i.append %}{{ i.append|safe }}{% endif %}
                             </li>
                         {% endfor %}
                     </ul>

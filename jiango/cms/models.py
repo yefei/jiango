@@ -111,7 +111,7 @@ class Path(models.Model):
     def get_absolute_url(self):
         return 'cms-path', [self.path]
 
-    url = get_absolute_url
+    url = property(get_absolute_url)
     
     @property
     def parent_path(self):
@@ -205,7 +205,7 @@ class ContentBase(models.Model):
     def get_absolute_url(self):
         return 'cms-content', [self.path_value, self.pk]
 
-    url = get_absolute_url
+    url = property(get_absolute_url)
     
     def is_available(self):
         return not self.is_deleted and not self.is_hidden

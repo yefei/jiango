@@ -59,6 +59,7 @@
   -webkit-transition: border-left-color 0.3s ease;
   -o-transition: border-left-color 0.3s ease;
   transition: border-left-color 0.3s ease;
+  border-bottom: 1px solid #d2d6de;
 }
 .skin-blue-light .sidebar-menu > li.header {
   color: #848484;
@@ -67,7 +68,6 @@
 .skin-blue-light .sidebar-menu > li > a {
   border-left: 3px solid transparent;
   font-weight: 600;
-  border-bottom: 1px solid #d2d6de;
 }
 .skin-blue-light .sidebar-menu > li:hover > a,
 .skin-blue-light .sidebar-menu > li.active > a {
