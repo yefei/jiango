@@ -4,7 +4,7 @@
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from jiango.shortcuts import renderer, incr_and_update_instance
-from jiango.pagination import Paging
+from jiango.pagination import ReversePaging
 from .shortcuts import path_wrap
 from .models import Path
 
@@ -22,12 +22,12 @@ def content_render(current_path, content):
 
 def list_render(request, current_path, page=1):
     path = current_path.selected
-    incr_and_update_instance(path, views=1)
     model = path.get_model_object('model')
     if model is None:
         raise Http404()
     content_set = model.objects.available().filter(path=path)
-    content_set = Paging(content_set, request, path.list_per_page).page()
+    content_set = ReversePaging(content_set, request, 'cms-list', view_kwargs={'path': path.path},
+                                per_page=path.list_per_page).page(page)
     return path.list_template, 'list', dict(current_path=current_path, P=path, content_set=content_set, S=content_set)
 
 
@@ -53,6 +53,7 @@ def index(request, response, current_path):
 @render
 @path_wrap
 def content_list(request, response, current_path, page):
+    incr_and_update_instance(current_path.selected, views=1)
     return list_render(request, current_path, page)
 
 

@@ -8,6 +8,7 @@ from django.db.models import signals
 from django.db.models.query import QuerySet
 from django.utils.datastructures import SortedDict
 from django.utils.functional import cached_property
+from django.core.cache import cache
 from jiango.shortcuts import update_instance
 from jiango.admin.models import User
 from .utils import get_model_object, get_model_actions
@@ -18,6 +19,7 @@ INDEX_TEMPLATE_HELP = u'默认模版: cms/index'
 LIST_TEMPLATE_HELP = u'默认模版: cms/list'
 CONTENT_TEMPLATE_HELP = u'默认模版: cms/content'
 
+PATH_TREE_CACHE_KEY = 'cms:path:tree'
 
 PATH_DEPTH_FIRST = 1
 PATH_DEPTH_ALL = -1
@@ -66,6 +68,13 @@ class PathManager(models.Manager):
     
     def tree(self, path=''):
         return self.get_query_set().tree(path)
+
+    def cached_tree(self):
+        tree = cache.get(PATH_TREE_CACHE_KEY)
+        if tree is None:
+            tree = self.tree()
+            cache.set(PATH_TREE_CACHE_KEY, tree)
+        return tree
 
 
 class Path(models.Model):
@@ -167,6 +176,7 @@ def on_path_pre_save(instance, **kwargs):
 @receiver(signals.post_save, sender=Path)
 def on_path_post_save(instance, **kwargs):
     instance.update_content_path()
+    cache.delete(PATH_TREE_CACHE_KEY)
 
 
 class ContentQuerySet(QuerySet):

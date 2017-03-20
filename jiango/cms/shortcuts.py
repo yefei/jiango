@@ -47,7 +47,7 @@ class CurrentPath(object):
 def path_wrap(func):
     @wraps(func)
     def wrapper(request, response, path='', *args, **kwargs):
-        path_tree = Path.objects.tree()
+        path_tree = Path.objects.cached_tree()
         current_path = CurrentPath(path_tree)
         try:
             current_path.select(path)
