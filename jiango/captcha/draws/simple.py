@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 from time import time
-try:
-    from PIL import Image, ImageColor, ImageDraw, ImageFont
-except ImportError:
-    import Image, ImageColor, ImageDraw, ImageFont
+from PIL import Image, ImageColor, ImageDraw, ImageFont
 from .base import BaseDraw
 
 
@@ -15,43 +12,32 @@ class CaptchaDraw(BaseDraw):
     
     def __init__(self, options):
         super(CaptchaDraw, self).__init__(options)
-        self._new()
-    
-    def _new(self):
-        self.background_color = ImageColor.getrgb(self.options['BACKGROUND_COLOR'])
-        self.font_color = ImageColor.getrgb(self.options['FONT_COLOR'])
-        self.font_size = self.options['FONT_SIZE']
-        
-        self.size = (self.options['WIDTH'], self.options['HEIGHT'])
-        self.im = Image.new('RGB', self.size, self.background_color)
-        self.font = ImageFont.truetype(self.options['FONT_PATH'],
-                                       self.options['FONT_SIZE'])
+        self.background = ImageColor.getrgb(self.options['BACKGROUND'])
+        self.color = self.options['COLOR']
+        self.size = self.options['SIZE']
+        self.width = self.options['WIDTH']
+        self.height = self.options['HEIGHT']
+        self.im = Image.new('RGB', (self.width, self.height), self.background)
+        self.font = ImageFont.truetype(self.options['FONT'], self.size)
     
     def render(self, stream, value):
-        im = self.im.copy()
-        im2 = self.im.copy()
+        draw_im = self.im.copy()
+        draw = ImageDraw.Draw(draw_im)
         x = 0
-        r_i = sum(ord(c) for c in value)  # 根据验证码字符串产生一个固定数值
         for c in value:
-            fgimg = Image.new('RGBA', self.size, self.font_color)
-            charimg = Image.new('L', self.font.getsize(c), '#000000')
-            
-            draw = ImageDraw.Draw(charimg)
-            draw.text((0, 0), c, font=self.font, fill='#ffffff')
-            
-            r = (int(time()) / 1000 + ord(c) + r_i) % 40 - 20  # 计算一段时间内每个字符的旋转值
-            charimg = charimg.rotate(r, expand=1, resample=Image.BICUBIC)
-            charimg = charimg.crop(charimg.getbbox())
-            
-            maskimg = Image.new('L', self.size)
-            y = (im2.size[1] - charimg.size[1]) / 2
-            maskimg.paste(charimg, (x, y, charimg.size[0] + x, charimg.size[1] + y))
-            
-            im2 = Image.composite(fgimg, im2, maskimg)
-            x += charimg.size[0] - 5  # - X重叠值
-        
-        # 将生成的验证码 x 居中
-        center = (im.size[0] - x) / 2
-        im.paste(im2, (center, 0, im2.size[0]+center, im2.size[1]))
-        
+            f_size, f_offset = self.font.font.getsize(c)
+            y = (self.height - f_size[1]) / 2 - f_offset[1]  # 字符上下居中
+            draw.text((x, y), c, font=self.font, fill=self.color)
+            x += f_size[0] - int(self.size * 0.15)
+
+        # 文字左右居中
+        center = (self.width - x) / 2
+        im = self.im.copy()
+        im.paste(draw_im, (center, 0, self.width + center, self.height))
+
+        # 绘制一条干扰线
+        draw = ImageDraw.Draw(im)
+        r = int(time() / 1000) % 1000 / 1000.0
+        draw.line((center, r * self.height, center + x, (1-r) * self.height), self.color, 2)
+
         im.save(stream, self.image_type)

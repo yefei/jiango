@@ -16,7 +16,7 @@ CAPTCHA_OUTPUT_FORMAT = getattr(settings, 'CAPTCHA_OUTPUT_FORMAT', """
 <a href="javascript:;" class="btn" onclick="$.getJSON('%(api_url)s',function(r){$('#%(id)s_image').attr('src',r.image);$('#%(id)s_0').val(r.key);});">%(new_challenge)s</a>
 </div>""")
 
-CAPTCHA_CHARS = 'ABCDEFGHJKLMNPRSTWXZV'
+CAPTCHA_CHARS = 'ABCDEFGHJKLMNPQRSVWXYabcdefghjkmnopqrstvwxy1456789'
 
 CAPTCHA_LENGTH = getattr(settings, 'CAPTCHA_LENGTH', 4)  # Chars
 
@@ -26,10 +26,10 @@ CAPTCHA_DRAWS = {
         'OPTIONS': {
             'WIDTH': 100,
             'HEIGHT': 30,
-            'BACKGROUND_COLOR': '#E0E8F3',
-            'FONT_COLOR': '#000000',
-            'FONT_SIZE': 30,
-            'FONT_PATH': thispath('fonts', 'verdana.ttf'),
+            'BACKGROUND': '#E0E8F3',
+            'COLOR': '#000000',
+            'SIZE': 30,
+            'FONT': thispath('fonts', 'verdana.ttf'),
         }
     }
 }
