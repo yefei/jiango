@@ -4,9 +4,9 @@
 from .exceptions import ParamError
 
 
-def intval(value, default=None, max_value=None, min_value=None):
+def number_value(value, default=None, max_value=None, min_value=None, convert=int):
     try:
-        value = int(value)
+        value = convert(value)
         if max_value is not None and value > max_value:
             raise ParamError('Ensure this value %r is less than or equal to %d.' % (value, max_value))
         if min_value is not None and value < min_value:
@@ -16,6 +16,9 @@ def intval(value, default=None, max_value=None, min_value=None):
             raise ParamError('Value %r is not a number.' % value)
         value = default
     return value
+
+
+intval = number_value
 
 
 class Param(object):
@@ -29,10 +32,13 @@ class Param(object):
     
     def has_key(self, key):
         return self.data.has_key(key)
-    
+
+    def get(self, key, default=None):
+        return self.data[key] if self.has_key(key) else default
+
     def int(self, key, default=None, max_value=None, min_value=None):
         if self.has_key(key):
-            return intval(self.data[key], default, max_value, min_value)
+            return number_value(self.data[key], default, max_value, min_value)
         if default is not None:
             return default
         raise ParamError('Key %r does not exist.' % key)
@@ -41,8 +47,15 @@ class Param(object):
         if self.has_key(key):
             values = []
             for i in self.data.getlist(key):
-                values.append(intval(i, default, max_value, min_value))
+                values.append(number_value(i, default, max_value, min_value))
             return values
         if default is not None:
             return [default]
+        raise ParamError('Key %r does not exist.' % key)
+
+    def float(self, key, default=None, max_value=None, min_value=None):
+        if self.has_key(key):
+            return number_value(self.data[key], default, max_value, min_value, float)
+        if default is not None:
+            return default
         raise ParamError('Key %r does not exist.' % key)
