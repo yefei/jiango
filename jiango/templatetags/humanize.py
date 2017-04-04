@@ -31,4 +31,6 @@ def filesize(value):
 
 @register.filter(is_safe=True)
 def intcomma(value):
+    if not value:
+        return value
     return '{:,}'.format(value)

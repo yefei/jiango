@@ -98,4 +98,18 @@
     </div>
 </body>
 {% endblock %}
+{% if user %}
+<script>
+(function(){
+    function ping(){
+        setTimeout(function () {
+            $.post('{% url admin:-ping %}', function(){
+                ping();
+            });
+        }, 10000);
+    }
+    ping();
+})();
+</script>
+{% endif %}
 </html>
