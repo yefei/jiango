@@ -17,7 +17,7 @@ from .config import CONTENT_MODELS, CONTENT_ACTION_MAX_RESULTS, CONTENT_PER_PAGE
 
 
 icon = 'fa fa-file-text-o'
-verbose_name = u'内容'
+verbose_name = u'CMS'
 render = renderer('cms/admin/')
 log = Logger('cms')
 
