@@ -27,8 +27,3 @@ def filesize(value):
     if unit is None:
         return size
     return '%.2f %sB' %(size, unit)
-
-
-@register.filter(is_safe=True)
-def intcomma(value):
-    return '{:,}'.format(value)

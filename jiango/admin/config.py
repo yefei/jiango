@@ -20,7 +20,7 @@ REQUEST_ADMIN_FIELD = getattr(settings, 'ADMIN_REQUEST_ADMIN_FIELD', 'admin')
 AUTH_SLAT_TIMEOUT = getattr(settings, 'ADMIN_AUTH_SLAT_TIMEOUT', 120)
 
 # 在线状态超时时间
-ONLINE_TIMEOUT = getattr(settings, 'ADMIN_ONLINE_TIMEOUT', 60)
+ONLINE_TIMEOUT = getattr(settings, 'ADMIN_ONLINE_TIMEOUT', 10)
 
 # 最大密码错误次数
 LOGIN_MAX_FAILS = getattr(settings, 'ADMIN_LOGIN_MAX_FAILS', 3)

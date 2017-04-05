@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 # Created on 2015-9-1
 # @author: Yefei
+from time import time
 from inspect import isfunction
 from django.conf.urls import url, include
+from django.http import HttpResponse
 from django.utils.text import capfirst
 from django.utils.datastructures import SortedDict
 from django.core.urlresolvers import reverse, resolve
 from jiango.importlib import autodiscover_installed_apps
+from .auth import get_request_user
 from . import views
 
 
@@ -28,7 +31,16 @@ def autodiscover(module_name):
     LOADING = False
 
 
+# 主要用于保持用户在线状态
+# 返回毫秒级时间戳可用于客户端判断通讯延迟
+def ping(request):
+    get_request_user(request)
+    return HttpResponse(str(int(time()*1000)))
+
+
 urlpatterns = [
+    url(r'^-/ping$', ping, name='-ping'),
+
     url(r'^$', views.index, name='-index'),
     url(r'^-/login$', views.login, name='-login'),
     url(r'^-/logout$', views.logout, name='-logout'),
