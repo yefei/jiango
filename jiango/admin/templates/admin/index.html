@@ -21,6 +21,7 @@
         </ul>
     </blockquote>
 
+{% if log_set %}
     <div class="box">
         <div class="box-header">
             <h3 class="box-title">最近日志</h3>
@@ -32,4 +33,5 @@
             <a href="{% url admin:-log %}">共有 {{log_count}} 条日志</a>
         </div>
     </div>
+{% endif %}
 </section>

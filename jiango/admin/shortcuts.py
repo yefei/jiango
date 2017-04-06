@@ -161,52 +161,67 @@ class Logger(LogTypes):
 
 class ModelLogger(object):
     def __init__(self, instance=None):
-        self.instance_values = None
-        self.instance_class_name = None
-        self.instance_verbose_name = None
-        if instance:
-            self.instance_values = self.get_instance_values(instance)
-            self.instance_class_name = str(instance.__class__)
-            self.instance_verbose_name = instance._meta.verbose_name
+        self.instance = instance
+        self.instance_values = self.get_instance_values(instance) if instance else []
 
     @staticmethod
     def get_instance_values(instance):
         return [(f.attname, unicode(getattr(instance, f.attname))) for f in instance._meta.local_fields]
+
+    @staticmethod
+    def get_instance_name(instance):
+        return '{0}.{1}'.format(instance._meta.app_label, instance.__class__.__name__)
     
     def diff_values(self, new_instance):
-        if not self.instance_values:
-            return False
         diff_values = []
         for attname, orig_value in self.instance_values:
             new_value = unicode(getattr(new_instance, attname))
             if new_value != orig_value:
                 diff_values.append((attname, orig_value, new_value))
         return diff_values
-    
+
     def message(self, new_instance=None):
-        if not self.instance_values and not new_instance:
-            return ''
-        if not self.instance_values:
-            self.instance_class_name = str(new_instance.__class__)
-            self.instance_verbose_name = new_instance._meta.verbose_name
-        
-        output = [u'模型: ' + self.instance_class_name, u'名称: ' + self.instance_verbose_name]
-        
-        if not self.instance_values:
-            # 新增类型，无需记录差异数据
-            pass
-        elif not new_instance:
+        if self.instance:
+            class_name = self.get_instance_name(self.instance)
+        elif new_instance:
+            class_name = self.get_instance_name(new_instance)
+        else:
+            return
+
+        output = [u'模型: %s' % class_name]
+
+        if new_instance is None:
             # 数据被删除
             output.append(u'删除之前的数据为:')
             for attname, orig_value in self.instance_values:
                 output.append(attname + ': ' + orig_value)
-        else:
+        elif self.instance:
             # 数据被更新
             diff_values = self.diff_values(new_instance)
             if not diff_values:
-                output.append(u'没有变化')
+                output.append(u'没有更新')
             else:
                 output.append(u'更新字段:')
                 for attname, orig_value, new_value in diff_values:
                     output.append(attname + ': ' + orig_value + ' > ' + new_value)
         return '\n'.join(output)
+
+    def log(self, request, log, new_instance=None):
+        message = self.message(new_instance)
+        if not message:
+            return
+        out = []
+        if new_instance is None:
+            action = log.DELETE
+            out.append(u'删除')
+        elif self.instance is None:
+            action = log.CREATE
+            out.append(u'新增')
+        else:
+            action = log.UPDATE
+            out.append(u'更新')
+        verbose_name = new_instance._meta.verbose_name if new_instance else self.instance._meta.verbose_name
+        out.append(u'%s: %s' % (verbose_name, unicode(new_instance) if new_instance else unicode(self.instance)))
+        out_message = ''.join(out)
+        log.success(request, u'%s\n\n%s' % (out_message, message), action=action)
+        return out_message
