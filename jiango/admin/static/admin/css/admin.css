@@ -1,5 +1,7 @@
 @CHARSET "UTF-8";
 
+.table th.id,
+.table td.id,
 .table th.nowrap,
 .table td.nowrap,
 .table th.user,
@@ -11,13 +13,20 @@
 	white-space:nowrap;
 	width:10px;
 }
+.table th.id,
+.table td.id,
 .table th.number,
 .table td.number {
 	text-align:right;
 }
+.table td.id,
 .table td.datetime,
 .table td.number {
 	font-family: 'Consolas', 'Monaco', 'Bitstream Vera Sans Mono', monospace;
+}
+.table th.id,
+.table td.id {
+	color: gainsboro;
 }
 
 /*

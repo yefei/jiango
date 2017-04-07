@@ -13,7 +13,7 @@
             <table class="table table-striped">
                 <thead>
                     <tr>
-                        <th class="number">编号</th>
+                        <th class="id">#</th>
                         <th>用户名</th>
                         <th class="datetime">最近登陆日期</th>
                         <th class="datetime">最近登陆失败日期 (次数)</th>
@@ -24,7 +24,7 @@
                 <tbody>
                     {% for i in user_set %}
                     <tr>
-                        <td class="number">{{i.pk}}</td>
+                        <td class="id">#{{i.pk}}</td>
                         <td>{{i.username}}
                             {% if not i.is_active %}<span class="label label-default">无效</span>{% endif %}
                             {% if i.is_superuser %}<span class="label label-warning">超级用户</span>{% endif %}

@@ -1,6 +1,6 @@
 <table class="table table-hover">
     <tr>
-        <th class="number">序号</th>
+        <th class="id">#</th>
         <th class="nowrap">级别</th>
         <th class="nowrap">动作</th>
         <th>内容</th>
@@ -9,7 +9,7 @@
     </tr>
     {% for i in log_set %}
     <tr>
-        <td class="number">{{i.pk}}</td>
+        <td class="id">#{{i.pk}}</td>
         <td class="nowrap">{{i.get_level_display}}</td>
         <td class="nowrap">{{i.get_action_display}}</td>
         <td>{{i.content|truncatechars:60}}
