@@ -17,6 +17,7 @@ TYPE_STR = 1
 TYPE_UNICODE = 2
 TYPE_INT = 3
 TYPE_FLOAT = 4
+TYPE_BOOL = 5
 
 
 class Item(models.Model):
@@ -27,6 +28,8 @@ class Item(models.Model):
 
 
 def get_value_type(value):
+    if isinstance(value, bool):
+        return TYPE_BOOL
     if isinstance(value, str):
         return TYPE_STR
     if isinstance(value, unicode):
@@ -64,13 +67,14 @@ def get_config_value(key):
             value = int(obj.value)
         elif obj.type == TYPE_FLOAT:
             value = float(obj.value)
+        elif obj.type == TYPE_BOOL:
+            value = obj.value == 'True'
 
     if value is None:
         value = item[1]
 
-    if value:
-        cache.set(CACHE_KEY_PREFIX + key, value)
-        return value
+    cache.set(CACHE_KEY_PREFIX + key, value)
+    return value
 
 
 def set_config_value(key, value):

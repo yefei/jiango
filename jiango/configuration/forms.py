@@ -4,7 +4,7 @@ Created on 2017/1/21
 @author: Fei Ye <316606233@qq.com>
 """
 from django import forms
-from .models import get_value_type, TYPE_INT, TYPE_FLOAT
+from .models import get_value_type, TYPE_INT, TYPE_FLOAT, TYPE_BOOL
 
 
 class ItemForm(forms.Form):
@@ -24,6 +24,8 @@ class ItemForm(forms.Form):
                 field = forms.IntegerField(label=label)
             elif value_type == TYPE_FLOAT:
                 field = forms.FloatField(label=label)
+            elif value_type == TYPE_BOOL:
+                field = forms.BooleanField(label=label, required=False)
             else:
                 field = forms.CharField(label=label)
         self.fields['value'] = field
