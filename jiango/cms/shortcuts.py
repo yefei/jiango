@@ -44,13 +44,18 @@ class CurrentPath(object):
                 self.children.append(i[0])
 
 
+def get_current_path(path):
+    path_tree = Path.objects.cached_tree()
+    current_path = CurrentPath(path_tree)
+    current_path.select(path)
+    return current_path
+
+
 def path_wrap(func):
     @wraps(func)
     def wrapper(request, response, path='', *args, **kwargs):
-        path_tree = Path.objects.cached_tree()
-        current_path = CurrentPath(path_tree)
         try:
-            current_path.select(path)
+            current_path = get_current_path(path)
         except PathDoesNotExist:
             raise Http404()
         return func(request, response, current_path, *args, **kwargs)

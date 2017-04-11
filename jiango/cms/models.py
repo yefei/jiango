@@ -51,7 +51,7 @@ class PathQuerySet(QuerySet):
             col = []
             paths = i.path.split('/')
             for p in paths:
-                if not ref.has_key(p):
+                if p not in ref:
                     ref[p] = [None, SortedDict()]
                 col = ref[p]
                 ref = ref[p][1]
