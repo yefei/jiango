@@ -13,6 +13,13 @@ from django.core.files import locks
 
 
 class HashFileSystemStorage(FileSystemStorage):
+    def __init__(self, location=None, base_url=None):
+        if location is None:
+            location = os.path.join(settings.MEDIA_ROOT, 'hash')
+        if base_url is None:
+            base_url = settings.MEDIA_URL + 'hash/'
+        super(HashFileSystemStorage, self).__init__(location, base_url)
+
     def path(self, name):
         name = os.path.join(name[:2], name[2:4], name)
         return super(HashFileSystemStorage, self).path(name)
@@ -60,5 +67,9 @@ class HashFileSystemStorage(FileSystemStorage):
 
     def delete(self, name):
         pass
+
+    def url(self, name):
+        name = '/'.join((name[:2], name[2:4], name))
+        return super(HashFileSystemStorage, self).url(name)
 
 hash_file_storage = HashFileSystemStorage()

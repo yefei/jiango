@@ -9,6 +9,7 @@ from .storage import hash_file_storage
 
 class HashImageField(ImageField):
     def __init__(self, *args, **kwargs):
+        kwargs['upload_to'] = '!'
         kwargs['max_length'] = 32
         super(HashImageField, self).__init__(*args, **kwargs)
         self.storage = hash_file_storage
