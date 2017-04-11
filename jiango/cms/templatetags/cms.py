@@ -20,5 +20,17 @@ def cms_contents(path, limit=10, offset=0, **kwargs):
     model = path.get_model_object('model')
     if model is None:
         return []
-    content_set = model.objects.available().filter(path=path, **kwargs)[offset:offset+limit]
+    filters = {}
+    excludes = {}
+    for k, v in kwargs.items():
+        if k.startswith('not__'):
+            excludes[k[5:]] = v
+        else:
+            filters[k] = v
+    qs = model.objects.available().filter(path=path)
+    if filters:
+        qs = qs.filter(**filters)
+    if excludes:
+        qs = qs.exclude(**excludes)
+    content_set = qs[offset:offset+limit]
     return content_set
