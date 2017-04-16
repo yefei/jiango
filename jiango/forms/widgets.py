@@ -36,7 +36,6 @@ class PinyinGroupSelect(Select):
                 continue
 
             py = chinese_to_pinyin.convert(option_label)
-            print py
             p = '*'
             if py and len(py[0]) > 0:
                 p = py[0][0].upper()
