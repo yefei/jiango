@@ -2,9 +2,13 @@
 # Created on 2015-9-2
 # @author: Yefei
 from functools import wraps
+from inspect import isfunction
 from django.http import HttpResponse
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction
+from django.contrib import messages
+from django.shortcuts import redirect
 from jiango.shortcuts import render_to_string, HttpReload
 from jiango.utils.model import get_deleted_objects
 from .auth import login_redirect, logout_redirect, get_request_user
@@ -228,7 +232,16 @@ class ModelLogger(object):
         return out_message
 
 
-def delete_confirm_view(app_label, request, queryset, success_response=None, using=None):
+def process_on_success(on_success, *args, **kwargs):
+    if isinstance(on_success, HttpResponse):
+        return on_success
+    if isinstance(on_success, basestring):
+        return redirect(on_success)
+    if isfunction(on_success):
+        return on_success(*args, **kwargs)
+
+
+def delete_confirm_view(app_label, request, queryset, on_success=None, using=None):
     log = Logger(app_label)
 
     to_delete, protected = get_deleted_objects(queryset, using)
@@ -247,8 +260,31 @@ def delete_confirm_view(app_label, request, queryset, success_response=None, usi
 
         each(to_delete)
         log.success(request, u'删除数据:\n%s' % '\n'.join(delete_info), action=Logger.DELETE)
-        queryset.delete()
-        if success_response:
-            return success_response
+        with transaction.commit_on_success():
+            queryset.delete()
+        if on_success is not None:
+            return process_on_success(on_success)
         raise Alert(Alert.SUCCESS, u'删除成功')
     return '/admin/shortcuts/delete_confirm', locals()
+
+
+def edit_view(app_label, request, form, on_success=None):
+    log = Logger(app_label)
+    m_log = None
+    if hasattr(form, 'instance'):
+        m_log = ModelLogger(form.instance)
+    if form.is_valid():
+        instance = None
+        if hasattr(form, 'save'):
+            with transaction.commit_on_success():
+                instance = form.save()
+            if m_log:
+                msg = m_log.log(request, log, instance)
+            else:
+                msg = u'编辑:%s' % form.__class__
+                log.success(request, msg)
+            messages.success(request, msg)
+        if on_success is not None:
+            return process_on_success(on_success, instance=instance)
+        raise HttpReload()
+    return '/admin/shortcuts/edit', locals()

@@ -1,0 +1,17 @@
+<section class="content-header">
+    <h1>编辑</h1>
+</section>
+
+<section class="content">
+    <div class="box">
+        <form method="post" action="" class="form" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="box-body">
+                {{form|bootstrap}}
+            </div>
+            <div class="box-footer">
+                <button type="submit" class="btn btn-warning btn-large">确定</button>
+            </div>
+        </form>
+    </div>
+</section>
