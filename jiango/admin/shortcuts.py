@@ -6,6 +6,7 @@ from django.http import HttpResponse
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from jiango.shortcuts import render_to_string, HttpReload
+from jiango.utils.model import get_deleted_objects
 from .auth import login_redirect, logout_redirect, get_request_user
 from .models import Permission, Log, LogTypes
 from . import config
@@ -225,3 +226,29 @@ class ModelLogger(object):
         out_message = ''.join(out)
         log.success(request, u'%s\n\n%s' % (out_message, message), action=action)
         return out_message
+
+
+def delete_confirm_view(app_label, request, queryset, success_response=None, using=None):
+    log = Logger(app_label)
+
+    to_delete, protected = get_deleted_objects(queryset, using)
+    if not to_delete:
+        raise Alert(Alert.ERROR, u'没有需要删除的项', back=True)
+
+    if request.method == 'POST':
+        delete_info = []
+
+        def each(lists, level=0):
+            for i in lists:
+                if isinstance(i, (tuple, list)):
+                    each(i, level+1)
+                else:
+                    delete_info.append(u'%s%s' % ('    ' * level, i))
+
+        each(to_delete)
+        log.success(request, u'删除数据:\n%s' % '\n'.join(delete_info), action=Logger.DELETE)
+        queryset.delete()
+        if success_response:
+            return success_response
+        raise Alert(Alert.SUCCESS, u'删除成功')
+    return '/admin/shortcuts/delete_confirm', locals()

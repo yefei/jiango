@@ -1,0 +1,22 @@
+<section class="content-header">
+    <h1>删除确认</h1>
+</section>
+
+<section class="content">
+    <div class="box">
+        <form method="post" action="" class="form">
+            {% csrf_token %}
+            <div class="box-header">
+                将要删除如下项
+            </div>
+            <div class="box-body">
+                <ul>
+                    {{ to_delete|unordered_list }}
+                </ul>
+            </div>
+            <div class="box-footer">
+                <button type="submit" class="btn btn-danger btn-large">确定删除</button>
+            </div>
+        </form>
+    </div>
+</section>
