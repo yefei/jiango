@@ -2,6 +2,7 @@
 # Created on 2012-9-19
 # @author: Yefei
 from django.conf.urls import url, include
+from django.views.decorators.csrf import csrf_exempt
 from jiango.importlib import autodiscover_installed_apps, recursion_import
 from .shortcuts import formats, render
 
@@ -26,7 +27,10 @@ def autodiscover(module_name):
 
 # 如果 output_format=None 则默认支持所有系统支持的格式，否则会增加 URL 后缀
 # exception_func 详见 render
-def register(path, func, name=None, output_format=None, exception_func=None):
+def register(path, func, name=None, output_format=None, exception_func=None, use_access_token=True):
+    if func.use_access_token is None:
+        func.use_access_token = use_access_token
+    func = csrf_exempt(func)
     if output_format:
         u = url(r'^%s$' % path,
                 render(func, exception_func), kwargs={'output_format': output_format}, name=name)
@@ -36,8 +40,9 @@ def register(path, func, name=None, output_format=None, exception_func=None):
     return u
 
 
-def api(func_or_path=None, name=None):
+def api(func_or_path=None, name=None, use_access_token=None):
     def wrapper(func):
+        func.use_access_token = use_access_token
         if func.__module__ not in loaded_apis:
             loaded_apis[func.__module__] = []
         loaded_apis[func.__module__].append((func, None if func_or_path == func else func_or_path, name))
@@ -51,7 +56,7 @@ def api(func_or_path=None, name=None):
     return wrapper(func_or_path)
 
 
-def register_loaded_api_urls(module, namesapces, output_format, exception_func):
+def register_loaded_api_urls(module, namesapces, output_format, exception_func, use_access_token=True):
     urlpatterns = []
     for func, func_or_path, name in loaded_apis.get(module, []):
         if func_or_path and func_or_path.startswith('/'):
@@ -59,24 +64,26 @@ def register_loaded_api_urls(module, namesapces, output_format, exception_func):
         else:
             path = '/'.join(namesapces + [func_or_path or func.__name__])
         name = '-'.join(namesapces + [name or func.__name__])
-        u = register(path, func, name, output_format, exception_func)
+        u = register(path, func, name, output_format, exception_func, use_access_token)
         urlpatterns.append(u)
     return urlpatterns
 
 
 # 指定的 module 名称导入。如果设置 output_format 则会省略 URL 后缀
-def api_urls(namespace='api', module_name='api', output_format=None, exception_func=None):
+def api_urls(namespace='api', module_name='api', output_format=None, exception_func=None, use_access_token=True):
     autodiscover(module_name)
     urlpatterns = []
     for module, namesapces in loaded_modules.iteritems():
-        urlpatterns.extend(register_loaded_api_urls(module, namesapces, output_format, exception_func))
+        urlpatterns.extend(register_loaded_api_urls(module, namesapces, output_format, exception_func,
+                                                    use_access_token))
     return include(urlpatterns, namespace)
 
 
 # 包导入，遍历并导入指定包中的所有 module 当作 API 接口使用
-def api_package_urls(package, namespace='api', output_format=None, exception_func=None):
+def api_package_urls(package, namespace='api', output_format=None, exception_func=None, use_access_token=True):
     urlpatterns = []
     for module in recursion_import(package):
         namesapces = module[len(package)+1:].split('.')
-        urlpatterns.extend(register_loaded_api_urls(module, namesapces, output_format, exception_func))
+        urlpatterns.extend(register_loaded_api_urls(module, namesapces, output_format, exception_func,
+                                                    use_access_token))
     return include(urlpatterns, namespace)
