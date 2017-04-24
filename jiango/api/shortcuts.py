@@ -29,15 +29,14 @@ def render(func, exception_func=None):
         response = HttpResponse(content_type=serializer.mimetype)
 
         try:
-            request.param = Param(request.REQUEST)
             request.value = None
-            mimetype = request.META.get('CONTENT_TYPE')
-            if mimetype in mimetypes and request.body:
+            content_type = request.META.get('CONTENT_TYPE', '').split(';')
+            if content_type and content_type[0] in mimetypes and request.body:
                 try:
-                    request.value = deserialize(mimetypes[mimetype], request.body)
+                    request.value = deserialize(mimetypes[content_type[0]], request.body)
                 except Exception, e:
                     raise APIError(e.message)
-
+            request.param = Param(request.value or request.REQUEST)
             value = func(request, response, *args, **kwargs)
 
         except APIError as e:

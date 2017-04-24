@@ -21,41 +21,22 @@ def number_value(value, default=None, max_value=None, min_value=None, convert=in
 intval = number_value
 
 
-class Param(object):
-    def __init__(self, data):
-        self.data = data
-    
+class Param(dict):
     def __call__(self, key):
-        if self.has_key(key):
-            return self.data[key]
+        if key in self:
+            return self[key]
         raise ParamError('Key %r does not exist.' % key)
-    
-    def has_key(self, key):
-        return self.data.has_key(key)
-
-    def get(self, key, default=None):
-        return self.data[key] if self.has_key(key) else default
 
     def int(self, key, default=None, max_value=None, min_value=None):
-        if self.has_key(key):
-            return number_value(self.data[key], default, max_value, min_value)
+        if key in self:
+            return number_value(self[key], default, max_value, min_value)
         if default is not None:
             return default
         raise ParamError('Key %r does not exist.' % key)
-    
-    def intlist(self, key, default=None, max_value=None, min_value=None):
-        if self.has_key(key):
-            values = []
-            for i in self.data.getlist(key):
-                values.append(number_value(i, default, max_value, min_value))
-            return values
-        if default is not None:
-            return [default]
-        raise ParamError('Key %r does not exist.' % key)
 
     def float(self, key, default=None, max_value=None, min_value=None):
-        if self.has_key(key):
-            return number_value(self.data[key], default, max_value, min_value, float)
+        if key in self:
+            return number_value(self[key], default, max_value, min_value, float)
         if default is not None:
             return default
         raise ParamError('Key %r does not exist.' % key)
