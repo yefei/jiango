@@ -32,8 +32,13 @@ def render(func, exception_func=None):
             request.value = None
             content_type = request.META.get('CONTENT_TYPE', '').split(';')
             if content_type and content_type[0] in mimetypes and request.body:
+                encoding = None
+                if len(content_type) == 2:
+                    content_type_param = content_type[1].strip().lower()
+                    if content_type_param.startswith('charset='):
+                        encoding = content_type_param[8:]
                 try:
-                    request.value = deserialize(mimetypes[content_type[0]], request.body)
+                    request.value = deserialize(mimetypes[content_type[0]], request.body, encoding=encoding)
                 except Exception, e:
                     raise APIError(e.message)
             request.param = Param(request.value or request.REQUEST)
