@@ -241,13 +241,12 @@ def process_on_success(on_success, *args, **kwargs):
         return on_success(*args, **kwargs)
 
 
-def delete_confirm_view(app_label, request, queryset, on_success=None, using=None):
+def delete_confirm_view(app_label, request, queryset, on_success=None, using=None,
+                        template='/admin/shortcuts/delete_confirm', extras=None):
     log = Logger(app_label)
-
     to_delete, protected = get_deleted_objects(queryset, using)
     if not to_delete:
         raise Alert(Alert.ERROR, u'没有需要删除的项', back=True)
-
     if request.method == 'POST':
         delete_info = []
 
@@ -265,10 +264,13 @@ def delete_confirm_view(app_label, request, queryset, on_success=None, using=Non
         if on_success is not None:
             return process_on_success(on_success)
         raise Alert(Alert.SUCCESS, u'删除成功')
-    return '/admin/shortcuts/delete_confirm', locals()
+    template_vars = locals()
+    if extras:
+        template_vars.update(extras)
+    return template, template_vars
 
 
-def edit_view(app_label, request, form, on_success=None):
+def edit_view(app_label, request, form, on_success=None, template='/admin/shortcuts/edit', extras=None):
     log = Logger(app_label)
     m_log = None
     if hasattr(form, 'instance'):
@@ -287,4 +289,7 @@ def edit_view(app_label, request, form, on_success=None):
         if on_success is not None:
             return process_on_success(on_success, instance=instance)
         raise HttpReload()
-    return '/admin/shortcuts/edit', locals()
+    template_vars = locals()
+    if extras:
+        template_vars.update(extras)
+    return template, template_vars
