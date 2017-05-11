@@ -19,4 +19,4 @@ def captcha_image(request, key, ext):
 def captcha_json(request, response):
     key = create_crypted_challenge()
     image_uri = reverse('jiango-captcha-image', kwargs={'key': key, 'ext': draw.image_ext})
-    return {'key': key, 'image': image_uri}
+    return {'key': key, 'image': request.build_absolute_uri(image_uri)}
