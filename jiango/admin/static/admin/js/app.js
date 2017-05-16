@@ -246,10 +246,10 @@ function _init() {
         if ($(window).width() > (screenSizes.sm - 1)) {
           if ($("body").hasClass('sidebar-collapse')) {
             $("body").removeClass('sidebar-collapse').trigger('expanded.pushMenu');
-            $.removeCookie('admin-sidebar-collapse');
+            $.removeCookie('admin-sidebar-collapse', {path: '/'});
           } else {
             $("body").addClass('sidebar-collapse').trigger('collapsed.pushMenu');
-            $.cookie('admin-sidebar-collapse', 1);
+            $.cookie('admin-sidebar-collapse', 1, {path: '/', expires: 365});
           }
         }
         //Handle sidebar push menu for small screens
@@ -270,9 +270,7 @@ function _init() {
       });
 
       //Enable expand on hover for sidebar mini
-      if ($.AdminLTE.options.sidebarExpandOnHover
-        || ($('body').hasClass('fixed')
-        && $('body').hasClass('sidebar-mini'))) {
+      if ($.AdminLTE.options.sidebarExpandOnHover) {
         this.expandOnHover();
       }
     },
