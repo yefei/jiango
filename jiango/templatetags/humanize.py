@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 # Created on 2015-12-2
 # @author: Yefei
-import re
 from django import template
-from django.utils.encoding import force_unicode
-from jiango.utils.humanize import humanize_second, humanize_size
+from jiango.utils.humanize import humanize_second, humanize_size, intcomma4
 
 
 register = template.Library()
@@ -31,6 +29,4 @@ def filesize(value):
     return '%.2f %sB' %(size, unit)
 
 
-@register.filter(is_safe=True)
-def intcomma4(value):
-    return re.sub("^(-?\d+)(\d{4})", '\g<1>,\g<2>', force_unicode(value))
+register.filter(intcomma4)

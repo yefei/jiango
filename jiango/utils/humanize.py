@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 # Created on 2015-12-2
 # @author: Yefei
+import re
+from django.utils.encoding import force_unicode
+
 
 # 1d=1天,1h=1小时,1m=1分钟,1s=1秒s可以不加。例如10天20小时15分3秒: 10d20h15m3
 def parse_humanize_second(value):
@@ -44,6 +47,7 @@ def humanize_second(seconds):
 
 SIZE_UNITS = [None,'K','M','G','T','P','E','Z','Y']
 
+
 def humanize_size(size, step=1024, units=SIZE_UNITS):
     if size < step:
         return size, None
@@ -52,3 +56,7 @@ def humanize_size(size, step=1024, units=SIZE_UNITS):
             break
         size /= float(step)
     return size, u
+
+
+def intcomma4(value):
+    return re.sub("^(-?\d+)(\d{4})", '\g<1>,\g<2>', force_unicode(value))
