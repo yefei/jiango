@@ -206,5 +206,5 @@ def group_delete(request, response, group_id):
         log(request, log.SUCCESS, u'删除用户组: %s' % group, log.DELETE)
         messages.success(request, u'删除完成')
         group.delete()
-        return redirect('admin:-group-list')
+        return redirect('admin:-group')
     return locals()
