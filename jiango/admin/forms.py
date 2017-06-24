@@ -63,9 +63,9 @@ class AuthenticationForm(forms.Form):
                 raise forms.ValidationError(u'密码错误')
             
             # 已登陆用户防挤
-            if self.user.is_online:
-                raise forms.ValidationError(u'当前用户已经在线，你无法登陆。如果是本人意外掉线请等待 %d 秒后登陆' % (
-                                        self.user.online_remain))
+            # if self.user.is_online:
+            #    raise forms.ValidationError(u'当前用户已经在线，你无法登陆。如果是本人意外掉线请等待 %d 秒后登陆' % (
+            #                            self.user.online_remain))
         return self.cleaned_data
     
     def get_user(self):
