@@ -13,4 +13,7 @@ class HashImageField(ImageField):
         kwargs['max_length'] = 32
         super(HashImageField, self).__init__(*args, **kwargs)
         self.storage = hash_file_storage
-        self.max_length = None  # 不需要检查上传的文件名长度
+
+    def formfield(self, **kwargs):
+        kwargs['max_length'] = None # 不需要检查上传的文件名长度
+        return super(HashImageField, self).formfield(**kwargs)
