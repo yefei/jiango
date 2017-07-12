@@ -8,6 +8,7 @@ from django.utils.html import conditional_escape
 from django.utils.encoding import force_unicode
 from django.utils.safestring import mark_safe
 from django.contrib.admin.templatetags.admin_static import static
+from .config import COLOR_SELECT_VALUES
 
 
 class CheckboxSelectMultiple(widgets.CheckboxSelectMultiple):
@@ -67,3 +68,31 @@ class FilteredSelectMultiple(widgets.SelectMultiple):
         output = [super(FilteredSelectMultiple, self).render(name, value, attrs, choices)]
         output.append(u'<script type="text/javascript">SelectFilter.init("id_%s", "%s");</script>\n' % (name, self.verbose_name.replace('"', '\\"')))
         return mark_safe(u''.join(output))
+
+
+class ColorSelect(widgets.Input):
+    input_type = 'hidden'
+    colors = COLOR_SELECT_VALUES
+
+    @property
+    def media(self):
+        return forms.Media(
+            js=[static("js/bootstrap.color-select.js")],
+            css={'all': [static("css/bootstrap.color-select.css")]}
+        )
+
+    def render(self, name, value, attrs=None):
+        output = [super(ColorSelect, self).render(name, value, attrs)]
+        output.append('<ul class="color-select" id="id_%s_select">' % name)
+        selected = False
+        for i in self.colors:
+            s = value and i.lower() == value.lower()
+            if selected is False and s:
+                selected = True
+            output.append('<li data-value="%s" style="background-color:%s"%s></li>' % (
+                i, i, ' class="selected"' if s else ''))
+        if selected is False and value:
+            output.append('<li data-value="%s" style="background-color:%s" class="selected"><li>' % (value, value))
+        output.append('</ul>')
+        output.append('<script>ColorSelect("id_%s_select", "id_%s");</script>' % (name, name))
+        return mark_safe(''.join(output))

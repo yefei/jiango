@@ -1,0 +1,36 @@
+.color-select {
+    padding-left: 0;
+    list-style: none;
+}
+.color-select:before,
+.color-select:after {
+    display: table;
+    content: " ";
+}
+.color-select:after {
+    clear: both;
+}
+
+.color-select > li {
+    float: left;
+    margin-right: 10px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 1px solid #fff;
+    text-align: center;
+}
+
+.color-select > li.selected,
+.color-select > li:hover {
+    border-color: #eee;
+}
+
+.color-select > li.selected:after {
+    content: "\e013";
+    font-family: 'Glyphicons Halflings';
+    display: inline-block;
+    font-size: 11px;
+    color: #FFF;
+}
