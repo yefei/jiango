@@ -15,8 +15,9 @@ def autodiscover_installed_apps(module_name, recursion_package=False):
         mod = import_module(app)
         try:
             imported_modules.append((namespaces, import_module("%s.%s" % (app, module_name))))
-        except ImportError:
-            pass
+        except ImportError as e:
+            if settings.DEBUG:
+                print 'autodiscover import warning:', e, 'in', mod
         
         if recursion_package:
             try:
