@@ -51,6 +51,7 @@ SIZE_UNITS = [None,'K','M','G','T','P','E','Z','Y']
 def humanize_size(size, step=1024, units=SIZE_UNITS):
     if size < step:
         return size, None
+    u = None
     for u in units:
         if abs(size) < step:
             break
@@ -59,4 +60,4 @@ def humanize_size(size, step=1024, units=SIZE_UNITS):
 
 
 def intcomma4(value):
-    return re.sub("^(-?\d+)(\d{4})", '\g<1>,\g<2>', force_unicode(value))
+    return re.sub(r"(\d)(?=(\d{4})+(?!\d))", r"\1,", force_unicode(value))
