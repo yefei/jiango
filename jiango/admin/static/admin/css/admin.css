@@ -29,6 +29,28 @@
 	color: gainsboro;
 }
 
+.checkbox-multiple:after {
+	display: table;
+	content: " ";
+	clear: both;
+}
+.checkbox-multiple ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+.checkbox-multiple li {
+	display: inline-block;
+	margin-right: 10px;
+	white-space: nowrap;
+}
+.checkbox-multiple li>label {
+	font-weight: normal;
+}
+.checkbox-multiple li>label>input {
+    vertical-align: top;
+}
+
 /*
  * utils
  */

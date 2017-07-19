@@ -5,6 +5,11 @@
         <div class="checkbox">
             <label>{{ field }} {{ field.label }}</label>
         </div>
+    {% elif field|is_multiple_checkbox %}
+        <div class="checkbox-multiple">
+            <label class="control-label">{{ field.label }}</label>
+            {% for f in field %}{{ f }} {% endfor %}
+        </div>
     {% else %}
     	{% if field.label %}
         	<label class="control-label" for="{{ field.auto_id }}">{{ field.label }}</label>
@@ -20,7 +25,7 @@
         <p class="help-block">{{ error }}</p>
     {% endfor %}
 
-    {% if field.help_text %}
+    {% if not field|is_multiple_checkbox and field.help_text %}
         <p class="help-block">{{ field.help_text|safe }}</p>
     {% endif %}
 </div>
