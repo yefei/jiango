@@ -96,3 +96,37 @@ class ColorSelect(widgets.Input):
         output.append('</ul>')
         output.append('<script>ColorSelect("id_%s_select", "id_%s");</script>' % (name, name))
         return mark_safe(''.join(output))
+
+
+class ColorModelSelectMultiple(forms.SelectMultiple):
+    def __init__(self, attrs=None, choices=(), color_field='color', name_field='name'):
+        self.color_field = color_field
+        self.name_field = name_field
+        super(ColorModelSelectMultiple, self).__init__(attrs, choices)
+
+    @property
+    def media(self):
+        return forms.Media(
+            css={'all': [static("css/bootstrap.color-select.css")]}
+        )
+
+    def render(self, name, value, attrs=None, choices=()):
+        if value is None: value = []
+        final_attrs = self.build_attrs(attrs, name=name)
+        final_attrs.pop('class', None)
+        output = [u'<ul class="color-model-select">']
+        str_values = set([force_unicode(v) for v in value])
+        for i, q in enumerate(self.choices.queryset.all()):
+            final_attrs = dict(final_attrs, id='%s_%s' % (attrs['id'], i))
+            label_for = u' for="%s" style="background-color:%s"' % (final_attrs['id'],  getattr(q, self.color_field))
+            cb = forms.CheckboxInput(final_attrs, check_test=lambda value: value in str_values)
+            rendered_cb = cb.render(name, force_unicode(q.pk))
+            option_label = conditional_escape(force_unicode(getattr(q, self.name_field)))
+            output.append(u'<li><label%s>%s%s</label></li>' % (label_for, rendered_cb, option_label))
+        output.append(u'</ul>')
+        return mark_safe(u'\n'.join(output))
+
+    def id_for_label(self, id_):
+        if id_:
+            id_ += '_0'
+        return id_

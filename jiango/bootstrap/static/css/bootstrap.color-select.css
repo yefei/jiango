@@ -34,3 +34,34 @@
     font-size: 11px;
     color: #FFF;
 }
+
+
+/* ColorModelSelectMultiple */
+ul.color-model-select {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+ul.color-model-select:after,
+ul.color-model-select:before {
+    display: table;
+    content: " ";
+    clear: both;
+}
+ul.color-model-select li {
+    float: left;
+}
+ul.color-model-select li>label {
+    font-style: normal;
+    border-radius: 3px;
+    padding: 1px 5px;
+    margin-right: 5px;
+    color: #fff;
+	background-color: #aaa;
+    font-weight: normal;
+    font-size: 14px;
+}
+ul.color-model-select li>label>input {
+    margin-right: 3px;
+    vertical-align: top;
+}
