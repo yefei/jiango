@@ -2,11 +2,12 @@
 # Created on 2015-12-2
 # @author: Yefei
 from django import template
-from jiango.utils.humanize import humanize_second, humanize_size, intcomma4
+from jiango.utils.humanize import humanize_second, humanize_size, intcomma4, timesince_single
 
 
 register = template.Library()
 register.filter('humanizesecond', humanize_second, is_safe=True)
+register.filter(intcomma4)
 
 
 @register.filter(is_safe=True)
@@ -29,4 +30,14 @@ def filesize(value):
     return '%.2f %sB' %(size, unit)
 
 
-register.filter(intcomma4)
+@register.filter("timesince_single", is_safe=False)
+def timesince_single_filter(value, arg=None):
+    """Formats a date as the time since that date (i.e. "4 days")."""
+    if not value:
+        return u''
+    try:
+        if arg:
+            return timesince_single(value, arg)
+        return timesince_single(value)
+    except (ValueError, TypeError):
+        return u''

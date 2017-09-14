@@ -2,6 +2,9 @@
 # Created on 2015-12-2
 # @author: Yefei
 import re
+import datetime
+from django.utils.timezone import is_aware, utc
+from django.utils.translation import ungettext, ugettext
 from django.utils.encoding import force_unicode
 
 
@@ -61,3 +64,39 @@ def humanize_size(size, step=1024, units=SIZE_UNITS):
 
 def intcomma4(value):
     return re.sub(r"(\d)(?=(\d{4})+(?!\d))", r"\1,", force_unicode(value))
+
+
+def timesince_single(d, now=None, reversed=False):
+    """
+    Takes two datetime objects and returns the time between d and now
+    as a nicely formatted string, e.g. "10 minutes".  If d occurs after now,
+    then "0 minutes" is returned.
+    """
+    chunks = (
+      (60 * 60 * 24 * 365, lambda n: ungettext('year', 'years', n)),
+      (60 * 60 * 24 * 30, lambda n: ungettext('month', 'months', n)),
+      (60 * 60 * 24 * 7, lambda n : ungettext('week', 'weeks', n)),
+      (60 * 60 * 24, lambda n : ungettext('day', 'days', n)),
+      (60 * 60, lambda n: ungettext('hour', 'hours', n)),
+      (60, lambda n: ungettext('minute', 'minutes', n))
+    )
+    # Convert datetime.date to datetime.datetime for comparison.
+    if not isinstance(d, datetime.datetime):
+        d = datetime.datetime(d.year, d.month, d.day)
+    if now and not isinstance(now, datetime.datetime):
+        now = datetime.datetime(now.year, now.month, now.day)
+
+    if not now:
+        now = datetime.datetime.now(utc if is_aware(d) else None)
+
+    delta = (d - now) if reversed else (now - d)
+    # ignore microseconds
+    since = delta.days * 24 * 60 * 60 + delta.seconds
+    if since <= 0:
+        # d is in the future compared to now, stop processing.
+        return u'0 ' + ugettext('minutes')
+    for i, (seconds, name) in enumerate(chunks):
+        count = since // seconds
+        if count != 0:
+            break
+    return ugettext('%(number)d %(type)s') % {'number': count, 'type': name(count)}
