@@ -6,6 +6,7 @@ import datetime
 from django.utils.timezone import is_aware, utc
 from django.utils.translation import ungettext, ugettext
 from django.utils.encoding import force_unicode
+from django.utils import dateformat
 
 
 # 1d=1天,1h=1小时,1m=1分钟,1s=1秒s可以不加。例如10天20小时15分3秒: 10d20h15m3
@@ -100,3 +101,86 @@ def timesince_single(d, now=None, reversed=False):
         if count != 0:
             break
     return ugettext('%(number)d %(type)s') % {'number': count, 'type': name(count)}
+
+
+def time_humanize(d):
+    u"""
+    人性化时间显示
+    :param d: 时间
+    :return: 字符串
+    """
+    now = datetime.datetime.now()
+    delta = now - d
+    since = delta.days * 24 * 60 * 60 + delta.seconds
+    if since <= 0:
+        return u'刚刚'
+    if since < 60:
+        return u'%d秒前' % since
+    if since < 60 * 60:
+        return u'%d分钟前' % (since / 60)
+
+    # 6-12上午，12-18下午，18-24晚上，0-6凌晨
+    if d.hour >= 18:
+        a = u'晚上'
+    elif d.hour >= 12:
+        a = u'下午'
+    elif d.hour >= 6:
+        a = u'上午'
+    else:
+        a = u'凌晨'
+    # 子时（23-1点）：半夜
+    # 丑时（1-3点）：凌晨
+    # 寅时（3-5点）：黎明
+    # 卯时（5-7点）：清晨
+    # 辰时（7-9点）：早上
+    # 巳时（9-11点）：上午
+    # 午时（11-13点）：中午
+    # 未时（13-15点）：午后
+    # 申时（15-17点）：下午
+    # 酉时（17-19点）：傍晚
+    # 戌时（19-21点）：晚上
+    # 亥时（21-23点）：深夜
+    # if d.hour in (23, 0, 1): a = u'半夜'
+    # elif d.hour >= 21: a = u'深夜'
+    # elif d.hour >= 19: a = u'晚上'
+    # elif d.hour >= 17: a = u'傍晚'
+    # elif d.hour >= 15: a = u'下午'
+    # elif d.hour >= 13: a = u'午后'
+    # elif d.hour >= 11: a = u'中午'
+    # elif d.hour >= 9: a = u'上午'
+    # elif d.hour >= 7: a = u'早上'
+    # elif d.hour >= 5: a = u'清晨'
+    # elif d.hour >= 3: a = u'黎明'
+    # else: a = u'凌晨'
+
+    # 时间显示 1点 or 1:23
+    g = d.hour
+    if d.hour == 0:
+        g = 12
+    if d.hour > 12:
+        g = d.hour - 12
+    time = u'%d点' % g if d.minute == 0 else u'%d:%02d' % (g, d.minute)
+
+    # 今天、昨天、前天
+    days = (now.date() - d.date()).days
+    if days == 0:
+        return a + time
+    if days == 1:
+        return u'昨天' + a + time
+    if days == 2:
+        return u'前天' + a + time
+    # if days == 3:
+    #     return u'大前天' + a + time
+
+    if d.year == now.year:
+        week = {0: u'一', 1: u'二', 2: u'三', 3: u'四', 4: u'五', 5: u'六', 6: u'日'}[d.weekday()]
+        # 本周、上周
+        weeks = now.isocalendar()[1] - d.isocalendar()[1]
+        if weeks == 0:
+            return u'本周' + week + a + time
+        if weeks == 1:
+            return u'上周' + week + a + time
+
+        return dateformat.format(d, u'n月j日') + a + time
+
+    return dateformat.format(d, u'Y年n月j日')

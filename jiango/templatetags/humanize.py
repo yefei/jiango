@@ -2,12 +2,13 @@
 # Created on 2015-12-2
 # @author: Yefei
 from django import template
-from jiango.utils.humanize import humanize_second, humanize_size, intcomma4, timesince_single
+from jiango.utils.humanize import humanize_second, humanize_size, intcomma4, timesince_single, time_humanize
 
 
 register = template.Library()
 register.filter('humanizesecond', humanize_second, is_safe=True)
 register.filter(intcomma4)
+register.filter(time_humanize)
 
 
 @register.filter(is_safe=True)
