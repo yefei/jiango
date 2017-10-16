@@ -215,3 +215,28 @@ def incr_and_update_instance(instance, **fields):
         setattr(instance, f, getattr(instance, f) + v)
         updates[f] = F(f) + v
     instance._default_manager.filter(pk=instance.pk).update(**updates)
+
+
+# 更新 M2M 字段中的值，存在的忽略，不存在的创建，已经存在的但更新时候不存在的则删除
+def update_m2m(through, fk_a_name, fk_a_value, fk_b_name, fk_b_values):
+    fk_a_qs = through.objects.filter(**{fk_a_name: fk_a_value})
+    if not fk_b_values:
+        fk_a_qs.delete()
+    else:
+        values_ids = (i.pk for i in fk_b_values)
+        delete_ids = []
+        exists_ids = []
+        for t in fk_a_qs:
+            fk_a_id = getattr(t, '%s_id' % fk_b_name)
+            if fk_a_id not in values_ids:  # 不在需要创建的则需要删除
+                delete_ids.append(t.pk)
+            else:
+                exists_ids.append(fk_a_id)
+        # 删除已经不需要的
+        if delete_ids:
+            through.objects.filter(pk__in=delete_ids).delete()
+        # 插入新的
+        for i in fk_b_values:
+            if i.pk in exists_ids:
+                continue
+            through.objects.create(**{fk_a_name: fk_a_value, fk_b_name: i})

@@ -19,7 +19,7 @@ class SafePaginator(Paginator):
 
 
 class Paging(SafePaginator):
-    def __init__(self, object_list, request, per_page=30, field_name='page', *args, **kwargs):
+    def __init__(self, object_list, request, per_page=100, field_name='page', *args, **kwargs):
         self.request = request
         self.field_name = field_name
         super(Paging, self).__init__(object_list, per_page, *args, **kwargs)
@@ -42,7 +42,7 @@ class Paging(SafePaginator):
 
 
 class ReversePaging(SafePaginator):
-    def __init__(self, object_list, request, viewname, view_args=None, view_kwargs=None, per_page=30, field_name='page',
+    def __init__(self, object_list, request, viewname, view_args=None, view_kwargs=None, per_page=100, field_name='page',
                  *args, **kwargs):
         self.request = request
         self.viewname = viewname
