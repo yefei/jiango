@@ -14,12 +14,7 @@
     <link rel="stylesheet" type="text/css" href="{% static 'admin/css/skins/skin-blue-light.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'admin/css/admin.css' %}">
 	<script type="text/javascript">var static_prefix = '{% get_static_prefix %}';</script>
-    <script src="{% static 'admin/js/jquery.js' %}"></script>
-	<script src="{% static 'admin/js/bootstrap.js' %}"></script>
-    <script src="{% static 'admin/js/jquery.cookie.js' %}"></script>
-	<script src="{% static 'admin/js/jquery.notify.js' %}"></script>
-    <script src="{% static 'admin/js/app.js' %}"></script>
-    <script src="{% static 'admin/js/web.js' %}"></script>
+    {% include 'admin/js.inc.html' %}
 </head>
 {% block body %}
 <body class="hold-transition skin-blue-light fixed{% if current_sub_menus %} sidebar-mini{% if sidebar_collapse %} sidebar-collapse{% endif %}{% endif %}">
