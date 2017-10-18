@@ -2,7 +2,7 @@
 # Created on 2015-8-26
 # @author: Yefei
 from functools import wraps
-from django.http import HttpResponse
+from django.http import HttpResponse, QueryDict
 from django.conf import settings
 from django.template.loader import render_to_string as _render_to_string
 from django.template.context import RequestContext
@@ -13,29 +13,35 @@ from django.contrib.messages import add_message, constants as message_constants
 from jiango.serializers import get_serializer
 
 
+class HttpResponseException(Exception):
+    def response(self, request, response=None):
+        return response
+
+
 # 让客户端浏览器重新载入当前地址
-class HttpReload(Exception):
+class HttpReload(HttpResponseException):
     # remove_get_vars 是否需要清除指定的 GETs
     # 如果为列表参数则删除列表中指定的 GET 变量
     # 如果为 True 则删除所有 GET 变量
     # None 就什么都不做,直接重载当前地址
-    def __init__(self, remove_get_vars=None):
+    def __init__(self, remove_get_vars=None, add_get_vars_dict=None):
         self.remove_get_vars = remove_get_vars
+        self.add_get_vars_dict = add_get_vars_dict
     
     def response(self, request, response=None):
         if response is None:
             response = HttpResponse()
         response.status_code = 302
-        if request.GET and self.remove_get_vars is True:
-            location = request.path
-        elif request.GET and isinstance(self.remove_get_vars, (tuple, list)):
-            get_vars = request.GET.copy()
-            for k in self.remove_get_vars:
-                del get_vars[k]
-            location = '%s%s' % (request.path, get_vars and ('?' + get_vars.urlencode()) or '')
+        if self.remove_get_vars is True:
+            get_vars = QueryDict(None)
         else:
-            location = request.get_full_path()
-        response['Location'] = location
+            get_vars = request.GET.copy()
+            if self.remove_get_vars:
+                for k in self.remove_get_vars:
+                    del get_vars[k]
+        if self.add_get_vars_dict:
+            get_vars.update(self.add_get_vars_dict)
+        response['Location'] = '%s%s' % (request.path, get_vars and ('?' + get_vars.urlencode()) or '')
         return response
 
 
@@ -56,6 +62,15 @@ class AlertMessage(HttpReload):
     def response(self, request, response=None):
         add_message(request, self.level, self.message, self.extra_tags, self.fail_silently)
         return super(AlertMessage, self).response(request, response)
+
+
+def get_or_create_referer_params(request, default=None, key='__next'):
+    _next = request.GET.get(key)
+    if _next is None:
+        referer = request.META.get('HTTP_REFERER', default)
+        if referer:
+            raise HttpReload(add_get_vars_dict={key: referer})
+    return _next
 
 
 def render_to_string(request, result, default_template, prefix=None, template_ext='html'):
@@ -109,7 +124,7 @@ def renderer(prefix=None, template_ext='html', content_type=settings.DEFAULT_CON
             response = HttpResponse(content_type=content_type)
             try:
                 result = func(request, response, *args, **kwargs)
-            except HttpReload as e:
+            except HttpResponseException as e:
                 return e.response(request, response)
             except Exception as e:
                 if do_exception:
