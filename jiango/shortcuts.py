@@ -218,7 +218,7 @@ def incr_and_update_instance(instance, **fields):
 
 
 # 更新 M2M 字段中的值，存在的忽略，不存在的创建，已经存在的但更新时候不存在的则删除
-def update_m2m(through, fk_a_name, fk_a_value, fk_b_name, fk_b_values):
+def update_m2m(through, fk_a_name, fk_a_value, fk_b_name, fk_b_values, **creates):
     fk_a_qs = through.objects.filter(**{fk_a_name: fk_a_value})
     if not fk_b_values:
         fk_a_qs.delete()
@@ -239,4 +239,6 @@ def update_m2m(through, fk_a_name, fk_a_value, fk_b_name, fk_b_values):
         for i in fk_b_values:
             if i.pk in exists_ids:
                 continue
-            through.objects.create(**{fk_a_name: fk_a_value, fk_b_name: i})
+            creates[fk_a_name] = fk_a_value
+            creates[fk_b_name] = i
+            through.objects.create(**creates)
