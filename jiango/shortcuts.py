@@ -110,8 +110,7 @@ def render_to_string(request, result, default_template, prefix=None, template_ex
     return _render_to_string(templates, dictionary, RequestContext(request))
 
 
-def renderer(prefix=None, template_ext='html', content_type=settings.DEFAULT_CONTENT_TYPE, do_exception=None,
-             ref_param=None):
+def renderer(prefix=None, template_ext='html', content_type=settings.DEFAULT_CONTENT_TYPE, do_exception=None):
     """ return HttpResponse()
         return {'var': value ...}
         return 'template' or '/root_template'
@@ -119,27 +118,37 @@ def renderer(prefix=None, template_ext='html', content_type=settings.DEFAULT_CON
         return 'template', {'var': value ...}
         return 'template1', 'template2', ... {'var': value ...}
     """
-    def do_renderer(func):
-        @wraps(func)
-        def wrapper(request, *args, **kwargs):
-            response = HttpResponse(content_type=content_type)
-            try:
-                if ref_param:
-                    kwargs[ref_param] = get_or_create_referer_params(request, key=ref_param)
-                result = func(request, response, *args, **kwargs)
-            except HttpResponseException as e:
-                return e.response(request, response)
-            except Exception as e:
-                if do_exception:
-                    result = do_exception(request, response, e)
-                else:
-                    raise
-            if isinstance(result, HttpResponse):
-                return result
-            response.content = render_to_string(request, result, func.__name__.rstrip('_'), prefix, template_ext)
-            return response
-        return wrapper
-    return do_renderer
+    def render(func=None, template_ext=template_ext, content_type=content_type, do_exception=do_exception,
+               ref_param=None):
+        def do_wrapper(func):
+            @wraps(func)
+            def wrapper(request, *args, **kwargs):
+                response = HttpResponse(content_type=content_type)
+                try:
+                    if ref_param:
+                        kwargs[ref_param] = get_or_create_referer_params(request, key=ref_param)
+                    result = func(request, response, *args, **kwargs)
+                except HttpResponseException as e:
+                    return e.response(request, response)
+                except Exception as e:
+                    if do_exception:
+                        result = do_exception(request, response, e)
+                    else:
+                        raise
+                if isinstance(result, HttpResponse):
+                    return result
+                response.content = render_to_string(request, result, func.__name__.rstrip('_'), prefix, template_ext)
+                return response
+            return wrapper
+
+        # @render() 带参数
+        if func is None:
+            return do_wrapper
+
+        # @render 不带参数
+        return do_wrapper(func)
+
+    return render
 
 
 def response_serialize(value, output_format='json', options=None, response=None):
