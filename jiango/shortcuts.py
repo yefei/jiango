@@ -64,13 +64,13 @@ class AlertMessage(HttpReload):
         return super(AlertMessage, self).response(request, response)
 
 
-def get_or_create_referer_params(request, default=None, key='__next'):
-    _next = request.GET.get(key)
-    if _next is None:
-        referer = request.META.get('HTTP_REFERER', default)
-        if referer:
-            raise HttpReload(add_get_vars_dict={key: referer})
-    return _next
+def get_or_create_referer_params(request, default=None, key='ref'):
+    ref = request.GET.get(key)
+    if ref is None:
+        ref = request.META.get('HTTP_REFERER', default)
+        if ref:
+            raise HttpReload(add_get_vars_dict={key: ref})
+    return ref
 
 
 def render_to_string(request, result, default_template, prefix=None, template_ext='html'):
@@ -110,7 +110,8 @@ def render_to_string(request, result, default_template, prefix=None, template_ex
     return _render_to_string(templates, dictionary, RequestContext(request))
 
 
-def renderer(prefix=None, template_ext='html', content_type=settings.DEFAULT_CONTENT_TYPE, do_exception=None):
+def renderer(prefix=None, template_ext='html', content_type=settings.DEFAULT_CONTENT_TYPE, do_exception=None,
+             ref_param=None):
     """ return HttpResponse()
         return {'var': value ...}
         return 'template' or '/root_template'
@@ -123,6 +124,8 @@ def renderer(prefix=None, template_ext='html', content_type=settings.DEFAULT_CON
         def wrapper(request, *args, **kwargs):
             response = HttpResponse(content_type=content_type)
             try:
+                if ref_param:
+                    kwargs[ref_param] = get_or_create_referer_params(request, key=ref_param)
                 result = func(request, response, *args, **kwargs)
             except HttpResponseException as e:
                 return e.response(request, response)

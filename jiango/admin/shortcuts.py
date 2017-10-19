@@ -9,7 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.contrib import messages
 from django.shortcuts import redirect
-from jiango.shortcuts import render_to_string, HttpReload
+from jiango.shortcuts import render_to_string, HttpResponseException, get_or_create_referer_params
 from jiango.utils.model import get_deleted_objects
 from .auth import login_redirect, logout_redirect, get_request_user
 from .models import Permission, Log, LogTypes
@@ -61,12 +61,11 @@ def has_perm(request, codename):
 def renderer(prefix=None, default_extends_layout=True,
              template_ext='html', content_type=settings.DEFAULT_CONTENT_TYPE):
     def render(func=None, extends_layout=default_extends_layout,
-               login=True, logout=False, perm=None):
+               login=True, logout=False, perm=None, ref_param=None):
         def do_wrapper(func):
             @wraps(func)
             def wrapper(request, *args, **kwargs):
                 response = HttpResponse(content_type=content_type)
-                content = ''
                 
                 if logout:
                     if get_request_user(request):
@@ -78,8 +77,10 @@ def renderer(prefix=None, default_extends_layout=True,
                 try:
                     if perm:
                         has_perm(request, perm)
+                    if ref_param:
+                        kwargs[ref_param] = get_or_create_referer_params(request, key=ref_param)
                     result = func(request, response, *args, **kwargs)
-                except HttpReload as e:
+                except HttpResponseException as e:
                     return e.response(request, response)
                 except (Alert, ObjectDoesNotExist) as e:
                     result = {}
@@ -270,7 +271,8 @@ def delete_confirm_view(app_label, request, queryset, on_success=None, using=Non
     return template, template_vars
 
 
-def edit_view(app_label, request, form, on_success=None, template='/admin/shortcuts/edit', extras=None):
+def edit_view(app_label, request, form, on_success=None, template='/admin/shortcuts/edit', extras=None,
+              is_multipart=False):
     log = Logger(app_label)
     m_log = None
     if hasattr(form, 'instance'):
