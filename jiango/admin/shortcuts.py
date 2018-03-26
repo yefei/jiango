@@ -9,7 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.contrib import messages
 from django.shortcuts import redirect
-from jiango.shortcuts import render_to_string, HttpResponseException, get_or_create_referer_params
+from jiango.shortcuts import render_to_string, HttpResponseException, get_or_create_referer_params, HttpReload
 from jiango.utils.model import get_deleted_objects
 from .auth import login_redirect, logout_redirect, get_request_user
 from .models import Permission, Log, LogTypes
