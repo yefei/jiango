@@ -38,7 +38,7 @@ class CaptchaStore(object):
 
 def check_captcha(crypted_data, value):
     challenge = decrypt_challenge(crypted_data)
-    if challenge is not None and challenge.lower() == value.lower():
+    if challenge and challenge.lower() == value.lower():
         # 保证验证码一次性
         store = CaptchaStore(crypted_data)
         if not store.exists():
