@@ -21,6 +21,26 @@
         </ul>
     </blockquote>
 
+    <div class="box">
+        <div class="box-header with-border">
+            <h3 class="box-title">功能地图</h3>
+        </div>
+        <div class="box-body">
+            <table class="navigation-menu">
+                {% for i in navigation %}
+                <tr>
+                    <th>{{i.verbose_name}}</th>
+                    <td>
+                        {% for s in i.sub_menus %}
+                            <span><a href="{{s.url}}"><i class="{{ s.icon|default:'fa fa-circle-o' }}"></i> <span>{{s.verbose_name}}</span></a></span>
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+
 {% if log_set %}
     <div class="box">
         <div class="box-header">

@@ -51,6 +51,46 @@
     vertical-align: top;
 }
 
+
+.navigation-menu {
+	width: 100%;
+}
+.navigation-menu th {
+	white-space:nowrap;
+	text-align: right;
+	font-size: 18px;
+	vertical-align: top;
+	padding-left: 20px;
+	padding-right: 20px;
+}
+.navigation-menu td,
+.navigation-menu th {
+	padding: 10px;
+	padding-bottom: 8px;
+	border-bottom: 1px dashed #eee;
+}
+.navigation-menu td>span>a>i {
+	font-size: 20px;
+	vertical-align: middle;
+	color: #999;
+	width: 25px;
+	text-align: center;
+}
+.navigation-menu td>span {
+	display: inline-block;
+	width: 120px;
+	overflow: hidden;
+	margin: 0 10px;
+}
+.navigation-menu td>span>a,
+.navigation-menu td>span>a:visited {
+	color: #000;
+}
+.navigation-menu td>span>a:hover,
+.navigation-menu td>span>a:hover>i {
+	color: #72afd2;
+}
+
 /*
  * utils
  */

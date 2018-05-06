@@ -20,9 +20,11 @@ log = Logger('admin')
 
 @render
 def index(request, response):
+    from .loader import get_navigation
     user = get_request_user(request)
     online_set = set(User.objects.online())
     online_count = len(online_set)
+    navigation = get_navigation(request)[:-1]
     if user.has_perm('admin.log.view'):
         log_set = Log.objects.select_related('user')[:10]
         log_count = Log.objects.count()
