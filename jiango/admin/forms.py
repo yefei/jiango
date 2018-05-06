@@ -2,9 +2,10 @@
 # Created on 2015-9-2
 # @author: Yefei
 import hashlib
+from datetime import date, timedelta
 from django import forms
 from jiango.bootstrap.widgets import FilteredSelectMultiple
-from .models import User, Group
+from .models import User, Group, Log, LogTypes
 from .auth import get_temp_salt, verify_temp_salt
 from .config import AUTH_SLAT_TIMEOUT, LOGIN_MAX_FAILS, SECRET_KEY_DIGEST
 
@@ -133,3 +134,66 @@ class GroupForm(forms.ModelForm):
     class Meta:
         model = Group
         widgets = {'permissions': FilteredSelectMultiple(u'权限')}
+
+
+class LogFilterForm(forms.Form):
+    DATE_SEPARATOR = ' - '
+
+    SEARCH_CONTENT = 1
+    SEARCH_IP = 2
+    TYPES = (
+        (SEARCH_CONTENT, u'内容'),
+        (SEARCH_IP, u'IP'),
+    )
+
+    user = forms.ModelChoiceField(User.objects.all(), empty_label=u'用户', required=False)
+    level = forms.ChoiceField(choices=(('', u'级别'),) + LogTypes.LEVELS, required=False)
+    action = forms.ChoiceField(choices=(('', u'动作'),) + LogTypes.ACTIONS, required=False)
+    app = forms.ChoiceField(label=u'模块', required=False)
+    date = forms.RegexField(u'\d{4}/\d{2}/\d{2}%s\d{4}/\d{2}/\d{2}' % DATE_SEPARATOR, label=u'日期',  required=False)
+    type = forms.ChoiceField(label=u'搜索类型', choices=TYPES, required=False)
+    search = forms.CharField(label=u'搜索词', required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(LogFilterForm, self).__init__(*args, **kwargs)
+        apps = Log.objects.distinct().values_list('app_label', flat=True).order_by('app_label')
+        self.fields['app'].choices = [('', u'模块')] + zip(apps, apps)
+
+    def get_date_range(self):
+        value = self.cleaned_data.get('date')
+        if value:
+            start, end = value.split(self.DATE_SEPARATOR)
+            return date(*[int(i) for i in start.split('/')]), date(*[int(i) for i in end.split('/')])
+
+    def filter(self, qs):
+        if not self.is_valid():
+            return qs
+
+        user = self.cleaned_data.get('user')
+        if user:
+            qs = qs.filter(user=user)
+
+        level = self.cleaned_data.get('level')
+        if level:
+            qs = qs.filter(level=level)
+
+        action = self.cleaned_data.get('action')
+        if action:
+            qs = qs.filter(action=action)
+
+        app = self.cleaned_data.get('app')
+        if app:
+            qs = qs.filter(app_label=app)
+
+        search = self.cleaned_data.get('search')
+        if search:
+            search_type = int(self.cleaned_data.get('type'))
+            if search_type == self.SEARCH_CONTENT:
+                qs = qs.filter(content__icontains=search)
+            elif search_type == self.SEARCH_IP:
+                qs = qs.filter(remote_ip=search)
+
+        date_range = self.get_date_range()
+        if date_range:
+            qs = qs.filter(datetime__gte=date_range[0], datetime__lt=date_range[1] + timedelta(days=1))
+        return qs

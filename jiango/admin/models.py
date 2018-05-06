@@ -178,7 +178,7 @@ class Log(models.Model):
     datetime = models.DateTimeField(u'时间', auto_now=True, db_index=True)
     level = models.SmallIntegerField(u'级别', db_index=True, choices=LogTypes.LEVELS, default=LogTypes.SUCCESS)
     action = models.SmallIntegerField(u'动作', db_index=True, choices=LogTypes.ACTIONS, default=LogTypes.NONE)
-    app_label = models.CharField(max_length=100, null=True)
+    app_label = models.CharField(max_length=100, null=True, db_index=True)
     content = models.TextField(null=True)
     view_name = models.CharField(max_length=100, null=True)
     view_args = models.CharField(max_length=100, null=True)

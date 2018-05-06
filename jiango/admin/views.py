@@ -8,7 +8,7 @@ from django.shortcuts import redirect
 from django.contrib import messages
 from jiango.pagination import Paging
 from .shortcuts import renderer, Alert, has_superuser, has_perm, Logger
-from .forms import AuthenticationForm, SetPasswordForm, UserForm, GroupForm
+from .forms import AuthenticationForm, SetPasswordForm, UserForm, GroupForm, LogFilterForm
 from .auth import LOGIN_NEXT_FIELD, set_login, set_login_cookie, set_logout, set_logout_cookie, get_request_user
 from .config import SECRET_KEY_DIGEST, FULL_NAME, CLIENT_PASSWORD_ENCRYPT
 from .models import User, Log, get_password_digest, Group
@@ -103,6 +103,8 @@ def set_password(request, response, user_id=None):
 @render(perm='admin.log.view')
 def log_list(request, response):
     log_set = Log.objects.select_related('user')
+    filter_form = LogFilterForm(request.GET or None)
+    log_set = filter_form.filter(log_set)
     log_set = Paging(log_set, request).page()
     return locals()
 

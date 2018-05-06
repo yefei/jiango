@@ -8,6 +8,37 @@
 </section>
 
 <section class="content">
+    {% include 'admin/form-errors.inc.html' with form=filter_form %}
+    <form action="" method="get" class="form-inline" style="margin-bottom:15px">
+        <div class="input-group">
+            {% ff filter_form.app class="form-control" onchange="this.form.submit()" %}
+        </div>
+        <div class="input-group">
+            {% ff filter_form.level class="form-control" onchange="this.form.submit()" %}
+        </div>
+        <div class="input-group">
+            {% ff filter_form.action class="form-control" onchange="this.form.submit()" %}
+        </div>
+        <div class="input-group">
+            <div class="input-group-btn">{% ff filter_form.type class="form-control" %}</div>
+            {% ff filter_form.search class="form-control" placeholder="关键词" %}
+        </div>
+        <div class="input-group">
+            {% ff filter_form.date class="form-control" placeholder="日期" %}
+        </div>
+        <div class="input-group">
+            {% ff filter_form.user class="form-control" onchange="this.form.submit()" %}
+        </div>
+        <div class="input-group">
+            <div class="btn-group">
+                <button type="submit" class="btn btn-default">过滤</button>
+                {% if filter_form.is_valid %}
+                    <a href="?" class="btn btn-default">取消</a>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+
     <div class="box">
         <div class="box-body table-responsive no-padding">
            {% include 'admin/log-table.inc.html' %}
@@ -17,3 +48,6 @@
         </div>
     </div>
 </section>
+
+{% include 'admin/daterangepicker.inc.html' %}
+<script>dateRangePicker('#id_date');</script>

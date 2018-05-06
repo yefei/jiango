@@ -1,0 +1,20 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'admin/css/daterangepicker.css' %}">
+<script type="text/javascript" src="{% static 'admin/js/moment.js' %}"></script>
+<script>moment.locale('zh-cn');</script>
+<script type="text/javascript" src="{% static 'admin/js/daterangepicker.js' %}"></script>
+<script>
+    function dateRangePicker(el) {
+        $(el).daterangepicker({
+            autoUpdateInput:false,
+            locale: {
+                applyLabel: '确定',
+                cancelLabel: '取消'
+            }
+        }).on('apply.daterangepicker', function(ev, p) {
+            $(this).val(p.startDate.format(p.locale.format) + p.locale.separator + p.endDate.format(p.locale.format))
+        }).on('cancel.daterangepicker', function(ev, p) {
+            $(this).val('');
+        });
+    }
+</script>
