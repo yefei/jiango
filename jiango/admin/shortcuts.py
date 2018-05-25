@@ -109,7 +109,16 @@ def renderer(prefix=None, default_extends_layout=True,
                         if i['is_active']:
                             current_sub_menus = i['sub_menus']
                             break
+
+                # <head> 提取
+                head_content = ''
+                if content.startswith('<head>') and '</head>' in content:
+                    head_end_pos = content.index('</head>')
+                    head_content = content[len('<head>'):head_end_pos]
+                    content = content[head_end_pos+len('</head>'):]
+
                 base_dictionary = {'content': content,
+                                   'head_content': head_content,
                                    'config': config,
                                    'navigation': navigation,
                                    'current_sub_menus': current_sub_menus,

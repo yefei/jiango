@@ -15,6 +15,7 @@
     <link rel="stylesheet" type="text/css" href="{% static 'admin/css/admin.css' %}?1">
 	<script type="text/javascript">var static_prefix = '{% get_static_prefix %}';</script>
     {% include 'admin/js.inc.html' %}
+    {{ head_content|safe }}
 </head>
 {% block body %}
 <body class="hold-transition skin-blue-light fixed{% if current_sub_menus %} sidebar-mini{% if sidebar_collapse %} sidebar-collapse{% endif %}{% endif %}">
@@ -80,7 +81,7 @@
 
         <div class="content-wrapper"{% if not current_sub_menus %} style="margin-left:0" {% endif %}>
             {% include 'admin/browser-check.inc.html' %}
-            {{content}}
+            {{content|safe}}
         </div>
     </div>
 
