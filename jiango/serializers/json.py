@@ -19,7 +19,7 @@ MIME_TYPES = ('text/json',
 class JSONEncoder(DjangoJSONEncoder):
     def default(self, o):
         if isinstance(o, datetime.datetime):
-            r = o.isoformat()
+            r = o.isoformat(sep=' ')
             if o.microsecond:
                 r = r[:19] + r[26:]
             if r.endswith('+00:00'):

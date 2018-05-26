@@ -102,4 +102,16 @@ $(window).on('load', function () {
 			$(checkfor, context).prop('checked', is);
 		});
 	});
+
+	// 小窗打开
+	// <a href="url" data-toggle="window" data-name="whisper-1"></a>
+	$('[data-toggle=window]').click(function () {
+        var t = $(this);
+        var w = t.data('width') || 700;
+        var h = t.data('height') || 600;
+        var left = (window.screen.width - w) / 2;
+        var top = (window.screen.height - h) / 2;
+        window.open(t.attr('href'), t.data('name'), 'width='+w+',height='+h+',top='+top+',left='+left+',location=no,menubar=no,scrollbars=no,titlebar=no,toolbar=no')
+        return false;
+    });
 });
