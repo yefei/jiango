@@ -11,6 +11,7 @@ from django.contrib import messages
 from django.shortcuts import redirect
 from jiango.shortcuts import render_to_string, HttpResponseException, get_or_create_referer_params, HttpReload
 from jiango.utils.model import get_deleted_objects
+from jiango.ui import Element
 from .auth import login_redirect, logout_redirect, get_request_user
 from .models import Permission, Log, LogTypes
 from . import config
@@ -94,7 +95,10 @@ def renderer(prefix=None, default_extends_layout=True,
                 else:
                     if isinstance(result, HttpResponse):
                         return result
-                    content = render_to_string(request, result, func.__name__.rstrip('_'), prefix, template_ext)
+                    if isinstance(result, Element):
+                        content = result.render()
+                    else:
+                        content = render_to_string(request, result, func.__name__.rstrip('_'), prefix, template_ext)
                     if not extends_layout:
                         response.content = content
                         return response
