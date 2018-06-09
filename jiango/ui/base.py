@@ -4,16 +4,15 @@ Author: FeiYe <316606233@qq.com>
 Since: 2018/6/8 Feiye
 Version: $Id:$
 """
-from .util import flatatt
+from .util import flatatt, render_value
 
 
 class Element(object):
     TAG = None
-    CLOSE_TAG = True
 
-    def __init__(self, content=None, attrs=None):
-        self.tag = self.TAG
-        self.close_tag = self.CLOSE_TAG
+    def __init__(self, content=None, tag=None, attrs=None, close_tag=True):
+        self.tag = tag or self.TAG
+        self.close_tag = close_tag
         if attrs is not None:
             self.attrs = attrs.copy()
         else:
@@ -45,46 +44,17 @@ class Element(object):
                 output.append(' %s' % flatatt(self.attrs))
             output.append('>')
         if self.contents:
-            output.extend((i.render() if isinstance(i, Element) else unicode(i)) for i in self.contents)
-        if self.close_tag:
+            output.extend((i.render() if isinstance(i, Element) else render_value(i)) for i in self.contents)
+        if self.tag and self.close_tag:
             output.append('</%s>' % self.tag)
         return ''.join(output)
 
 
-class H1(Element):
-    TAG = 'h1'
-
-
-class H2(Element):
-    TAG = 'h2'
-
-
-class H3(Element):
-    TAG = 'h3'
-
-
-class H4(Element):
-    TAG = 'h4'
-
-
-class H5(Element):
-    TAG = 'h5'
-
-
-class H6(Element):
-    TAG = 'h6'
-
-
-class P(Element):
-    TAG = 'p'
-
-
 class Img(Element):
     TAG = 'img'
-    CLOSE_TAG = False
 
     def __init__(self, src=None):
-        Element.__init__(self)
+        Element.__init__(self, close_tag=False)
         if src:
             self.set_attr('src', src)
 
@@ -95,8 +65,13 @@ class Ul(Element):
     class Li(Element):
         TAG = 'li'
 
-    def li(self, el, **attrs):
-        li = self.Li(el, attrs)
+    def __init__(self, data_list=None):
+        Element.__init__(self)
+        if data_list:
+            self.loop(data_list)
+
+    def li(self, el, attrs=None):
+        li = self.Li(el, attrs=attrs)
         self.append(li)
         return li
 
@@ -118,25 +93,62 @@ class Table(Element):
         class Td(Element):
             TAG = 'td'
 
-        def th(self, el, **attrs):
-            th = self.Th(el, attrs)
+        def th(self, el, attrs=None):
+            th = self.Th(el, attrs=attrs)
             self.append(th)
             return th
 
-        def td(self, el, **attrs):
-            td = self.Td(el, attrs)
+        def td(self, el, attrs=None):
+            td = self.Td(el, attrs=attrs)
             self.append(td)
             return td
 
-    def tr(self, el, **attrs):
-        tr = self.Tr(el, attrs)
-        self.append(tr)
-        return tr
+    def __init__(self):
+        Element.__init__(self)
+        self.columns = []
+        self.thead = Element(tag='thead')
+        self.tbody = Element(tag='tbody')
+        # self.tfoot = Element(tag='tfoot')
 
-    def add_column(self, content, loop_key=None, do_render=None):
-        pass
+    def add_column(self, content, data_key=None, attrs=None, do_render=None):
+        self.columns.append(dict(
+            content=content,
+            data_key=data_key,
+            attrs=attrs,
+            do_render=do_render,
+        ))
+
+    def render_thead(self):
+        tr = self.Tr()
+        for c in self.columns:
+            tr.th(c['content'], c['attrs'])
+        self.thead.append(tr)
+        self.append(self.thead)
+
+    def data_col(self, col, data):
+        do_render = col['do_render']
+        if do_render:
+            content = do_render(col, data)
+        else:
+            key = col['data_key']
+            if key:
+                if isinstance(data, dict):
+                    content = data.get(key)
+                else:
+                    content = getattr(data, key)
+            else:
+                content = None
+        return self.Tr.Td(content, attrs=col['attrs'])
+
+    def add_data_row(self, data):
+        tr = self.Tr()
+        for col in self.columns:
+            tr.append(self.data_col(col, data))
+        self.tbody.append(tr)
 
     def loop(self, data_list):
+        self.render_thead()
         for i in data_list:
-            self.tr(i)
+            self.add_data_row(i)
+        self.append(self.tbody)
         return self
