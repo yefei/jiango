@@ -21,6 +21,9 @@ class Element(object):
         if content:
             self.append(content)
 
+    def __unicode__(self):
+        return self.render()
+
     def set_tag(self, tag):
         self.tag = tag
 
