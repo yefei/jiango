@@ -20,15 +20,21 @@ CAPTCHA_CHARS = 'ABCDEFGHJKLMNPQRSVWXYabcdefghjkmnopqrstvwxy1456789'
 
 CAPTCHA_LENGTH = getattr(settings, 'CAPTCHA_LENGTH', 4)  # Chars
 
+CAPTCHA_DEFAULT_WIDTH = getattr(settings, 'CAPTCHA_DEFAULT_WIDTH', 100)
+CAPTCHA_DEFAULT_HEIGHT = getattr(settings, 'CAPTCHA_DEFAULT_HEIGHT', 30)
+CAPTCHA_DEFAULT_BACKGROUND = getattr(settings, 'CAPTCHA_DEFAULT_BACKGROUND', '#E0E8F3')
+CAPTCHA_DEFAULT_COLOR = getattr(settings, 'CAPTCHA_DEFAULT_COLOR', '#000000')
+CAPTCHA_DEFAULT_SIZE = getattr(settings, 'CAPTCHA_DEFAULT_SIZE', 30)
+
 CAPTCHA_DRAWS = {
     'default': {
         'DRAW': 'jiango.captcha.draws.simple',
         'OPTIONS': {
-            'WIDTH': 100,
-            'HEIGHT': 30,
-            'BACKGROUND': '#E0E8F3',
-            'COLOR': '#000000',
-            'SIZE': 30,
+            'WIDTH': CAPTCHA_DEFAULT_WIDTH,
+            'HEIGHT': CAPTCHA_DEFAULT_HEIGHT,
+            'BACKGROUND': CAPTCHA_DEFAULT_BACKGROUND,
+            'COLOR': CAPTCHA_DEFAULT_COLOR,
+            'SIZE': CAPTCHA_DEFAULT_SIZE,
             'FONT': thispath('fonts', 'verdana.ttf'),
         }
     }
