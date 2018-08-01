@@ -6,8 +6,9 @@ Version: $Id: errorcodes.py 705 2018-04-24 09:17:08Z feiye $
 """
 
 SUCCESS = 0         # 成功，没有任何错误
-ERROR = -1          # 未定义错误类型
+ERROR = -1          # 常规错误类型
 FROM_ERROR = -2     # 表单错误
+UNKNOWN_ERROR = -100  # 未知错误类型
 
 LOGIN_AUTH_FAIL = 1000, u'登录验证失败'
 

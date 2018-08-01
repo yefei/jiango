@@ -4,13 +4,13 @@ Author: FeiYe <316606233@qq.com>
 Since: 2017/3/22
 Version: $Id: helpers.py 480 2017-08-03 01:09:14Z feiye $
 """
-from jiango.api import FormError
+from django.forms.forms import NON_FIELD_ERRORS
 from jiango.captcha.helpers import check_captcha
 from .exceptions import APIError
 from .errorcodes import *
 
 
-class APIErrorResult(APIError):
+class APIResult(APIError):
     def __init__(self, error_code=SUCCESS, error_message=None, **params):
         self.error_code = error_code
         self.error_message = error_message
@@ -42,11 +42,17 @@ def assert_form_errors(form, error_codes=None):
         for field, error in form.errors.items():
             e = error_codes.get(field)
             if e:
-                raise APIErrorResult(*e, **{field: error})
-    raise APIErrorResult(FROM_ERROR, FormError(form).message)
+                raise APIResult(*e, **{field: error})
+    errors = []
+    for f, e in form.errors.items():
+        label = None
+        if f != NON_FIELD_ERRORS:
+            label = form[f].label
+        errors.append({'field': f, 'message': e, 'label': label})
+    raise APIResult(FROM_ERROR, errors)
 
 
 def assert_captcha_check(encrypt_data, value):
     if encrypt_data and value and check_captcha(encrypt_data, value):
         return
-    raise APIErrorResult(*CAPTCHA_ERROR)
+    raise APIResult(*CAPTCHA_ERROR)

@@ -3,9 +3,12 @@
 # @author: Yefei
 from functools import wraps
 from django.http import HttpResponse
+from django.utils.log import logger
 from jiango.serializers import deserialize, get_serializer, get_serializer_formats, get_serializer_mimetypes
 from .utils import Param
-from .exceptions import APIError
+from .exceptions import LoginRequired, APIError
+from .helpers import APIResult, api_result
+from .errorcodes import LOGIN_AUTH_FAIL, UNKNOWN_ERROR
 
 
 formats = get_serializer_formats()
@@ -13,9 +16,12 @@ mimetypes = get_serializer_mimetypes()
 
 
 def default_exception_func(e):
-    value = {'type': e.__class__.__name__, 'message': e.message}
-    status = e.status_code if hasattr(e, 'status_code') else 422
-    return value, status
+    if isinstance(e, LoginRequired):
+        return api_result(*LOGIN_AUTH_FAIL), 200
+    if isinstance(e, APIResult):
+        return api_result(e.error_code, e.error_message, **e.params), 200
+    logger.warning('API unknown error: %s', repr(e))
+    return api_result(UNKNOWN_ERROR, 'unknown error'), 422
 
 
 def render(func, exception_func=None):
