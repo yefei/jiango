@@ -90,7 +90,7 @@ def renderer(prefix=None, default_extends_layout=True,
                         if e.back and 'HTTP_REFERER' in request.META:
                             result['buttons'][u'返回'] = request.META['HTTP_REFERER']
                     elif isinstance(e, ObjectDoesNotExist):
-                        result = {'message': u'所访问的对象不存在，可能已经被删除。\n%s' % e, 'tag':'error'}
+                        result = {'message': u'所访问的对象不存在，可能已经被删除。\n%r' % e, 'tag':'error'}
                     content = render_to_string(request, result, '/admin/alert', prefix, template_ext)
                 else:
                     if isinstance(result, HttpResponse):
@@ -285,11 +285,16 @@ def delete_confirm_view(app_label, request, queryset, on_success=None, using=Non
 
 
 def edit_view(app_label, request, form, on_success=None, template='/admin/shortcuts/edit', extras=None,
-              is_multipart=False):
+              is_multipart=False, title=None):
     log = Logger(app_label)
+    if title is None:
+        title = u'编辑 / %s.%s' % (form.__module__, form.__class__.__name__)
     m_log = None
     if hasattr(form, 'instance'):
         m_log = ModelLogger(form.instance)
+        title = u'创建 / %s' % form.instance._meta.verbose_name
+        if form.instance.pk is not None:
+            title = u'编辑 / %s' %  unicode(form.instance)
     if form.is_valid():
         instance = None
         if hasattr(form, 'save'):
@@ -298,7 +303,7 @@ def edit_view(app_label, request, form, on_success=None, template='/admin/shortc
             if m_log:
                 msg = m_log.log(request, log, instance)
             else:
-                msg = u'编辑:%s' % form.__class__
+                msg = title
                 log.success(request, msg)
             messages.success(request, msg)
         if on_success is not None:
