@@ -2,14 +2,14 @@
 # Created on 2015-12-2
 # @author: Yefei
 from itertools import groupby
-from django.forms import Field, ModelChoiceField
+from django.forms import IntegerField, ModelChoiceField
 from django.forms.models import ModelChoiceIterator
 from django.core.validators import EMPTY_VALUES
 from jiango.utils.humanize import parse_humanize_second
 from .widgets import SecondInput
 
 
-class SecondField(Field):
+class SecondField(IntegerField):
     widget = SecondInput
     
     def __init__(self, label=None, help_text=None, *args, **kwargs):

@@ -8,6 +8,7 @@ from django.http import HttpResponse
 from django.utils.text import capfirst
 from django.utils.datastructures import SortedDict
 from django.core.urlresolvers import reverse, resolve
+from django.utils.encoding import smart_unicode
 from jiango.importlib import autodiscover_installed_apps
 from .auth import get_request_user
 from . import views
@@ -76,10 +77,18 @@ system_sub_menus = [
 def _get_sub_menus(request, current_view_name, sub_menus):
     menus = []
     for i in sub_menus:
+        url_name = i[0]
+        url_args = []
+        url_kwargs = {}
+        if isinstance(url_name, (tuple, list)):
+            url_name, url_kwargs, url_active_key = i[0]
+            is_active = getattr(request, 'admin_active_menu', '') == url_active_key
+        else:
+            is_active = current_view_name.startswith(url_name)
         value = dict(
-            url=reverse(i[0]),
-            is_active=current_view_name.startswith(i[0]),
-            verbose_name=i[0],
+            url=reverse(url_name, args=url_args, kwargs=url_kwargs),
+            is_active=is_active,
+            verbose_name=url_name,
             icon=None,
             append=None,
         )
