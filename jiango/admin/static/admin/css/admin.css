@@ -26,7 +26,12 @@
 }
 .table th.id,
 .table td.id {
-	color: gainsboro;
+	color: #AAA;
+}
+.table td.empty {
+	padding: 30px;
+	text-align: center;
+	color: #AAA;
 }
 
 .checkbox-multiple:after {
