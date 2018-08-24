@@ -10,6 +10,7 @@ from django.utils.http import cookie_date, urlquote
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from jiango.api.exceptions import LoginRequired
+from .services import get_request_user, get_request_login
 from .settings import LOGIN_TOKEN_EXPIRED_SECONDS, LOGIN_COOKIE_NAME, LOGIN_VIEW_NAME, LOGIN_COOKIE_DOMAIN
 
 
@@ -30,17 +31,24 @@ def login_redirect(request):
 def login_required(view_func):
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        login = getattr(request, 'login', None)
-        if login is None:
-            return login_redirect(request)
-        return view_func(request, *args, **kwargs)
+        if get_request_login(request):
+            return view_func(request, *args, **kwargs)
+        return login_redirect(request)
     return wrapper
 
 
 def api_login_required(view_func):
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        if getattr(request, 'login', None):
+        if get_request_login(request):
             return view_func(request, *args, **kwargs)
         raise LoginRequired()
+    return wrapper
+
+
+def user_inject(view_func):
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        user = get_request_user(request)
+        return view_func(request, user=user, *args, **kwargs)
     return wrapper
