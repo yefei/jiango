@@ -62,6 +62,17 @@ class Img(Element):
             self.set_attr('src', src)
 
 
+class A(Element):
+    TAG = 'a'
+
+    def __init__(self, content, href=None, target=None):
+        Element.__init__(self, content)
+        if href:
+            self.set_attr('href', href)
+        if target:
+            self.set_attr('target', target)
+
+
 class Ul(Element):
     TAG = 'ul'
 
