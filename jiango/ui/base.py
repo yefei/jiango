@@ -4,6 +4,7 @@ Author: FeiYe <316606233@qq.com>
 Since: 2018/6/8 Feiye
 Version: $Id:$
 """
+from django.core.urlresolvers import reverse
 from .util import flatatt, render_value
 
 
@@ -73,6 +74,12 @@ class A(Element):
             self.set_attr('target', target)
 
 
+class Link(A):
+    def __init__(self, content, viewname, args=None, kwargs=None, target=None):
+        href = reverse(viewname, args=args, kwargs=kwargs)
+        A.__init__(self, content, href, target=target)
+
+
 class Ul(Element):
     TAG = 'ul'
 
@@ -124,12 +131,11 @@ class Table(Element):
         self.tbody = Element(tag='tbody')
         # self.tfoot = Element(tag='tfoot')
 
-    def add_column(self, content, data_key=None, attrs=None, do_render=None):
+    def add_column(self, content, data_key_or_func=None, attrs=None):
         self.columns.append(dict(
             content=content,
-            data_key=data_key,
-            attrs=attrs,
-            do_render=do_render,
+            data_key=data_key_or_func,
+            attrs=attrs or {},
         ))
 
     def render_thead(self):
@@ -140,19 +146,18 @@ class Table(Element):
         self.append(self.thead)
 
     def data_col(self, col, data):
-        do_render = col['do_render']
-        if do_render:
-            content = do_render(col, data)
-        else:
-            key = col['data_key']
-            if key:
-                if isinstance(data, dict):
-                    content = data.get(key)
-                else:
-                    content = getattr(data, key)
+        key = col['data_key']
+        attrs = col['attrs']
+        if callable(key):
+            content = key(data, attrs)
+        elif key is not None:
+            if isinstance(data, dict):
+                content = data.get(key)
             else:
-                content = None
-        return self.Tr.Td(content, attrs=col['attrs'])
+                content = getattr(data, key)
+        else:
+            content = None
+        return self.Tr.Td(content, attrs=attrs)
 
     def add_data_row(self, data):
         tr = self.Tr()

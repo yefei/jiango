@@ -2,10 +2,9 @@
 """
 Author: FeiYe <316606233@qq.com>
 Since: 2018/6/9 Feiye
-Version: $Id:$
 """
 from django.utils.safestring import mark_safe
-from jiango.ui import Element, Ul, A
+from jiango.ui import Element, Ul, A, Link
 from jiango.bootstrap.ui import Grid
 from jiango.pagination import Paging, paginate
 
@@ -25,10 +24,12 @@ class MainUI(Element):
     def add_page(self, pager):
         self.append(PageUI(pager))
 
-    def add_paging_grid(self, qs, display_fields, per_page=100, field_name='page'):
+    def add_paging_grid(self, qs, display_fields, per_page=100, field_name='page', **grid_kwargs):
         qs = Paging(qs, self.request, per_page, field_name).page()
-        self.add_table(Grid(qs.object_list, display_fields))
+        grid = Grid(qs.object_list, display_fields, **grid_kwargs)
+        self.add_table(grid)
         self.add_page(qs)
+        return grid
 
 
 class PageUI(Ul):

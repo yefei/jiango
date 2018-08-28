@@ -103,11 +103,13 @@ class Grid(Table):
         if append_padding_column:
             self.add_column(None)
 
-        self.loop(self.queryset)
-
     def data_col(self, col, data):
         name = col['data_key']
         if name in self.model_fields:
             content = display_for_field(getattr(data, name), self.model_fields[name])
             return self.Tr.Td(content, attrs=col['attrs'])
         return Table.data_col(self, col, data)
+
+    def render(self):
+        self.loop(self.queryset)
+        return super(Grid, self).render()
