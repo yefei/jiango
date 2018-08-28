@@ -6,25 +6,32 @@ Version: $Id:$
 """
 from django.utils.safestring import mark_safe
 from jiango.ui import Element, Ul, A
-from jiango.pagination import paginate
+from jiango.bootstrap.ui import Grid
+from jiango.pagination import Paging, paginate
 
 
 class MainUI(Element):
     TAG = 'section'
 
-    def __init__(self):
+    def __init__(self, request=None):
         Element.__init__(self)
         self.set_attr('class', 'content')
+        self.request = request
 
     def add_table(self, table):
         r = Element(table, tag='div', attrs={'class': 'table-responsive'})
         self.append(r)
 
     def add_page(self, pager):
-        self.append(PageUi(pager))
+        self.append(PageUI(pager))
+
+    def add_paging_grid(self, qs, display_fields, per_page=100, field_name='page'):
+        qs = Paging(qs, self.request, per_page, field_name).page()
+        self.add_table(Grid(qs.object_list, display_fields))
+        self.add_page(qs)
 
 
-class PageUi(Ul):
+class PageUI(Ul):
     PREVIOUS = mark_safe('&laquo;')
     NEXT = mark_safe('&raquo;')
 
