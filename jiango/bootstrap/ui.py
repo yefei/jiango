@@ -8,8 +8,9 @@ from django.db import models
 from django.contrib.admin.util import label_for_field
 from django.utils import timezone, formats
 from django.utils.encoding import smart_unicode
+from jiango.pagination import paginate
 from jiango.ui import (
-    Element,
+    Element, Ul, A, Link,
     Table as _Table,
 )
 
@@ -113,3 +114,59 @@ class Grid(Table):
     def render(self):
         self.loop(self.queryset)
         return super(Grid, self).render()
+
+
+class Pagination(Ul):
+    TOTAL = u'总数：'
+    PREVIOUS = u'上一页'
+    NEXT = u'下一页'
+
+    def __init__(self, page_obj):
+        Ul.__init__(self)
+        self.set_attr('class', 'pagination')
+        result = paginate(page_obj)
+        self.li(Element(u'%s%d' % (self.TOTAL, len(page_obj)), tag='span'), attrs={'class': 'disabled'})
+        if result and result['previous_url']:
+            self.li(A(self.PREVIOUS, result['previous_url']))
+        else:
+            self.li(Element(self.PREVIOUS, tag='span'), attrs={'class': 'disabled'})
+        if result:
+            for page, url in result['page_urls']:
+                if page:
+                    if page == page_obj.number:
+                        self.li(Element(page, tag='span'), attrs={'class': 'active'})
+                    else:
+                        self.li(A(page, url))
+                else:
+                    self.li(Element('...', tag='span'), attrs={'class': 'disabled'})
+        if result and result['next_url']:
+            self.li(A(self.NEXT, result['next_url']))
+        else:
+            self.li(Element(self.NEXT, tag='span'), attrs={'class': 'disabled'})
+
+
+class Nav(Ul):
+    STYLE_TABS = 'tabs'  # 默认样式
+    STYLE_PILLS = 'pills'  # 胶囊式标签页
+    TYPE_STACKED = 'stacked'  # 堆叠样式
+    TYPE_JUSTIFIED = 'justified'  # 两端对齐
+
+    def __init__(self, style=STYLE_TABS, type=None):
+        super(Nav, self).__init__()
+        self.set_attr('class', 'nav nav-%s%s' % (style, ' nav-%s' % type if type else ''))
+        self.items = []
+
+    def add_item(self, content, is_active=False, is_disabled=False, is_dropdown=False):
+        classes = []
+        if is_active:
+            classes.append('active')
+        if is_disabled:
+            classes.append('disabled')
+        if is_dropdown:
+            classes.append('dropdown')
+        attrs = {'role': 'presentation', 'class': ' '.join(classes)}
+        self.li(content, attrs)
+
+    def link_loop(self, viewname, choices, active=None):
+        for k, v in choices:
+            self.add_item(Link(v, viewname, [k]), is_active=active==k)

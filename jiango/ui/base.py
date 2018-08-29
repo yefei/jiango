@@ -88,8 +88,7 @@ class Ul(Element):
 
     def __init__(self, data_list=None):
         Element.__init__(self)
-        if data_list:
-            self.loop(data_list)
+        self.data_list = data_list
 
     def li(self, el, attrs=None):
         li = self.Li(el, attrs=attrs)
@@ -100,6 +99,11 @@ class Ul(Element):
         for i in data_list:
             self.li(i)
         return self
+
+    def render(self):
+        if self.data_list:
+            self.loop(self.data_list)
+        return super(Ul, self).render()
 
 
 class Table(Element):
@@ -126,6 +130,8 @@ class Table(Element):
 
     def __init__(self):
         Element.__init__(self)
+        self._pre_add_data_row_callbacks = []
+        self._post_add_data_row_callbacks = []
         self.columns = []
         self.thead = Element(tag='thead')
         self.tbody = Element(tag='tbody')
@@ -159,15 +165,31 @@ class Table(Element):
             content = None
         return self.Tr.Td(content, attrs=attrs)
 
+    def pre_add_data_row(self, callback):
+        self._pre_add_data_row_callbacks.append(callback)
+
+    def post_add_data_row(self, callback):
+        self._post_add_data_row_callbacks.append(callback)
+
+    @staticmethod
+    def _dispatch(callbacks, **kwargs):
+        for func in callbacks:
+            func(**kwargs)
+
     def add_data_row(self, data):
         tr = self.Tr()
+        self._dispatch(self._pre_add_data_row_callbacks, tr=tr, data=data)
         for col in self.columns:
             tr.append(self.data_col(col, data))
+        self._dispatch(self._post_add_data_row_callbacks, tr=tr, data=data)
         self.tbody.append(tr)
 
     def loop(self, data_list):
-        self.render_thead()
         for i in data_list:
             self.add_data_row(i)
-        self.append(self.tbody)
         return self
+
+    def render(self):
+        self.render_thead()
+        self.append(self.tbody)
+        return super(Table, self).render()
