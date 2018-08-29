@@ -11,6 +11,8 @@ from .helpers import clear_login_cookie
 
 class LoginMiddleware(object):
     def process_request(self, request):
+        request.login = None
+        request.user = None
         get_request_user(request)
         return None
 

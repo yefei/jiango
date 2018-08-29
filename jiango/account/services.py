@@ -27,7 +27,7 @@ def get_request_login(request):
     :param request: 当前请求
     :return: 如果用户已经登录则返回 Login 对象，否则返回 None
     """
-    if hasattr(request, 'login'):
+    if hasattr(request, 'login') and request.login:
         return request.login
     token = request.COOKIES.get(LOGIN_COOKIE_NAME, request.META.get(LOGIN_HEADER_NAME))
     if not token and hasattr(request, 'param'):
@@ -45,7 +45,7 @@ def get_request_user(request):
     :param request: 当前请求
     :return: 如果用户已经登录则返回 User 对象，否则返回 None
     """
-    if hasattr(request, 'user'):
+    if hasattr(request, 'user') and request.user:
         return request.user
     login = get_request_login(request)
     if login:
