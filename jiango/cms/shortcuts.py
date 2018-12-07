@@ -51,6 +51,15 @@ def get_current_path(path):
     return current_path
 
 
+def flat_path_tree(path_tree):
+    paths = []
+    for p, c in path_tree.values():
+        paths.append(p)
+        if c:
+            paths.extend(flat_path_tree(c))
+    return paths
+
+
 def path_wrap(func):
     @wraps(func)
     def wrapper(request, response, path='', *args, **kwargs):

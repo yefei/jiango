@@ -1,162 +1,80 @@
 {% load admin_pagination %}
 
-<style>
-<!--
-.children-column {
-	margin-top:-20px;
-	padding:8px 15px;
-	border:1px solid #ddd;
-	border-top:none;
-	margin-bottom:20px;
-}
-.children-column > ul {
-	display:inline;
-}
--->
-</style>
-
 <section class="content">
-
-        <ul class="breadcrumb" style="border-radius:0;border:1px solid #ddd;">
-          <li><a href="{% url admin:cms:content %}">内容管理</a></li>
-          {% for i in current_path.breadcrumb %}
-            <li{% if forloop.last %} class="active"{% endif %}><a href="{% url admin:cms:content-path i.path %}">{{i.name}}</a></li>
-          {% endfor %}
-          {% if is_content_edit %}
-            <li>{% if content_id %}
-                编辑内容: {{content.title}}
-                {% else %}
-                发布内容
-                {% endif %}</li>
-          {% endif %}
-        </ul>
-
-        {% if current_path.children %}
-        <div class="children-column">
-            子项：
-            <ul class="list-inline">
-            {% for i in current_path.children %}
-                <li><a href="{% url admin:cms:content-path i.path %}">{{i.name}}</a></li>
+    <div class="row">
+        <div style="float:left;width:250px;margin-left:20px;">
+            <div class="list-group">
+                <a class="list-group-item{% if not path %} active{% endif %}" href="{% url admin:cms:content %}">全部内容
+                    <span class="badge">{{ total_content_count }}</span>
+                </a>
+            </div>
+            <div class="list-group">
+            {% for p in paths %}
+                <a class="list-group-item{% if path == p %} active{% endif %}" href="{% url admin:cms:content-path p.path %}"><span style="margin-left:{{ p.depth }}em">{{ p.name }}</span>
+                    <span class="badge">{{ p.content_count }}</span>
+                </a>
             {% endfor %}
-            </ul>
+            </div>
         </div>
-        {% endif %}
-
-        {% if not is_content_edit %}
-            {% if can_create_content %}
-                <form action="{% url admin:cms:content-action %}" method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="model" value="{{path.model}}">
-                    <input type="hidden" name="back" value="{{request.get_full_path|escape}}">
-                    <table class="table table-hover" style="margin-top:-20px">
-                        <thead>
-                            <tr>
-                                <th class="nowrap"><input type="checkbox" data-spy="checkall" data-for="[name='pk']"></th>
-                                <th class="number">ID</th>
-                                <th>标题</th>
-                                <th class="datetime">修改日期</th>
-                                <th class="user">修改人</th>
-                                <th class="number">浏览量</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for i in content_set %}
-                            <tr>
-                                <th class="nowrap"><input type="checkbox" name="pk" value="{{i.pk}}"></th>
-                                <td class="number">{{i.pk}}</td>
-                                <td>
-                                    {% if i.is_hidden %}<span class="label label-default">隐藏</span>{% endif %}
-                                    <a href="{% url admin:cms:content-edit current_path.path i.pk %}">{{i}}</a>
-                                    <div class="pull-right">
-                                         <a href="{% url admin:cms:content-edit current_path.path i.pk %}" class="btn btn-xs btn-success">编辑</a>
-                                        <a href="{{ i.url }}" class="btn btn-xs btn-default" target="_blank">查看</a>
-                                    </div>
-                                </td>
-                                <td class="datetime">{{i.update_at}}</td>
-                                <td class="user">{{i.update_user}}</td>
-                                <td class="number">{{i.views}}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="6">
-                                    <div class="pull-left">
-                                        {% for a,i in actions.items %}
-                                            <button type="submit" class="btn btn-sm {{i.button_class}}" name="action" value="{{a}}">
-                                                {% if i.icon %}<i class="{{i.icon}}"></i> {% endif %}{{i.name}}
-                                            </button>
-                                            {% if forloop.last %}
-                                                <i class="sep">|</i>
-                                            {% endif %}
-                                        {% endfor %}
-                                        <a href="{% url admin:cms:content-create current_path.path %}" class="btn btn-sm btn-success"><i class="icon-plus icon-white"></i> 发布内容</a>
-                                    </div>
-                                    <div class="pull-right">
-                                        {% paginate content_set %}
-                                    </div>
-                                </td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </form>
-
-            {% else %}
-                <h2 style="text-align:center;">当前栏目不可发布内容</h2>
-            {% endif %}
-        {% else %}
-
-            {{form.media}}
-
-            <form action="" method="post" class="form" enctype="multipart/form-data">
+        <div style="float:right;width:calc(100% - 310px);margin-right:20px;">
+            <form action="{% url admin:cms:content-action %}" method="post">
                 {% csrf_token %}
-                {% for field in form.hidden_fields %}
-                    {{ field }}
-                {% endfor %}
-                <table style="width:100%"><tr>
-                    <td style="vertical-align:top;">
-                        {% if form.non_field_errors %}
-                            <div class="alert alert-error">
-                                <a class="close" data-dismiss="alert">&times;</a>
-                                {% for non_field_error in form.non_field_errors %}
-                                     {{ non_field_error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-
-                        {% for field in main_fields %}
-                            {% include 'bootstrap/field.html' %}
-                        {% endfor %}
-                    </td>
-                    <td style="width:180px;padding-left:20px;vertical-align:top;">
-                        <div data-spy="affix">
-                            <button type="submit" class="btn btn-success btn-large btn-block" style="margin-bottom:10px;">保存内容</button>
-                            {% for field in meta_fields %}
-                                {% include 'bootstrap/field.html' %}
-                            {% endfor %}
-                            {% if content %}
-                                <div class="well" style="padding:5px 8px 10px;font-size:12px;margin:20px 0;">
-                                    <ul class="nav nav-list" style="padding:0;">
-                                        <li class="nav-header">内容信息</li>
-                                        <li>浏览量: {{content.views}}</li>
-                                        <li class="divider"></li>
-                                        <li>创建人: {{content.create_user}}</li>
-                                        <li>创建于: {{content.create_at}}</li>
-                                        <li>更新人: {{content.update_user}}</li>
-                                        <li>更新于: {{content.update_at}}</li>
-                                    </ul>
+                <input type="hidden" name="back" value="{{request.get_full_path|escape}}">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th class="nowrap"><input type="checkbox" data-spy="checkall" data-for="[name='pk']"></th>
+                            <th class="number">ID</th>
+                            <th class="nowrap">模型</th>
+                            {% if not path %}<th class="nowrap">栏目</th>{% endif %}
+                            <th>标题</th>
+                            <th class="datetime">修改日期</th>
+                            <th class="user">修改人</th>
+                            <th class="number">浏览量</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for i in content_set %}
+                        <tr>
+                            <th class="nowrap"><input type="checkbox" name="pk" value="{{i.pk}}"></th>
+                            <td class="number">{{i.pk}}</td>
+                            <td class="nowrap">{{ i.model_name }}</td>
+                            {% if not path %}<td class="nowrap"><a href="{% url admin:cms:content-path i.path.path %}">{{ i.path.name }}</a></td>{% endif %}
+                            <td>
+                                {% if i.is_hidden %}<span class="label label-default">隐藏</span>{% endif %}
+                                <a href="{% url admin:cms:content-edit i.pk %}">{{i}}</a>
+                                <div class="pull-right">
+                                    <a href="{{ i.url }}" class="btn btn-xs btn-default" target="_blank">查看</a>
                                 </div>
-                                {% if content.is_deleted %}
-                                    <a href="?recover={{content.pk}}" class="btn btn-default btn-block"><i class="icon-repeat"></i> 恢复删除内容</a>
-                                {% else %}
-                                    <a href="?delete={{content.pk}}" class="btn btn-warning btn-block"
-                                        onclick="return confirm('您确定要将内容放入回收站吗？')"><i class="icon-trash icon-white"></i> 删除内容</a>
-                                {% endif %}
-                            {% endif %}
-                        </div>
-                    </td>
-                </tr></table>
+                            </td>
+                            <td class="datetime">{{i.update_at}}</td>
+                            <td class="user">{{i.update_user}}</td>
+                            <td class="number">{{i.views}}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="{{ path|yesno:'7,8' }}">
+                                <div class="pull-left">
+                                    {% for a,i in actions.items %}
+                                        <button type="submit" class="btn btn-sm {{i.button_class}}" name="action" value="{{a}}">
+                                            {% if i.icon %}<i class="{{i.icon}}"></i> {% endif %}{{i.name}}
+                                        </button>
+                                    {% endfor %}
+                                    {% if can_create_content %}
+                                        <i class="sep">|</i>
+                                        <a href="{% url admin:cms:content-create current_path.path %}" class="btn btn-sm btn-success"><i class="icon-plus icon-white"></i> 发布内容</a>
+                                    {% endif %}
+                                </div>
+                                <div class="pull-right">
+                                    {% paginate content_set %}
+                                </div>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
             </form>
-        {% endif %}
-
+        </div>
+    </div>
 </section>

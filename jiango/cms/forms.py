@@ -4,7 +4,6 @@
 from django import forms
 from jiango.importlib import import_object
 from jiango.admin.models import LogTypes
-from .utils import get_model_object, get_model_actions
 from .models import Path
 from .config import PATH_RE, CONTENT_ACTIONS, CONTENT_MODELS
 
@@ -32,7 +31,6 @@ class PathForm(forms.ModelForm):
 class PathEditForm(PathForm):
     class Meta:
         model = Path
-        exclude = ('model',)
 
 
 class PathDeleteForm(forms.Form):
@@ -40,27 +38,16 @@ class PathDeleteForm(forms.Form):
 
 
 class ActionForm(forms.Form):
-    model = forms.ChoiceField(choices=((i, i) for i in CONTENT_MODELS.keys()))
     action = forms.CharField()
     back = forms.CharField(required=False)
 
     def __init__(self, *args, **kwargs):
         super(ActionForm, self).__init__(*args, **kwargs)
-        self._model_object = None
         self._form_object = None
 
-    def clean_model(self):
-        model = self.cleaned_data['model']
-        self._model_object = get_model_object(model, 'model')
-        return model
-    
-    def get_model_object(self):
-        return self._model_object
-    
     def clean_action(self):
         action = self.cleaned_data['action']
-        actions = get_model_actions(self.cleaned_data['model'])
-        if action not in actions:
+        if action not in CONTENT_ACTIONS:
             raise forms.ValidationError(u'无效的操作项')
         self._form_object = import_object(CONTENT_ACTIONS[action]['form'])
         return action
@@ -72,20 +59,6 @@ class ActionForm(forms.Form):
         action = self.cleaned_data.get('action')
         if action:
             return CONTENT_ACTIONS[action].get('name')
-
-
-class RecycleClearForm(forms.Form):
-    count = forms.IntegerField(label=u'请输入页面上显示的数量')
-    
-    def __init__(self, content_count, *args, **kwargs):
-        super(RecycleClearForm, self).__init__(*args, **kwargs)
-        self.content_count = content_count
-    
-    def clean_count(self):
-        count = self.cleaned_data['count']
-        if count != self.content_count:
-            raise forms.ValidationError(u'需要被清空数量不正确，建议检查回收站中是否有新增内容')
-        return count
 
 
 class ActionBaseForm(forms.Form):

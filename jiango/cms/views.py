@@ -22,7 +22,7 @@ def content_render(current_path, content):
 
 def list_render(request, current_path, page=1):
     path = current_path.selected
-    model = path.get_model_object('model')
+    model = path.model_class
     if model is None:
         raise Http404()
     content_set = model.objects.available().filter(path=path)
@@ -37,7 +37,7 @@ def index(request, response, current_path):
     path = current_path.selected
     incr_and_update_instance(path, views=1)
     if path.default_view == Path.VIEW_CONTENT:
-        model = path.get_model_object('model')
+        model = path.model_class
         if model is None:
             raise Http404()
         try:
@@ -61,7 +61,7 @@ def content_list(request, response, current_path, page):
 @path_wrap
 def content_show(request, response, current_path, content_id):
     path = current_path.selected
-    model = path.get_model_object('model')
+    model = path.model_class
     if model is None:
         raise Http404()
     content = get_object_or_404(model, pk=content_id)

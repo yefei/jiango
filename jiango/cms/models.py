@@ -11,7 +11,7 @@ from django.utils.functional import cached_property
 from django.core.cache import cache
 from jiango.shortcuts import update_instance
 from jiango.admin.models import User
-from .utils import get_model_object, get_model_actions
+from jiango.importlib import import_object
 from .config import PATH_HELP, CONTENT_MODELS, LIST_PER_PAGE
 
 
@@ -28,7 +28,7 @@ PATH_DEPTH_ALL = -1
 class PathQuerySet(QuerySet):
     # 取得指定路径下的栏目, depth 可以选择获取深度，1为一层 2为二层...
     # Path.objects.children('news')
-    def children(self, path='', depth=PATH_DEPTH_FIRST):
+    def children(self, path=u'', depth=PATH_DEPTH_FIRST):
         path = path.strip(' /')
         qs = self
         if path != '':
@@ -63,7 +63,7 @@ class PathManager(models.Manager):
     def get_query_set(self):
         return PathQuerySet(self.model, using=self._db)
     
-    def children(self, path='', depth=0):
+    def children(self, path=u'', depth=0):
         return self.get_query_set().children(path, depth)
     
     def tree(self, path=''):
@@ -77,7 +77,26 @@ class PathManager(models.Manager):
         return tree
 
 
-class Path(models.Model):
+class ModelBase(models.Model):
+    model = models.CharField(u'内容模型', max_length=50, choices=((k, i['name']) for k, i in CONTENT_MODELS.items()))
+
+    class Meta:
+        abstract = True
+
+    @property
+    def model_config(self):
+        return CONTENT_MODELS.get(self.model)
+
+    @property
+    def model_class(self):
+        return import_object(self.model_config.get('model'))
+
+    @property
+    def form_class(self):
+        return import_object(self.model_config.get('form'))
+
+
+class Path(ModelBase):
     VIEW_INDEX = 1
     VIEW_LIST = 2
     VIEW_CONTENT = 3
@@ -87,9 +106,6 @@ class Path(models.Model):
         (VIEW_CONTENT, u'内容'),
     )
 
-    model = models.CharField(u'内容模型', max_length=50, blank=True, default='',
-                             choices=((k, i['name']) for k, i in CONTENT_MODELS.items()),
-                             help_text=u'如不选则为不可发布类型，选定模型后不可再次修改')
     name = models.CharField(u'栏目名称', max_length=100)
     path = models.CharField(u'栏目路径', max_length=200, unique=True, help_text=PATH_HELP)
     depth = models.SmallIntegerField(u'栏目深度', db_index=True, editable=False)
@@ -130,27 +146,14 @@ class Path(models.Model):
     
     def children(self, depth=PATH_DEPTH_FIRST):
         return Path.objects.children(self.path, depth)
-    
-    def get_model_object(self, key):
-        if self.model:
-            return get_model_object(self.model, key)
-    
-    def get_content_actions(self):
-        if self.model:
-            return get_model_actions(self.model)
-    
+
     @cached_property
     def content_count(self):
-        model = self.get_model_object('model')
-        if model:
-            return model.objects.filter(path=self).count()
-        return 0
+        return ContentBase.objects.available().filter(path=self).count()
     
     # 同步更新内容中的 path 和 depth
     def update_content_path(self):
-        model = self.get_model_object('model')
-        if model:
-            model.objects.filter(path=self).update(path_value=self.path, path_depth=self.depth)
+        ContentBase.objects.filter(path=self).update(path_value=self.path, path_depth=self.depth)
 
 
 @receiver(signals.pre_save, sender=Path)
@@ -193,10 +196,11 @@ class ContentManager(models.Manager):
         return self.get_query_set().available()
 
 
-class ContentBase(models.Model):
+class ContentBase(ModelBase):
     path = models.ForeignKey(Path, editable=False, related_name='+')
     path_value = models.CharField(max_length=200, db_index=True, editable=False)  # 缓存字段:用于快速检索
     path_depth = models.SmallIntegerField(db_index=True, editable=False)  # 缓存字段:用于快速检索
+    title = models.CharField(u'标题', max_length=200, null=True)
     create_at = models.DateTimeField(u'创建日期', auto_now_add=True, db_index=True)
     update_at = models.DateTimeField(u'更新日期', auto_now=True, db_index=True)
     create_user = models.ForeignKey(User, null=True, on_delete=SET_NULL, editable=False, related_name='+')
@@ -205,12 +209,14 @@ class ContentBase(models.Model):
     is_deleted = models.BooleanField(u'已删除?', db_index=True, default=False, editable=False)
     is_hidden = models.BooleanField(u'隐藏 (在前台不显示)', db_index=True, default=False)
     objects = ContentManager()
-    
+
     class Meta:
-        abstract = True
         ordering = ('-pk',)
         get_latest_by = ('update_at', )
-    
+
+    def __unicode__(self):
+        return self.title or ('Content: #%d' % self.pk)
+
     @models.permalink
     def get_absolute_url(self):
         return 'cms-content', [self.path_value, self.pk]
@@ -219,3 +225,7 @@ class ContentBase(models.Model):
     
     def is_available(self):
         return not self.is_deleted and not self.is_hidden
+
+    @property
+    def model_name(self):
+        return self.model_config.get('name')

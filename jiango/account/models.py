@@ -67,8 +67,12 @@ class UserBase(models.Model):
         :param request: 当前请求
         """
         if token:
-            login = Login.objects.create(user=self, token=token)
-            login.logout(request)
+            try:
+                login = Login.objects.get(user=self, token=token)
+            except Login.DoesNotExist:
+                pass
+            else:
+                login.logout(request)
         else:
             Login.objects.filter(user=self, logout_at=None).update(logout_at=datetime.now())
             user_logout_signal.send(None, user=self, login=None, request=request)

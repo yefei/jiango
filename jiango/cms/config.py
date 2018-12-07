@@ -23,8 +23,7 @@ CONTENT_MODELS = {
 #        #'form_meta_fields': ('field',),
 #        #'index_view': 'path.to.views.index',
 #        #'list_view': 'path.to.views.list',
-#        #'content_view': 'path.to.views.content',
-#        #'actions': {}, # 如同 CONTENT_ACTIONS 配置，区别是只针对这个模型
+#        #'content_view': 'path.to.views.content'
 #    },
 }
 

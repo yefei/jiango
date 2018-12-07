@@ -9,15 +9,14 @@ from jiango.shortcuts import update_instance
 from jiango.pagination import Paging
 from jiango.admin.shortcuts import renderer, Logger, ModelLogger, Alert, has_perm
 from jiango.admin.auth import get_request_user
-from .models import Path
-from .utils import get_model_object, get_all_actions
-from .shortcuts import path_wrap
-from .forms import PathForm, PathEditForm, ActionForm, RecycleClearForm, PathDeleteForm
-from .config import CONTENT_MODELS, CONTENT_ACTION_MAX_RESULTS, CONTENT_PER_PAGE
+from .models import Path, ContentBase
+from .shortcuts import path_wrap, flat_path_tree, get_current_path
+from .forms import PathForm, PathEditForm, ActionForm, PathDeleteForm
+from .config import CONTENT_ACTION_MAX_RESULTS, CONTENT_PER_PAGE, CONTENT_ACTIONS
 
 
 icon = 'fa fa-file-text-o'
-verbose_name = u'CMS'
+verbose_name = u'内容'
 render = renderer('cms/admin/')
 log = Logger('cms')
 
@@ -56,7 +55,7 @@ def path_edit(request, response, path_id=None):
         form.instance.update_user = user
         obj = form.save()
         log.success(request, model_log.message(obj), log.CREATE)
-        messages.success(request, (instance and u'修改' or u'创建') + u'路径: ' + unicode(obj) + u' 成功')
+        messages.success(request, (instance and u'修改' or u'创建') + u'栏目: ' + unicode(obj) + u' 成功')
         return redirect('admin:cms:path')
     return locals()
 
@@ -68,11 +67,11 @@ def path_delete(request, response, path_id):
     # 删除确认表单
     form = PathDeleteForm(request.POST or None)
     if form.is_valid():
-        msg = u'删除路径: ' + unicode(instance)
+        msg = u'删除栏目: ' + unicode(instance)
         logs = [msg, ModelLogger(instance).message()]
-        # 删除子路径
+        # 删除子栏目
         for i in instance.children(-1):
-            logs.append(u'子路径: ' + unicode(i))
+            logs.append(u'子栏目: ' + unicode(i))
             logs.append(ModelLogger(i).message())
             i.delete()
         instance.delete()
@@ -88,18 +87,18 @@ def path_delete(request, response, path_id):
 @path_wrap
 def content(request, response, current_path):
     can_create_content = False
+    paths = flat_path_tree(current_path.tree)
     path = current_path.selected
+    actions = CONTENT_ACTIONS
+    content_set = ContentBase.objects.filter(is_deleted=False)
+    total_content_count = content_set.count()
     if path:
-        Model = path.get_model_object('model')
-        if Model:
-            can_create_content = True
-            # 批量操作动作
-            actions = path.get_content_actions()
-            content_set = Model.objects.filter(is_deleted=False, path=path).select_related('update_user')
-            content_set = Paging(content_set, request, CONTENT_PER_PAGE).page()
+        can_create_content = True
+        content_set = content_set.filter(path=path)
     else:
-        # 没有选择任何栏目则统计已知模型中的数据
-        pass
+        content_set = content_set.select_related('path')
+    content_set = content_set.select_related('update_user')
+    content_set = Paging(content_set, request, CONTENT_PER_PAGE).page()
     return locals()
 
 
@@ -129,10 +128,9 @@ def content_action(request, response):
         action_form_data = action_form_post.urlencode()
     
     back = action_form.cleaned_data.get('back')
-    Model = action_form.get_model_object()
     Form = action_form.get_form_object()
     action_name = action_form.get_action_name()
-    content_set = Model.objects.filter(pk__in=selected).select_related('column', 'update_user')
+    content_set = ContentBase.objects.filter(pk__in=selected).select_related('path', 'update_user')
     
     if request.POST.get('__confirm') == 'yes':
         form = Form(content_set, request.POST, request.FILES)
@@ -150,82 +148,59 @@ def content_action(request, response):
 
 
 @render
-def recycle(request, response, model=None):
-    models = CONTENT_MODELS
-    selected_model = models.get(model)
-    # 无效的 model
-    if model and selected_model is None:
-        return redirect('admin:cms:recycle')
-    
-    if selected_model:
-        Model = get_model_object(model, 'model')
-        content_set = Model.objects.filter(is_deleted=True).select_related('column', 'update_user')
-        
-        if request.method == 'POST':
-            action = request.POST.get('action')
-            selected = request.POST.getlist('pk')
-            if not selected:
-                raise Alert(Alert.ERROR, u'您没有勾选需要操作的内容')
-            if action == 'fire':
-                has_perm(request, 'cms.recycle.fire')
-                content_set.filter(pk__in=selected).delete()
-                msg = u'回收站批量删除: ' + selected_model.get('name')
-                log.success(request, u'%s\nID: %s' % (msg, ','.join(selected)), log.DELETE)
-                messages.success(request, u'已完成' + msg)
-        
-        content_set = Paging(content_set, request, CONTENT_PER_PAGE).page()
-    else:
-        # 没有选择任何模型，则调用所有模型删除统计
-        stats = {}
-        total_count = 0
-        for m, i in models.items():
-            M = get_model_object(m, 'model')
-            if not M:
-                break
-            count = M.objects.filter(is_deleted=True).count()
-            total_count += count
-            stats[m] = {'name': i.get('name'), 'count': count}
+def recycle(request, response):
+    content_set = ContentBase.objects.filter(is_deleted=True).select_related('path', 'update_user')
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        selected = request.POST.getlist('pk')
+        if not selected:
+            raise Alert(Alert.ERROR, u'您没有勾选需要操作的内容')
+        if action == 'fire':
+            has_perm(request, 'cms.recycle.fire')
+            content_set.filter(pk__in=selected).delete()
+            msg = u'回收站批量删除'
+            log.success(request, u'%s\nID: %s' % (msg, ','.join(selected)), log.DELETE)
+            messages.success(request, u'已完成' + msg)
+    content_set = Paging(content_set, request, CONTENT_PER_PAGE).page()
     return locals()
 
 
 @render(perm='cms.recycle.clear')
-def recycle_clear(request, response, model):
+def recycle_clear(request, response):
     is_clear_mode = True
-    models = CONTENT_MODELS
-    selected_model = models.get(model)
-    model_name = selected_model.get('name')
-    # 无效的 model
-    if selected_model is None:
-        return redirect('admin:cms:recycle')
-    
-    Model = get_model_object(model, 'model')
-    content_set = Model.objects.filter(is_deleted=True)
+    content_set = ContentBase.objects.filter(is_deleted=True)
     content_count = content_set.count()
-    
-    form = RecycleClearForm(content_count, request.POST or None)
-    if form.is_valid():
+    if request.method == 'POST':
         content_set.delete()
-        msg = u'清空回收站: ' + model_name
+        msg = u'清空回收站'
         log.success(request, u'%s\n数量: %d' % (msg, content_count), log.DELETE)
         messages.success(request, u'已完成' + msg)
         return redirect('admin:cms:recycle')
-    
     return 'recycle', locals()
 
 
-@render
-@path_wrap
-def content_edit(request, response, current_path, content_id=None):
+def _content_edit(request, response, current_path=None, content_id=None):
     user = get_request_user(request)
     is_content_edit = True
-    path = current_path.selected
-    
-    Model = path.get_model_object('model')
-    Form = path.get_model_object('form')
-    if Model is None or Form is None:
-        raise Alert(Alert.ERROR, u'此路径 %s 不可添加内容' % path)
-    
-    content = Model.objects.get(path=path, pk=content_id) if content_id else None
+
+    if content_id:
+        content_base = ContentBase.objects.get(pk=content_id)
+        Model = content_base.model_class
+        Form = content_base.form_class
+        path = content_base.path
+        content = Model.objects.get(pk=content_id)
+        current_path = get_current_path(path.path)
+    elif current_path:
+        path = current_path.selected
+        Model = path.model_class
+        Form = path.form_class
+        content = None
+    else:
+        raise Alert(Alert.ERROR, u'缺少必要参数')
+
+    if Form is None:
+        raise Alert(Alert.ERROR, u'此栏目 %s 不可添加内容' % path)
+
     model_log = ModelLogger(content)
     
     # 权限检查
@@ -260,6 +235,8 @@ def content_edit(request, response, current_path, content_id=None):
             form.instance.path = path
             form.instance.path_value = path.path
             form.instance.path_depth = path.depth
+            if not form.instance.model:
+                form.instance.model = path.model
             if not form.instance.create_user:
                 form.instance.create_user = user
             form.instance.update_user = user
@@ -277,7 +254,7 @@ def content_edit(request, response, current_path, content_id=None):
     main_fields = []
     meta_fields = []
     meta_fields_name = ['is_hidden']
-    _t = path.get_model_object('form_meta_fields')
+    _t = path.model_config.get('form_meta_fields')
     if _t:
         meta_fields_name.extend(_t)
     
@@ -287,7 +264,18 @@ def content_edit(request, response, current_path, content_id=None):
         else:
             main_fields.append(i)
     
-    return 'content', locals()
+    return 'content_edit', locals()
+
+
+@render
+def content_edit(request, response, content_id=None):
+    return _content_edit(request, response, content_id=content_id)
+
+
+@render
+@path_wrap
+def content_create(request, response, current_path):
+    return _content_edit(request, response, current_path=current_path)
 
 
 urlpatterns = [
@@ -299,24 +287,23 @@ urlpatterns = [
     
     url(r'^/content$', content, name='content'),
     url(r'^/content/path/(?P<path>.*)$', content, name='content-path'),
-    url(r'^/content/create/(?P<path>.*)$', content_edit, name='content-create'),
-    url(r'^/content/edit/(?P<path>.*)/(?P<content_id>\d+)$', content_edit, name='content-edit'),
+    url(r'^/content/create/(?P<path>.*)$', content_create, name='content-create'),
+    url(r'^/content/edit/(?P<content_id>\d+)$', content_edit, name='content-edit'),
     url(r'^/content/action$', content_action, name='content-action'),
     
     url(r'^/recycle$', recycle, name='recycle'),
-    url(r'^/recycle/(?P<model>\w+)$', recycle, name='recycle-model'),
-    url(r'^/recycle/(?P<model>\w+)/clear$', recycle_clear, name='recycle-model-clear'),
+    url(r'^/recycle/clear$', recycle_clear, name='recycle-clear'),
 ]
 
 sub_menus = [
     ('admin:cms:content', u'内容管理', 'fa fa-edit'),
-    ('admin:cms:path', u'路径管理', 'fa fa-sitemap'),
+    ('admin:cms:path', u'栏目管理', 'fa fa-sitemap'),
     ('admin:cms:recycle', u'回收站', 'fa fa-recycle'),
 ]
 
 PERMISSIONS = {
-    'path.edit': u'路径|创建/编辑',
-    'path.delete': u'路径|删除',
+    'path.edit': u'栏目|创建/编辑',
+    'path.delete': u'栏目|删除',
     'recycle.fire': u'回收站|批量删除',
     'recycle.clear': u'回收站|清空',
     'content.create': u'内容|创建',
@@ -328,7 +315,7 @@ PERMISSIONS = {
 
 # 批量操作权限
 def _load_actions():
-    for a, i in get_all_actions().items():
+    for a, i in CONTENT_ACTIONS.items():
         perm = 'action.%s' % a
         PERMISSIONS[perm] = u'内容|%s' % i['name']
 _load_actions()

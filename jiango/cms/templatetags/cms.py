@@ -17,7 +17,7 @@ def cms_contents(path, limit=10, offset=0, **kwargs):
     except PathDoesNotExist:
         return []
     path = current_path.selected
-    model = path.get_model_object('model')
+    model = path.model_class
     if model is None:
         return []
     filters = {}
