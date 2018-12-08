@@ -5,7 +5,7 @@ from django import forms
 from jiango.importlib import import_object
 from jiango.admin.models import LogTypes
 from .models import Path
-from .config import PATH_RE, CONTENT_ACTIONS, CONTENT_MODELS
+from .config import PATH_RE, CONTENT_ACTIONS
 
 
 class PathForm(forms.ModelForm):
@@ -26,11 +26,6 @@ class PathForm(forms.ModelForm):
             if not check.exists():
                 raise forms.ValidationError(u"父栏目路径 '%s' 不存在" % '/'.join(paths[:-1]))
         return '/'.join(paths)
-
-
-class PathEditForm(PathForm):
-    class Meta:
-        model = Path
 
 
 class PathDeleteForm(forms.Form):

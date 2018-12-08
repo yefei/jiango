@@ -1,8 +1,6 @@
-{% load admin_pagination %}
-
 <section class="content">
     <div class="row">
-        <div style="float:left;width:250px;margin-left:20px;">
+        <div data-spy="affix" style="float:left;width:250px;margin-left:20px;">
             <div class="list-group">
                 <a class="list-group-item{% if not path %} active{% endif %}" href="{% url admin:cms:content %}">全部内容
                     <span class="badge">{{ total_content_count }}</span>
@@ -22,6 +20,9 @@
                 <input type="hidden" name="back" value="{{request.get_full_path|escape}}">
                 <table class="table table-hover">
                     <thead>
+                        <tr>
+                            <td colspan="{{ path|yesno:'7,8' }}">{% include 'cms/admin/content-list-control.inc.html' %}</td>
+                        </tr>
                         <tr>
                             <th class="nowrap"><input type="checkbox" data-spy="checkall" data-for="[name='pk']"></th>
                             <th class="number">ID</th>
@@ -56,20 +57,7 @@
                     <tfoot>
                         <tr>
                             <td colspan="{{ path|yesno:'7,8' }}">
-                                <div class="pull-left">
-                                    {% for a,i in actions.items %}
-                                        <button type="submit" class="btn btn-sm {{i.button_class}}" name="action" value="{{a}}">
-                                            {% if i.icon %}<i class="{{i.icon}}"></i> {% endif %}{{i.name}}
-                                        </button>
-                                    {% endfor %}
-                                    {% if can_create_content %}
-                                        <i class="sep">|</i>
-                                        <a href="{% url admin:cms:content-create current_path.path %}" class="btn btn-sm btn-success"><i class="icon-plus icon-white"></i> 发布内容</a>
-                                    {% endif %}
-                                </div>
-                                <div class="pull-right">
-                                    {% paginate content_set %}
-                                </div>
+                                {% include 'cms/admin/content-list-control.inc.html' %}
                             </td>
                         </tr>
                     </tfoot>

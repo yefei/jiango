@@ -5,8 +5,7 @@
                     <th class="number">ID</th>
                     <th class="nowrap">模型</th>
                     <th class="nowrap">视图</th>
-                    <th class="nowrap">名称</th>
-                    <th>路径</th>
+                    <th>名称</th>
                     <th class="datetime">修改日期</th>
                     <th class="user">修改人</th>
                     <th class="number">浏览量</th>
@@ -18,10 +17,11 @@
                     <td class="number">{{i.pk}}</td>
                     <td class="nowrap">{{i.get_model_display|default:'不可发布'}}</td>
                     <td class="nowrap">{{i.get_default_view_display}}</td>
-                    <td class="nowrap">{{i.name}}</td>
-                    <td><a href="{{i.get_absolute_url}}" target="_blank">{{i.path}}</a>
+                    <td><a href="{% url admin:cms:path-edit i.pk %}"><span style="margin-left:{{ i.depth }}em">{{ i.name }}</span></a>
                         <div class="pull-right">
-                            <a href="{% url admin:cms:path-edit i.pk %}" class="btn btn-success btn-xs">修改</a>
+                            <small>{{i.path}}</small>
+                            <i class="sep">|</i>
+                            <a href="{{i.get_absolute_url}}" target="_blank" class="btn btn-success btn-xs">查看</a>
                             <a href="{% url admin:cms:path-delete i.pk %}" class="btn btn-danger btn-xs">删除</a>
                         </div>
                     </td>
@@ -31,6 +31,12 @@
                 </tr>
                 {% endfor %}
             </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="7">
+                        <a href="{% url admin:cms:path-create %}" class="btn btn-default btn-sm"><i class="fa fa-plus"></i> 新建路径</a>
+                    </td>
+                </tr>
+            </tfoot>
         </table>
-        <a href="{% url admin:cms:path-create %}" class="btn btn-default"><i class="icon-plus"></i> 新建路径</a>
 </section>

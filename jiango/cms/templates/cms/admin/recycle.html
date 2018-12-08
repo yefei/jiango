@@ -53,10 +53,10 @@
                             <td colspan="7">
                                 <div class="pull-left">
                                     <button type="submit" class="btn btn-default btn-sm" name="action" value="fire">
-                                        <i class="icon-fire icon-white"></i> 彻底删除选中项
+                                        <i class="fa fa-remove"></i> 彻底删除选中项
                                     </button>
                                     <i class="sep">|</i>
-                                    <a href="{% url admin:cms:recycle-clear %}" class="btn btn-danger btn-sm"><i class="icon-fire"></i> 清空回收站</a>
+                                    <a href="{% url admin:cms:recycle-clear %}" class="btn btn-danger btn-sm"><i class="fa fa-recycle"></i> 清空回收站</a>
                                 </div>
                                 <div class="pull-right">
                                     {% paginate content_set %}

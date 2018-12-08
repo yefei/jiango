@@ -11,7 +11,7 @@ from jiango.admin.shortcuts import renderer, Logger, ModelLogger, Alert, has_per
 from jiango.admin.auth import get_request_user
 from .models import Path, ContentBase
 from .shortcuts import path_wrap, flat_path_tree, get_current_path
-from .forms import PathForm, PathEditForm, ActionForm, PathDeleteForm
+from .forms import PathForm, ActionForm, PathDeleteForm
 from .config import CONTENT_ACTION_MAX_RESULTS, CONTENT_PER_PAGE, CONTENT_ACTIONS
 
 
@@ -29,16 +29,7 @@ def index(request, response):
 @render
 def path(request, response):
     path_tree = Path.objects.select_related('update_user').tree()
-
-    def each(tree):
-        values = []
-        for path, children in tree.values():
-            values.append(path)
-            if children:
-                values.extend(each(children))
-        return values
-
-    path_set = each(path_tree)
+    path_set = flat_path_tree(path_tree)
     return locals()
 
 
@@ -47,8 +38,7 @@ def path_edit(request, response, path_id=None):
     user = get_request_user(request)
     instance = Path.objects.get(pk=path_id) if path_id else None
     model_log = ModelLogger(instance)
-    Form = PathEditForm if instance and instance.model else PathForm
-    form = Form(request.POST or None, instance=instance)
+    form = PathForm(request.POST or None, instance=instance)
     if form.is_valid():
         if not instance:
             form.instance.create_user = user
@@ -87,7 +77,7 @@ def path_delete(request, response, path_id):
 @path_wrap
 def content(request, response, current_path):
     can_create_content = False
-    paths = flat_path_tree(current_path.tree)
+    paths = flat_path_tree(Path.objects.tree())
     path = current_path.selected
     actions = CONTENT_ACTIONS
     content_set = ContentBase.objects.filter(is_deleted=False)
@@ -298,7 +288,7 @@ urlpatterns = [
 sub_menus = [
     ('admin:cms:content', u'内容管理', 'fa fa-edit'),
     ('admin:cms:path', u'栏目管理', 'fa fa-sitemap'),
-    ('admin:cms:recycle', u'回收站', 'fa fa-recycle'),
+    ('admin:cms:recycle', u'回收站', 'fa fa-trash'),
 ]
 
 PERMISSIONS = {

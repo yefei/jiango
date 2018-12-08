@@ -41,13 +41,13 @@ CONTENT_ACTION_MAX_RESULTS = 100
 CONTENT_ACTIONS = SortedDict()
 CONTENT_ACTIONS['hide'] = {
     'name': u'隐藏/显示',
-    'icon': 'icon-eye-close',
+    'icon': 'fa fa-low-vision',
     # 'button_class': '',
     'form': 'jiango.cms.forms.HideAction',
 }
 CONTENT_ACTIONS['delete'] = {
     'name': u'删除',
-    'icon': 'icon-trash icon-white',
+    'icon': 'fa fa-trash',
     'button_class': 'btn-warning',
     'form': 'jiango.cms.forms.DeleteAction',
 }

@@ -1,0 +1,16 @@
+{% load admin_pagination %}
+
+<div class="pull-left">
+    {% for a,i in actions.items %}
+        <button type="submit" class="btn btn-sm {{i.button_class}}" name="action" value="{{a}}">
+            {% if i.icon %}<i class="{{i.icon}}"></i> {% endif %}{{i.name}}
+        </button>
+    {% endfor %}
+    {% if can_create_content %}
+        <i class="sep">|</i>
+        <a href="{% url admin:cms:content-create current_path.path %}" class="btn btn-sm btn-success"><i class="fa fa-plus"></i> 添加内容</a>
+    {% endif %}
+</div>
+<div class="pull-right">
+    {% paginate content_set %}
+</div>

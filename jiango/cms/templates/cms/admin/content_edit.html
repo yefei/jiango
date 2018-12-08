@@ -31,7 +31,7 @@
             </td>
             <td style="width:200px;padding-left:20px;vertical-align:top;">
                 <div data-spy="affix">
-                    <button type="submit" class="btn btn-success btn-large btn-block" style="margin-bottom:10px;">保存内容</button>
+                    <button type="submit" class="btn btn-success btn-large btn-block" style="margin-bottom:10px;"><i class="fa fa-check"></i> 保存内容</button>
                     {% for field in meta_fields %}
                         {% include 'bootstrap/field.html' %}
                     {% endfor %}
@@ -48,9 +48,9 @@
                             </ul>
                         </div>
                         {% if content.is_deleted %}
-                            <a href="?recover={{content.pk}}" class="btn btn-default btn-block"><i class="icon-repeat"></i> 恢复删除内容</a>
+                            <a href="?recover={{content.pk}}" class="btn btn-default btn-block"><i class="fa fa-mail-reply"></i> 恢复删除内容</a>
                         {% else %}
-                            <a href="?delete={{content.pk}}" class="btn btn-warning btn-block"><i class="icon-trash icon-white"></i> 删除内容</a>
+                            <a href="?delete={{content.pk}}" class="btn btn-warning btn-block"><i class="fa fa-trash"></i> 删除内容</a>
                         {% endif %}
                     {% endif %}
                 </div>
