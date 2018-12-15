@@ -1,0 +1,5 @@
+{% for a,i in actions.items %}
+    <button type="submit" class="btn btn-sm {{i.button_class}}" name="action" value="{{a}}">
+        {% if i.icon %}<i class="{{i.icon}}"></i> {% endif %}{{i.name}}
+    </button>
+{% endfor %}

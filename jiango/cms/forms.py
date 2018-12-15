@@ -4,7 +4,7 @@
 from django import forms
 from jiango.importlib import import_object
 from jiango.admin.models import LogTypes
-from .models import Path, Menu, get_all_menus, flat_all_menus
+from .models import Path, Menu, get_all_menus, flat_all_menus, Collection
 from .config import PATH_RE, CONTENT_ACTIONS
 
 
@@ -36,15 +36,16 @@ class ActionForm(forms.Form):
     action = forms.CharField()
     back = forms.CharField(required=False)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, actions, *args, **kwargs):
         super(ActionForm, self).__init__(*args, **kwargs)
+        self._actions = actions
         self._form_object = None
 
     def clean_action(self):
         action = self.cleaned_data['action']
-        if action not in CONTENT_ACTIONS:
+        if action not in self._actions:
             raise forms.ValidationError(u'无效的操作项')
-        self._form_object = import_object(CONTENT_ACTIONS[action]['form'])
+        self._form_object = import_object(self._actions[action]['form'])
         return action
     
     def get_form_object(self):
@@ -53,15 +54,15 @@ class ActionForm(forms.Form):
     def get_action_name(self):
         action = self.cleaned_data.get('action')
         if action:
-            return CONTENT_ACTIONS[action].get('name')
+            return self._actions[action].get('name')
 
 
 class ActionBaseForm(forms.Form):
     log_action = LogTypes.NONE
     
-    def __init__(self, content_set, *args, **kwargs):
+    def __init__(self, qs, *args, **kwargs):
         super(ActionBaseForm, self).__init__(*args, **kwargs)
-        self.content_set = content_set
+        self.qs = qs
     
     def execute(self):
         pass
@@ -72,14 +73,21 @@ class HideAction(ActionBaseForm):
     is_hidden = forms.BooleanField(required=False, label='隐藏 (在前台不显示)', initial=True)
     
     def execute(self):
-        self.content_set.update(is_hidden=self.cleaned_data['is_hidden'])
+        self.qs.update(is_hidden=self.cleaned_data['is_hidden'])
 
 
 class DeleteAction(ActionBaseForm):
     log_action = LogTypes.DELETE
     
     def execute(self):
-        self.content_set.update(is_deleted=True)
+        self.qs.update(is_deleted=True)
+
+
+class CollectionDeleteAction(ActionBaseForm):
+    log_action = LogTypes.DELETE
+
+    def execute(self):
+        self.qs.delete()
 
 
 ########################################################################################################################
@@ -131,3 +139,11 @@ class MenuItemForm(forms.ModelForm):
         if value.startswith(scheme_host):
             value = value[len(scheme_host):]
         return value
+
+
+########################################################################################################################
+
+
+class CollectionForm(forms.ModelForm):
+    class Meta:
+        model = Collection

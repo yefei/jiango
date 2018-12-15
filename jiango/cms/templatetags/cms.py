@@ -4,7 +4,10 @@ Author: FeiYe <316606233@qq.com>
 Since: 2017/4/11
 """
 from django.template import Library
+from jiango.importlib import import_object
 from jiango.cms.shortcuts import get_current_path, PathDoesNotExist
+from jiango.cms.models import Collection, CollectionContent
+from jiango.cms.config import CONTENT_MODELS
 
 
 register = Library()
@@ -34,3 +37,30 @@ def cms_contents(path, limit=10, offset=0, **kwargs):
         qs = qs.exclude(**excludes)
     content_set = qs[offset:offset+limit]
     return content_set
+
+
+@register.assignment_tag
+def cms_collections(name, limit=10, offset=0, **kwargs):
+    obj, created = Collection.objects.get_or_create(name=name)
+    results = []
+    vs = []
+    if not created:
+        qs = obj.contentbase_set.filter(is_deleted=False, is_hidden=False)
+        qs = qs[offset:offset+limit]
+        vs = qs.values_list('pk', 'model')
+    if vs:
+        # 根据检索出的ID 和 模型批量取得模型数据
+        models = {}
+        for pk, model in vs:
+            if model not in models:
+                models[model] = []
+            models[model].append(pk)
+        _results = {}
+        for model, pks in models.items():
+            model_class = import_object(CONTENT_MODELS.get(model)['model'])
+            for i in model_class.objects.filter(pk__in=pks):
+                _results[i.pk] = i
+        # 按照内容顺序插入
+        for pk, model in vs:
+            results.append(_results[pk])
+    return results

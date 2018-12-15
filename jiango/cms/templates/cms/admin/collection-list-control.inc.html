@@ -2,9 +2,9 @@
 
 <div class="pull-left">
     {% include 'cms/admin/actions.inc.html' %}
-    {% if can_create_content %}
+    {% if current %}
         <i class="sep">|</i>
-        <a href="{% url admin:cms:content-create current_path.path %}" class="btn btn-sm btn-success"><i class="fa fa-plus"></i> 添加内容</a>
+        <a href="{% url admin:cms:collection-edit current.pk %}" class="btn btn-sm btn-default"><i class="fa fa-edit"></i> 修改集合</a>
     {% endif %}
 </div>
 <div class="pull-right">

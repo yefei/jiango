@@ -37,7 +37,7 @@ CONTENT_PER_PAGE = 100
 # 单次操作最多条数
 CONTENT_ACTION_MAX_RESULTS = 100
 
-# 通用动作
+# 内容批量管理动作
 CONTENT_ACTIONS = SortedDict()
 CONTENT_ACTIONS['hide'] = {
     'name': u'隐藏/显示',
@@ -51,6 +51,16 @@ CONTENT_ACTIONS['delete'] = {
     'button_class': 'btn-warning',
     'form': 'jiango.cms.forms.DeleteAction',
 }
+
+# 集合批量动作
+COLLECTION_ACTIONS = SortedDict()
+COLLECTION_ACTIONS['delete'] = {
+    'name': u'从集合中删除',
+    'icon': 'fa fa-trash',
+    'button_class': 'btn-warning',
+    'form': 'jiango.cms.forms.CollectionDeleteAction',
+}
+
 
 # 扩展通用动作
 if hasattr(settings, "JIANGO_CMS_ACTIONS"):

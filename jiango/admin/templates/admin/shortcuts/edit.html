@@ -11,6 +11,9 @@
             </div>
             <div class="box-footer">
                 <button type="submit" class="btn btn-warning btn-large">确定</button>
+                {% if delete_url %}
+                    <a href="{{ delete_url }}" class="btn btn-danger pull-right">删除</a>
+                {% endif %}
             </div>
         </form>
     </div>

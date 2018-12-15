@@ -285,7 +285,7 @@ def delete_confirm_view(app_label, request, queryset, on_success=None, using=Non
 
 
 def edit_view(app_label, request, form, on_success=None, template='/admin/shortcuts/edit', extras=None,
-              is_multipart=False, title=None):
+              is_multipart=False, title=None, delete_url=None):
     log = Logger(app_label)
     if title is None:
         title = u'编辑 / %s.%s' % (form.__module__, form.__class__.__name__)

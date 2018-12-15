@@ -5,14 +5,15 @@ from django.conf.urls import url
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.http import HttpResponseRedirect, QueryDict
+from django.core.urlresolvers import reverse
 from jiango.shortcuts import update_instance
 from jiango.pagination import Paging
 from jiango.admin.shortcuts import renderer, Logger, ModelLogger, Alert, has_perm, edit_view, delete_confirm_view
 from jiango.admin.auth import get_request_user
-from .models import Path, ContentBase, get_all_menus, flat_all_menus, Menu
+from .models import Path, ContentBase, get_all_menus, flat_all_menus, Menu, Collection, CollectionContent
 from .shortcuts import path_wrap, flat_path_tree, get_current_path
-from .forms import PathForm, ActionForm, PathDeleteForm, MenuForm, MenuItemForm
-from .config import CONTENT_ACTION_MAX_RESULTS, CONTENT_PER_PAGE, CONTENT_ACTIONS
+from .forms import PathForm, ActionForm, PathDeleteForm, MenuForm, MenuItemForm, CollectionForm
+from .config import CONTENT_ACTION_MAX_RESULTS, CONTENT_PER_PAGE, CONTENT_ACTIONS, COLLECTION_ACTIONS
 
 
 icon = 'fa fa-file-text-o'
@@ -92,49 +93,55 @@ def content(request, response, current_path):
     return locals()
 
 
-@render
-def content_action(request, response):
+def _action_view(request, ns, actions, qs, template_name):
     # 二次确认提交才有此值
     action_form_data = request.POST.get('__action_form_data')
     action_form_post = QueryDict(action_form_data) if action_form_data else request.POST
-    
+
     # 判断批量选择数据是否合法
-    action_form = ActionForm(action_form_post)
+    action_form = ActionForm(actions, action_form_post)
     if not action_form.is_valid():
         raise Alert(Alert.ERROR, action_form.errors)
-    
+
     # 权限检查
-    has_perm(request, 'cms.action.%s' % action_form.cleaned_data.get('action'))
-    
+    has_perm(request, 'cms.%s.%s' % (ns, action_form.cleaned_data.get('action')))
+
     # 选定数据检查
     selected = action_form_post.getlist('pk')
     if not selected:
         raise Alert(Alert.ERROR, u'您没有勾选需要操作的内容')
     if len(selected) > CONTENT_ACTION_MAX_RESULTS:
         raise Alert(Alert.ERROR, u'超过最大选择条数: %d' % CONTENT_ACTION_MAX_RESULTS)
-    
+
     # 为二次确认提交准备
     if not action_form_data:
         action_form_data = action_form_post.urlencode()
-    
+
     back = action_form.cleaned_data.get('back')
     Form = action_form.get_form_object()
     action_name = action_form.get_action_name()
-    content_set = ContentBase.objects.filter(pk__in=selected).select_related('path', 'update_user')
-    
+    qs = qs.filter(pk__in=selected)
+
     if request.POST.get('__confirm') == 'yes':
-        form = Form(content_set, request.POST, request.FILES)
+        form = Form(qs, request.POST, request.FILES)
         if form.is_valid():
             form.execute()
             msg = u'批量执行: ' + action_name
-            log.success(request, u'%s\nID: %s\n表单数据: %s' % (msg, ','.join(selected), form.cleaned_data), form.log_action)
+            log.success(request, u'%s\nID: %s\n表单数据: %s' % (msg, ','.join(selected), form.cleaned_data),
+                        form.log_action)
             messages.success(request, u'已完成' + msg)
             if back:
                 return HttpResponseRedirect(back)
-            return redirect('admin:cms:content')
+            return redirect('admin:cms:%s' % ns)
     else:
-        form = Form(content_set)
-    return locals()
+        form = Form(qs)
+    return template_name, locals()
+
+
+@render
+def content_action(request, response):
+    qs = ContentBase.objects.select_related('update_user', 'path')
+    return _action_view(request, 'content', CONTENT_ACTIONS, qs, 'content_action')
 
 
 @render
@@ -243,7 +250,7 @@ def _content_edit(request, response, current_path=None, content_id=None):
     # 表单字段分离
     main_fields = []
     meta_fields = []
-    meta_fields_name = ['is_hidden']
+    meta_fields_name = ['collections', 'is_hidden']
     _t = path.model_config.get('form_meta_fields')
     if _t:
         meta_fields_name.extend(_t)
@@ -294,13 +301,55 @@ def menu_edit(request, response, edit_id=None, parent_id=None):
     def form_valid(**kwargs):
         form.save()
         return redirect('admin:cms:menu')
-    return edit_view('cms', request, form, form_valid)
+    return edit_view('cms', request, form, form_valid,
+                     delete_url=reverse('admin:cms:menu-delete', args=[edit_id]) if edit_id else None)
 
 
 @render(perm='cms.menu.delete')
 def menu_delete(request, response, item_id):
     instance = Menu.objects.filter(pk=item_id)
     return delete_confirm_view('cms', request, instance, lambda: redirect('admin:cms:menu'))
+
+
+########################################################################################################################
+
+
+@render
+def collection(request, response, pk=None):
+    actions = COLLECTION_ACTIONS
+    collection_set = Collection.objects.all()
+    current = Collection.objects.get(pk=pk) if pk else None
+    qs_base = CollectionContent.objects.filter(contentbase__is_deleted=False)
+    total_content_count = qs_base.count()
+    content_set = qs_base.select_related('contentbase', 'contentbase__update_user', 'contentbase__path')
+    if current:
+        content_set = content_set.filter(collection=current)
+    content_set = Paging(content_set, request, CONTENT_PER_PAGE).page()
+    return locals()
+
+
+@render(perm='cms.collection.edit')
+def collection_edit(request, response, pk=None):
+    instance = Collection.objects.get(pk=pk) if pk else None
+    form = CollectionForm(request.POST or None, instance=instance)
+
+    def form_valid(**kwargs):
+        form.save()
+        return redirect('admin:cms:collection')
+    return edit_view('cms', request, form, form_valid,
+                     delete_url=reverse('admin:cms:collection-delete', args=[instance.pk]) if instance else None)
+
+
+@render(perm='cms.collection.delete')
+def collection_delete(request, response, pk):
+    instance = Collection.objects.filter(pk=pk)
+    return delete_confirm_view('cms', request, instance, lambda: redirect('admin:cms:collection'))
+
+
+@render
+def collection_action(request, response):
+    qs = CollectionContent.objects.select_related('contentbase', 'contentbase__update_user', 'contentbase__path')
+    return _action_view(request, 'collection', COLLECTION_ACTIONS, qs, 'collection_action')
 
 
 ########################################################################################################################
@@ -324,6 +373,13 @@ urlpatterns = [
     url(r'^/menu/(?P<edit_id>\d+)$', menu_edit, name='menu-edit'),
     url(r'^/menu/(?P<parent_id>\d+)/create$', menu_edit, name='menu-create-item'),
     url(r'^/menu/(?P<item_id>\d+)/delete$', menu_delete, name='menu-delete'),
+
+    url(r'^/collection$', collection, name='collection'),
+    url(r'^/collection/create$', collection_edit, name='collection-create'),
+    url(r'^/collection/(?P<pk>\d+)$', collection, name='collection-show'),
+    url(r'^/collection/(?P<pk>\d+)/edit$', collection_edit, name='collection-edit'),
+    url(r'^/collection/(?P<pk>\d+)/delete$', collection_delete, name='collection-delete'),
+    url(r'^/collection/action$', collection_action, name='collection-action'),
     
     url(r'^/recycle$', recycle, name='recycle'),
     url(r'^/recycle/clear$', recycle_clear, name='recycle-clear'),
@@ -331,6 +387,7 @@ urlpatterns = [
 
 sub_menus = [
     ('admin:cms:content', u'内容管理', 'fa fa-edit'),
+    ('admin:cms:collection', u'内容集合', 'fa fa-cubes'),
     ('admin:cms:path', u'栏目管理', 'fa fa-sitemap'),
     ('admin:cms:menu', u'菜单管理', 'fa fa-bars'),
     ('admin:cms:recycle', u'回收站', 'fa fa-trash'),
@@ -342,17 +399,13 @@ PERMISSIONS = {
     'recycle.fire': u'回收站|批量删除',
     'recycle.clear': u'回收站|清空',
     'content.create': u'内容|创建',
+    'content.hide': u'内容|隐藏/显示',
+    'content.delete': u'内容|删除',
     'content.update.self': u'内容|修改本人内容',
     'content.update.other': u'内容|修改他人内容',
     'content.recover': u'内容|删除恢复',
     'menu.edit': u'菜单|创建/编辑',
     'menu.delete': u'菜单|删除',
+    'collection.edit': u'集合|创建/编辑',
+    'collection.delete': u'集合|删除',
 }
-
-
-# 批量操作权限
-def _load_actions():
-    for a, i in CONTENT_ACTIONS.items():
-        perm = 'action.%s' % a
-        PERMISSIONS[perm] = u'内容|%s' % i['name']
-_load_actions()

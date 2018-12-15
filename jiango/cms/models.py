@@ -149,7 +149,7 @@ class Path(ModelBase):
 
     @cached_property
     def content_count(self):
-        return ContentBase.objects.available().filter(path=self).count()
+        return ContentBase.objects.filter(path=self, is_deleted=False).count()
     
     # 同步更新内容中的 path 和 depth
     def update_content_path(self):
@@ -182,6 +182,34 @@ def on_path_post_save(instance, **kwargs):
     cache.delete(PATH_TREE_CACHE_KEY)
 
 
+class Collection(models.Model):
+    name = models.CharField(u'集合名称', max_length=100, unique=True)
+
+    class Meta:
+        ordering = ['pk']
+        verbose_name = u'内容集合'
+
+    def __unicode__(self):
+        return self.name
+
+    @cached_property
+    def content_count(self):
+        return self.contentbase_set.filter(is_deleted=False).count()
+
+
+class CollectionContent(models.Model):
+    collection = models.ForeignKey(Collection, on_delete=models.CASCADE)
+    contentbase = models.ForeignKey('ContentBase', on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ['-pk']
+        db_table = 'cms_contentbase_collections'
+        verbose_name = u'内容集合关联'
+
+    def __unicode__(self):
+        return self.contentbase.title
+
+
 class ContentQuerySet(QuerySet):
     # 返回可用的内容
     def available(self):
@@ -208,6 +236,8 @@ class ContentBase(ModelBase):
     views = models.PositiveIntegerField(u'浏览量', db_index=True, default=0, editable=False)
     is_deleted = models.BooleanField(u'已删除?', db_index=True, default=False, editable=False)
     is_hidden = models.BooleanField(u'隐藏 (在前台不显示)', db_index=True, default=False)
+    collections = models.ManyToManyField(Collection, blank=True, verbose_name=u'内容集合',
+                                         help_text=u'可以将此内容归集到多个集合中。')
     objects = ContentManager()
 
     class Meta:
@@ -233,14 +263,14 @@ class ContentBase(ModelBase):
     @cached_property
     def previous(self):
         try:
-            return ContentBase.objects.filter(path=self.path, pk__lt=self.pk).latest()
+            return self.model_class.objects.filter(path=self.path, pk__lt=self.pk).latest()
         except ContentBase.DoesNotExist:
             pass
 
     @cached_property
     def next(self):
         try:
-            return ContentBase.objects.filter(path=self.path, pk__gt=self.pk).order_by('pk')[0]
+            return self.model_class.objects.filter(path=self.path, pk__gt=self.pk).order_by('pk')[0]
         except IndexError:
             pass
 

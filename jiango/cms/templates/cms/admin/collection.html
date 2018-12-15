@@ -2,37 +2,38 @@
     <div class="row">
         <div data-spy="affix" style="float:left;width:250px;margin-left:20px;">
             <div class="list-group">
-                <a class="list-group-item{% if not path %} active{% endif %}" href="{% url admin:cms:content %}">全部栏目
+                <a class="list-group-item{% if not current %} active{% endif %}" href="{% url admin:cms:collection %}">全部集合
                     <span class="badge">{{ total_content_count }}</span>
                 </a>
             </div>
             <div class="list-group">
-            {% for p in paths %}
-                <a class="list-group-item{% if path == p %} active{% endif %}" href="{% url admin:cms:content-path p.path %}"><span style="margin-left:{{ p.depth }}em">{{ p.name }}</span>
+            {% for p in collection_set %}
+                <a class="list-group-item{% if current == p %} active{% endif %}" href="{% url admin:cms:collection-show p.pk %}">{{ p.name }}
                     <span class="badge">{{ p.content_count }}</span>
                 </a>
             {% endfor %}
             </div>
             <div class="list-group">
-                <a class="list-group-item" href="{% url admin:cms:path-create %}">
-                    <i class="fa fa-plus"></i> 创建栏目
+                <a class="list-group-item" href="{% url admin:cms:collection-create %}">
+                    <i class="fa fa-plus"></i> 创建集合
                 </a>
             </div>
         </div>
         <div style="float:right;width:calc(100% - 310px);margin-right:20px;">
-            <form action="{% url admin:cms:content-action %}" method="post">
+            <form action="{% url admin:cms:collection-action %}" method="post">
                 {% csrf_token %}
                 <input type="hidden" name="back" value="{{request.get_full_path|escape}}">
                 <table class="table table-hover">
                     <thead>
                         <tr>
-                            <td colspan="{{ path|yesno:'7,8' }}">{% include 'cms/admin/content-list-control.inc.html' %}</td>
+                            <td colspan="{{ current|yesno:'8,9' }}">{% include 'cms/admin/collection-list-control.inc.html' %}</td>
                         </tr>
                         <tr>
                             <th class="nowrap"><input type="checkbox" data-spy="checkall" data-for="[name='pk']"></th>
                             <th class="number">ID</th>
                             <th class="nowrap">模型</th>
-                            {% if not path %}<th class="nowrap">栏目</th>{% endif %}
+                            <th class="nowrap">栏目</th>
+                            {% if not current %}<th class="nowrap">集合</th>{% endif %}
                             <th>标题</th>
                             <th class="datetime">修改日期</th>
                             <th class="user">修改人</th>
@@ -43,26 +44,27 @@
                         {% for i in content_set %}
                         <tr>
                             <th class="nowrap"><input type="checkbox" name="pk" value="{{i.pk}}"></th>
-                            <td class="number">{{i.pk}}</td>
-                            <td class="nowrap">{{ i.model_name }}</td>
-                            {% if not path %}<td class="nowrap"><a href="{% url admin:cms:content-path i.path.path %}">{{ i.path.name }}</a></td>{% endif %}
+                            <td class="number">{{i.contentbase.pk}}</td>
+                            <td class="nowrap">{{ i.contentbase.model_name }}</td>
+                            <td class="nowrap"><a href="{% url admin:cms:content-path i.contentbase.path.path %}">{{ i.contentbase.path.name }}</a></td>
+                            {% if not current %}<td class="nowrap"><a href="{% url admin:cms:collection-show i.pk %}">{{ i.collection.name }}</a></td>{% endif %}
                             <td>
-                                {% if i.is_hidden %}<span class="label label-default">隐藏</span>{% endif %}
-                                <a href="{% url admin:cms:content-edit i.pk %}">{{i}}</a>
+                                {% if i.contentbase.is_hidden %}<span class="label label-default">隐藏</span>{% endif %}
+                                <a href="{% url admin:cms:content-edit i.contentbase.pk %}">{{i.contentbase}}</a>
                                 <div class="pull-right">
-                                    <a href="{{ i.url }}" class="btn btn-xs btn-default" target="_blank">查看</a>
+                                    <a href="{{ i.contentbase.url }}" class="btn btn-xs btn-default" target="_blank">查看</a>
                                 </div>
                             </td>
-                            <td class="datetime">{{i.update_at}}</td>
-                            <td class="user">{{i.update_user}}</td>
-                            <td class="number">{{i.views}}</td>
+                            <td class="datetime">{{i.contentbase.update_at}}</td>
+                            <td class="user">{{i.contentbase.update_user}}</td>
+                            <td class="number">{{i.contentbase.views}}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="{{ path|yesno:'7,8' }}">
-                                {% include 'cms/admin/content-list-control.inc.html' %}
+                            <td colspan="{{ path|yesno:'8,9' }}">
+                                {% include 'cms/admin/collection-list-control.inc.html' %}
                             </td>
                         </tr>
                     </tfoot>
