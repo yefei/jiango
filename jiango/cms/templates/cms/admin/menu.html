@@ -1,0 +1,52 @@
+<section class="content">
+        <div class="table-responsive">
+        <table class="table table-bordered table-hover">
+            <thead>
+            <tr>
+                <th>
+                    标题
+                    <div class="pull-right">值</div>
+                </th>
+                <th class="number">顺序</th>
+                <th class="nowrap"></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for i in menu_set %}
+            <tr>
+                <td>
+                    <span style="display:inline-block;text-indent:{{ i.level }}em">{{ i.title }}</span>
+                    {% if i.is_hidden %}
+                        <span class="badge badge-secondary">隐藏</span>
+                    {% endif %}
+                    <div class="pull-right">
+                        <span class="{{ i.is_menu|yesno:'badge badge-dark,text-muted' }}">{{ i.value|truncatechars:30 }}</span>
+                    </div>
+                </td>
+                <td class="number">{% if not i.is_menu %}{{ i.order }}{% endif %}</td>
+                <td class="nowrap">
+                    <a href="{% url admin:cms:menu-create-item i.pk %}">增加子项</a>
+                    <i class="sep">|</i>
+                    <a href="{% url admin:cms:menu-edit i.pk %}">编辑</a>
+                    <i class="sep">|</i>
+                    <a href="{% url admin:cms:menu-delete i.pk %}">删除</a>
+                </td>
+            </tr>
+                {% if forloop.last %}
+                <tr>
+                <td colspan="3">
+                    <a href="{% url admin:cms:menu-create %}" class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> 创建菜单</a>
+                </td>
+                </tr>
+                {% endif %}
+            {% empty %}
+                <tr>
+                <td colspan="2" class="text-center">
+                    <a href="{% url admin:cms:menu-create %}" class="btn btn-primary"><i class="fa fa-plus"></i> 创建菜单</a>
+                </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </div>
+</section>

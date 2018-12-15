@@ -7,11 +7,11 @@ from django.shortcuts import redirect
 from django.http import HttpResponseRedirect, QueryDict
 from jiango.shortcuts import update_instance
 from jiango.pagination import Paging
-from jiango.admin.shortcuts import renderer, Logger, ModelLogger, Alert, has_perm
+from jiango.admin.shortcuts import renderer, Logger, ModelLogger, Alert, has_perm, edit_view, delete_confirm_view
 from jiango.admin.auth import get_request_user
-from .models import Path, ContentBase
+from .models import Path, ContentBase, get_all_menus, flat_all_menus, Menu
 from .shortcuts import path_wrap, flat_path_tree, get_current_path
-from .forms import PathForm, ActionForm, PathDeleteForm
+from .forms import PathForm, ActionForm, PathDeleteForm, MenuForm, MenuItemForm
 from .config import CONTENT_ACTION_MAX_RESULTS, CONTENT_PER_PAGE, CONTENT_ACTIONS
 
 
@@ -268,6 +268,44 @@ def content_create(request, response, current_path):
     return _content_edit(request, response, current_path=current_path)
 
 
+########################################################################################################################
+
+
+@render
+def menu(request, response):
+    menu_set = flat_all_menus(get_all_menus())
+    return locals()
+
+
+@render(perm='cms.menu.edit')
+def menu_edit(request, response, edit_id=None, parent_id=None):
+    if edit_id:
+        instance = Menu.objects.get(pk=edit_id)
+        if instance.is_menu:
+            form = MenuForm(request.POST or None, instance=instance)
+        else:
+            form = MenuItemForm(request, request.POST or None, instance=instance)
+    elif parent_id:
+        parent = Menu.objects.get(pk=parent_id)
+        form = MenuItemForm(request, request.POST or None, initial={'parent': parent})
+    else:
+        form = MenuForm(request.POST or None)
+
+    def form_valid(**kwargs):
+        form.save()
+        return redirect('admin:cms:menu')
+    return edit_view('cms', request, form, form_valid)
+
+
+@render(perm='cms.menu.delete')
+def menu_delete(request, response, item_id):
+    instance = Menu.objects.filter(pk=item_id)
+    return delete_confirm_view('cms', request, instance, lambda: redirect('admin:cms:menu'))
+
+
+########################################################################################################################
+
+
 urlpatterns = [
     url(r'^$', index, name='index'),
     url(r'^/path$', path, name='path'),
@@ -280,6 +318,12 @@ urlpatterns = [
     url(r'^/content/create/(?P<path>.*)$', content_create, name='content-create'),
     url(r'^/content/edit/(?P<content_id>\d+)$', content_edit, name='content-edit'),
     url(r'^/content/action$', content_action, name='content-action'),
+
+    url(r'^/menu$', menu, name='menu'),
+    url(r'^/menu/create$', menu_edit, name='menu-create'),
+    url(r'^/menu/(?P<edit_id>\d+)$', menu_edit, name='menu-edit'),
+    url(r'^/menu/(?P<parent_id>\d+)/create$', menu_edit, name='menu-create-item'),
+    url(r'^/menu/(?P<item_id>\d+)/delete$', menu_delete, name='menu-delete'),
     
     url(r'^/recycle$', recycle, name='recycle'),
     url(r'^/recycle/clear$', recycle_clear, name='recycle-clear'),
@@ -288,6 +332,7 @@ urlpatterns = [
 sub_menus = [
     ('admin:cms:content', u'内容管理', 'fa fa-edit'),
     ('admin:cms:path', u'栏目管理', 'fa fa-sitemap'),
+    ('admin:cms:menu', u'菜单管理', 'fa fa-bars'),
     ('admin:cms:recycle', u'回收站', 'fa fa-trash'),
 ]
 
@@ -300,6 +345,8 @@ PERMISSIONS = {
     'content.update.self': u'内容|修改本人内容',
     'content.update.other': u'内容|修改他人内容',
     'content.recover': u'内容|删除恢复',
+    'menu.edit': u'菜单|创建/编辑',
+    'menu.delete': u'菜单|删除',
 }
 
 

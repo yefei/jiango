@@ -25,7 +25,7 @@ def list_render(request, current_path, page=1):
     model = path.model_class
     if model is None:
         raise Http404()
-    content_set = model.objects.available().filter(path=path)
+    content_set = model.objects.available().filter(path=path).order_by('-contentbase_ptr__id')
     content_set = ReversePaging(content_set, request, 'cms-list', view_kwargs={'path': path.path},
                                 per_page=path.list_per_page).page(page)
     return path.list_template, 'list', dict(current_path=current_path, P=path, content_set=content_set, S=content_set)

@@ -27,7 +27,7 @@ def cms_contents(path, limit=10, offset=0, **kwargs):
             excludes[k[5:]] = v
         else:
             filters[k] = v
-    qs = model.objects.available().filter(path=path)
+    qs = model.objects.available().filter(path=path).order_by('-contentbase_ptr__id')
     if filters:
         qs = qs.filter(**filters)
     if excludes:

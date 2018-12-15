@@ -4,7 +4,7 @@
 from django import forms
 from jiango.importlib import import_object
 from jiango.admin.models import LogTypes
-from .models import Path
+from .models import Path, Menu, get_all_menus, flat_all_menus
 from .config import PATH_RE, CONTENT_ACTIONS
 
 
@@ -80,3 +80,54 @@ class DeleteAction(ActionBaseForm):
     
     def execute(self):
         self.content_set.update(is_deleted=True)
+
+
+########################################################################################################################
+
+
+class MenuForm(forms.ModelForm):
+    value = forms.RegexField(r'^[_\w]+\Z', label=u'句柄',
+                             help_text=u'句柄用于菜单调用，同级中不可重复。只可使用字幕数字下划线。')
+
+    class Meta:
+        model = Menu
+        fields = ['title', 'value', 'is_hidden']
+
+    def clean_value(self):
+        value = self.cleaned_data['value']
+        # 冲突检查
+        qs = Menu.objects.filter(parent=None, value=value)
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise forms.ValidationError(u'句柄名称冲突', 'name-conflict')
+        return value
+
+
+class MenuItemForm(forms.ModelForm):
+    value = forms.CharField(label=u'链接', widget=forms.Textarea, help_text=u'请输入绝对路径，支持模版代码。')
+
+    class Meta:
+        model = Menu
+        fields = ['title', 'value', 'parent', 'is_hidden', 'order']
+
+    def __init__(self, request, *args, **kwargs):
+        super(MenuItemForm, self).__init__(*args, **kwargs)
+        self.request = request
+
+        items = get_all_menus()
+        # 父选择需要排除自己以及子项，防止无限嵌套
+        if self.instance.pk:
+            items = flat_all_menus(items, self.instance)
+        else:
+            items = flat_all_menus(items)
+        self.fields['parent'].choices = ((i.pk, '%s%s%s' % (
+            '+--' * i.level, ' ' if i.level else '', i.title)) for i in items)
+
+    def clean_value(self):
+        value = self.cleaned_data['value']
+        # 清除本机 http://host 前缀
+        scheme_host = '{}://{}'.format(self.request.is_secure() and 'https' or 'http', self.request.get_host())
+        if value.startswith(scheme_host):
+            value = value[len(scheme_host):]
+        return value

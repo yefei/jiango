@@ -126,8 +126,8 @@ class Path(ModelBase):
     objects = PathManager()
     
     class Meta:
-        ordering = ('sort',)
-        get_latest_by = ('sort',)
+        ordering = ('id',)
+        get_latest_by = ('id',)
     
     def __unicode__(self):
         return self.path
@@ -212,7 +212,7 @@ class ContentBase(ModelBase):
 
     class Meta:
         ordering = ('-pk',)
-        get_latest_by = ('update_at', )
+        get_latest_by = ('pk', )
 
     def __unicode__(self):
         return self.title or ('Content: #%d' % self.pk)
@@ -229,3 +229,130 @@ class ContentBase(ModelBase):
     @property
     def model_name(self):
         return self.model_config.get('name')
+
+    @cached_property
+    def previous(self):
+        try:
+            return ContentBase.objects.filter(path=self.path, pk__lt=self.pk).latest()
+        except ContentBase.DoesNotExist:
+            pass
+
+    @cached_property
+    def next(self):
+        try:
+            return ContentBase.objects.filter(path=self.path, pk__gt=self.pk).order_by('pk')[0]
+        except IndexError:
+            pass
+
+
+########################################################################################################################
+
+MENUS_CACHE_KEY = 'jiango.menus'
+
+
+class Menu(models.Model):
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, verbose_name=u'父')
+
+    title = models.CharField(u'标题', max_length=200)
+    value = models.TextField(u'值')
+    order = models.IntegerField(u'排序值', db_index=True, blank=True, help_text=u'不填写默认为最后一项')
+    is_hidden = models.BooleanField(u'隐藏', default=False)
+
+    created_at = models.DateTimeField(u'创建日期', auto_now_add=True)
+    updated_at = models.DateTimeField(u'更新日期', auto_now=True, db_index=True)
+
+    class Meta:
+        ordering = ['order']
+        get_latest_by = 'order'
+
+    def __unicode__(self):
+        return self.title
+
+    @property
+    def is_menu(self):
+        return self.parent_id is None
+
+    @property
+    def is_item(self):
+        return not self.is_menu
+
+    @property
+    def parents(self):
+        if self.is_menu:
+            return [self]
+        return self.parent.parents + [self]
+
+    @property
+    def level(self):
+        return len(self.parents) - 1
+
+    def get_children(self):
+        if not hasattr(self, '_children'):
+            self._children = self.menu_set.all()
+        return self._children
+
+    def set_children(self, v):
+        self._children = v
+
+    children = property(get_children, set_children)
+
+
+def get_all_menus():
+    """
+    取得所有菜单项，排序并设置 parent 和 children 防止数据重复读取
+    :return:
+    """
+    item_set = set(Menu.objects.all())
+
+    def child(item):
+        for c in item_set:
+            if item.parent_id == c.pk:
+                item.parent = c
+                item.children = list(child(x) for x in item_set if x.parent_id == item.pk)
+                break
+        return item
+
+    for i in item_set:
+        # 顶层菜单
+        if i.parent_id is None:
+            i.children = list(child(x) for x in item_set if x.parent_id == i.pk)
+            yield i
+
+
+def flat_all_menus(items, exclude=None):
+    """
+    平面化菜单项，按照父子关系优先顺序
+    :param items: 需要平面化的项目
+    :param exclude: 需要排除的项目，同时排除子项
+    :return:
+    """
+    for i in items:
+        if i == exclude:
+            continue
+        yield i
+        for x in flat_all_menus(i.children, exclude):
+            yield x
+
+
+def get_cache_menus():
+    items = cache.get(MENUS_CACHE_KEY)
+    if not items:
+        items = set(get_all_menus())
+        cache.set(MENUS_CACHE_KEY, items)
+    return items
+
+
+@receiver(signals.pre_save, sender=Menu)
+def on_menu_pre_save(instance, **kwargs):
+    if instance.order is None or instance.parent_id != Menu.objects.get(pk=instance.pk).parent_id:
+        try:
+            last_obj = Menu.objects.filter(parent=instance.parent).latest()
+        except Menu.DoesNotExist:
+            last_obj = None
+        instance.order = last_obj.order + 1 if last_obj else 0
+
+
+@receiver(signals.post_save, sender=Menu)
+@receiver(signals.post_delete, sender=Menu)
+def on_menu_update(**kwargs):
+    cache.delete(MENUS_CACHE_KEY)
