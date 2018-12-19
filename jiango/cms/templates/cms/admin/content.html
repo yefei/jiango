@@ -47,6 +47,7 @@
                             <td class="nowrap">{{ i.model_name }}</td>
                             {% if not path %}<td class="nowrap"><a href="{% url admin:cms:content-path i.path.path %}">{{ i.path.name }}</a></td>{% endif %}
                             <td>
+                                {% if i.flag != 0 %}<span class="label label-info">{{ i.get_flag_display }}</span>{% endif %}
                                 {% if i.is_hidden %}<span class="label label-default">隐藏</span>{% endif %}
                                 <a href="{% url admin:cms:content-edit i.pk %}">{{i}}</a>
                                 <div class="pull-right">

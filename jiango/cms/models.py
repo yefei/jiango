@@ -12,7 +12,7 @@ from django.core.cache import cache
 from jiango.shortcuts import update_instance
 from jiango.admin.models import User
 from jiango.importlib import import_object
-from .config import PATH_HELP, CONTENT_MODELS, LIST_PER_PAGE
+from .config import PATH_HELP, CONTENT_MODELS, LIST_PER_PAGE, FLAGS
 
 
 INDEX_TEMPLATE_HELP = u'默认模版: cms/index'
@@ -234,6 +234,7 @@ class ContentBase(ModelBase):
     create_user = models.ForeignKey(User, null=True, on_delete=SET_NULL, editable=False, related_name='+')
     update_user = models.ForeignKey(User, null=True, on_delete=SET_NULL, editable=False, related_name='+')
     views = models.PositiveIntegerField(u'浏览量', db_index=True, default=0, editable=False)
+    flag = models.SmallIntegerField(u'标记为', default=0, db_index=True, choices=FLAGS)
     is_deleted = models.BooleanField(u'已删除?', db_index=True, default=False, editable=False)
     is_hidden = models.BooleanField(u'隐藏 (在前台不显示)', db_index=True, default=False)
     collections = models.ManyToManyField(Collection, blank=True, verbose_name=u'内容集合',

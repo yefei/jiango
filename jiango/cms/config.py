@@ -4,6 +4,7 @@
 import re
 from django.conf import settings
 from django.utils.datastructures import SortedDict
+from jiango.settings import get_setting
 
 
 PATH_RE = re.compile(u'^[_\-\w\u4e00-\uE814]+$')
@@ -39,6 +40,12 @@ CONTENT_ACTION_MAX_RESULTS = 100
 
 # 内容批量管理动作
 CONTENT_ACTIONS = SortedDict()
+CONTENT_ACTIONS['flag'] = {
+    'name': u'标记为',
+    'icon': 'fa fa-flag',
+    'button_class': 'btn-info',
+    'form': 'jiango.cms.forms.FlagAction',
+}
 CONTENT_ACTIONS['hide'] = {
     'name': u'隐藏/显示',
     'icon': 'fa fa-low-vision',
@@ -65,3 +72,9 @@ COLLECTION_ACTIONS['delete'] = {
 # 扩展通用动作
 if hasattr(settings, "JIANGO_CMS_ACTIONS"):
     CONTENT_MODELS.update(settings.JIANGO_CMS_ACTIONS)
+
+# 标记
+FLAGS = [
+    (0, u'无'),
+    (1, u'推荐'),
+] + get_setting('CMS_FLAGS', [])

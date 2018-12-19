@@ -250,7 +250,7 @@ def _content_edit(request, response, current_path=None, content_id=None):
     # 表单字段分离
     main_fields = []
     meta_fields = []
-    meta_fields_name = ['collections', 'is_hidden']
+    meta_fields_name = ['flag', 'collections', 'is_hidden']
     _t = path.model_config.get('form_meta_fields')
     if _t:
         meta_fields_name.extend(_t)

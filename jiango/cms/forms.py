@@ -5,7 +5,7 @@ from django import forms
 from jiango.importlib import import_object
 from jiango.admin.models import LogTypes
 from .models import Path, Menu, get_all_menus, flat_all_menus, Collection
-from .config import PATH_RE, CONTENT_ACTIONS
+from .config import PATH_RE, FLAGS
 
 
 class PathForm(forms.ModelForm):
@@ -66,6 +66,14 @@ class ActionBaseForm(forms.Form):
     
     def execute(self):
         pass
+
+
+class FlagAction(ActionBaseForm):
+    log_action = LogTypes.UPDATE
+    flag = forms.ChoiceField(required=False, label='标记为', choices=FLAGS)
+
+    def execute(self):
+        self.qs.update(flag=self.cleaned_data['flag'])
 
 
 class HideAction(ActionBaseForm):
