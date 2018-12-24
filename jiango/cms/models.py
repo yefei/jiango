@@ -264,14 +264,16 @@ class ContentBase(ModelBase):
     @cached_property
     def previous(self):
         try:
-            return self.model_class.objects.filter(path=self.path, pk__lt=self.pk).latest()
-        except ContentBase.DoesNotExist:
+            return self.model_class.objects.filter(
+                is_deleted=False, is_hidden=False, path=self.path, pk__lt=self.pk).order_by('pk')[0]
+        except IndexError:
             pass
 
     @cached_property
     def next(self):
         try:
-            return self.model_class.objects.filter(path=self.path, pk__gt=self.pk).order_by('pk')[0]
+            return self.model_class.objects.filter(
+                is_deleted=False, is_hidden=False, path=self.path, pk__gt=self.pk).order_by('-pk')[0]
         except IndexError:
             pass
 
