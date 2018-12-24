@@ -23,7 +23,7 @@
             <form action="{% url admin:cms:collection-action %}" method="post">
                 {% csrf_token %}
                 <input type="hidden" name="back" value="{{request.get_full_path|escape}}">
-                <table class="table table-hover">
+                <table class="table table-hover table-bordered">
                     <thead>
                         <tr>
                             <td colspan="{{ current|yesno:'8,9' }}">{% include 'cms/admin/collection-list-control.inc.html' %}</td>
@@ -43,7 +43,7 @@
                     <tbody>
                         {% for i in content_set %}
                         <tr>
-                            <th class="nowrap"><input type="checkbox" name="pk" value="{{i.pk}}"></th>
+                            <td class="nowrap"><input type="checkbox" name="pk" value="{{i.pk}}"></td>
                             <td class="number">{{i.contentbase.pk}}</td>
                             <td class="nowrap">{{ i.contentbase.model_name }}</td>
                             <td class="nowrap"><a href="{% url admin:cms:content-path i.contentbase.path.path %}">{{ i.contentbase.path.name }}</a></td>

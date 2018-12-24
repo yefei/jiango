@@ -1,5 +1,8 @@
 @CHARSET "UTF-8";
 
+.table th {
+	background-color: #F2F2F2;
+}
 .table th.id,
 .table td.id,
 .table th.nowrap,
@@ -114,4 +117,8 @@ i.sep {
 	.form-inline .form-group {
 		vertical-align: top;
 	}
+}
+
+.mt-20 {
+	margin-top: 20px;
 }

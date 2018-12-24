@@ -23,7 +23,7 @@
             <form action="{% url admin:cms:content-action %}" method="post">
                 {% csrf_token %}
                 <input type="hidden" name="back" value="{{request.get_full_path|escape}}">
-                <table class="table table-hover">
+                <table class="table table-hover table-bordered">
                     <thead>
                         <tr>
                             <td colspan="{{ path|yesno:'7,8' }}">{% include 'cms/admin/content-list-control.inc.html' %}</td>
@@ -42,7 +42,7 @@
                     <tbody>
                         {% for i in content_set %}
                         <tr>
-                            <th class="nowrap"><input type="checkbox" name="pk" value="{{i.pk}}"></th>
+                            <td class="nowrap"><input type="checkbox" name="pk" value="{{i.pk}}"></td>
                             <td class="number">{{i.pk}}</td>
                             <td class="nowrap">{{ i.model_name }}</td>
                             {% if not path %}<td class="nowrap"><a href="{% url admin:cms:content-path i.path.path %}">{{ i.path.name }}</a></td>{% endif %}
