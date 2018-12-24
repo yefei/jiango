@@ -84,7 +84,8 @@ def _get_sub_menus(request, current_view_name, sub_menus):
             url_name, url_kwargs, url_active_key = i[0]
             is_active = getattr(request, 'admin_active_menu', '') == url_active_key
         else:
-            is_active = current_view_name.startswith(url_name)
+            # 菜单项匹配规则 aaa:bbb:ccc 完全相等 或者开头为  aaa:bbb:ccc- 用 - 分割子项
+            is_active = current_view_name == url_name or current_view_name.startswith(url_name + '-')
         value = dict(
             url=reverse(url_name, args=url_args, kwargs=url_kwargs),
             is_active=is_active,
@@ -119,7 +120,7 @@ def get_navigation(request):
         sub_menus = sub_menus(request) if isfunction(sub_menus) else sub_menus
         sub_menus = _get_sub_menus(request, current_view_name, sub_menus)
 
-        is_active = current_view_name.startswith('admin:%s' % app_name)
+        is_active = current_view_name.startswith('admin:%s:' % app_name)
 
         navigation.append(dict(url=reverse('admin:%s:index' % app_name),
                                verbose_name=verbose_name,
