@@ -202,6 +202,7 @@ class CollectionContent(models.Model):
     contentbase = models.ForeignKey('ContentBase', on_delete=models.CASCADE)
 
     class Meta:
+        auto_created = False
         ordering = ['-pk']
         db_table = 'cms_contentbase_collections'
         verbose_name = u'内容集合关联'

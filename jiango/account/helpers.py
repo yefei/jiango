@@ -37,12 +37,16 @@ def login_required(view_func):
     return wrapper
 
 
+def assert_login_required(request):
+    if not get_request_login(request):
+        raise LoginRequired()
+
+
 def api_login_required(view_func):
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        if get_request_login(request):
-            return view_func(request, *args, **kwargs)
-        raise LoginRequired()
+        assert_login_required(request)
+        return view_func(request, *args, **kwargs)
     return wrapper
 
 

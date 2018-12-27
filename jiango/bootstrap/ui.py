@@ -67,12 +67,12 @@ def display_for_field(value, field):
 
 
 class Grid(Table):
-    def __init__(self, queryset, display_fields=('pk', '__unicode__'), request=None,
+    def __init__(self, queryset, display_fields=None, request=None,
                  bordered=True, condensed=True, hover=True, striped=False, auto_append_padding_column=True):
         Table.__init__(self, bordered, condensed, hover, striped)
 
         self.queryset = queryset
-        self.display_fields = display_fields
+        self.display_fields = display_fields or ('pk', '__unicode__')
         self.request = request
         self.model = queryset.model
         self.model_fields = {}

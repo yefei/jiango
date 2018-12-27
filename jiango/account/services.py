@@ -30,8 +30,12 @@ def get_request_login(request):
     if hasattr(request, 'login') and request.login:
         return request.login
     token = request.COOKIES.get(LOGIN_COOKIE_NAME, request.META.get(LOGIN_HEADER_NAME))
-    if not token and hasattr(request, 'param'):
-        token = request.param.get(LOGIN_API_PARAM_NAME)
+    if not token:
+        http_auth = request.META.get('HTTP_AUTHORIZATION')
+        if http_auth and http_auth.startswith('Bearer '):
+            token = http_auth[len('Bearer '):]
+        elif hasattr(request, 'param'):
+            token = request.param.get(LOGIN_API_PARAM_NAME)
     if token:
         request.login = get_login_by_token(token)
         if request.login:
