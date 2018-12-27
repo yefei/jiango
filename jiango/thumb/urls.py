@@ -6,5 +6,6 @@ from .views import thumb
 from .settings import THUMB_PREFIX
 
 urlpatterns = [
-    url(r'^%s/(?P<width>\d+)x(?P<height>\d+)/(?P<sign>[0-9a-fA-F]{32})/(?P<path>.*)$' % THUMB_PREFIX, thumb, name='thumb'),
+    url(r'^%s/(?P<mode>\d)/(?P<width>\d+)x(?P<height>\d+)/(?P<sign>[0-9a-fA-F]{32})/(?P<path>.*)$' % THUMB_PREFIX,
+        thumb),
 ]
