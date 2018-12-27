@@ -4,7 +4,7 @@
 
 <section class="content">
     <div class="box">
-        <form method="post" action="" class="form" enctype="{{ is_multipart|yesno:'multipart/form-data,application/x-www-form-urlencoded' }}">
+        <form method="post" action="" class="form" enctype="{{ form.is_multipart|yesno:'multipart/form-data,application/x-www-form-urlencoded' }}">
             {% csrf_token %}
             <div class="box-body">
                 {{form|bootstrap}}

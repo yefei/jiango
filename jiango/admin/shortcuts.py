@@ -9,11 +9,14 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.contrib import messages
 from django.shortcuts import redirect
+from django.conf.urls import url
+from django.core.urlresolvers import reverse
 from jiango.shortcuts import render_to_string, HttpResponseException, get_or_create_referer_params, HttpReload
 from jiango.utils.model import get_deleted_objects
 from jiango.ui import Element
 from .auth import login_redirect, logout_redirect, get_request_user
 from .models import Permission, Log, LogTypes
+from .ui import MainUI, links
 from . import config
 
 
@@ -285,7 +288,7 @@ def delete_confirm_view(app_label, request, queryset, on_success=None, using=Non
 
 
 def edit_view(app_label, request, form, on_success=None, template='/admin/shortcuts/edit', extras=None,
-              is_multipart=False, title=None, delete_url=None):
+              title=None, delete_url=None, **kwargs):
     log = Logger(app_label)
     if title is None:
         title = u'编辑 / %s.%s' % (form.__module__, form.__class__.__name__)
@@ -313,3 +316,94 @@ def edit_view(app_label, request, form, on_success=None, template='/admin/shortc
     if extras:
         template_vars.update(extras)
     return template, template_vars
+
+
+class CURDAdmin(object):
+    def __init__(self, app_label, name, verbose_name, model_class,
+                 display_fields=None, select_related=None, can_delete=True):
+        self.app_label = app_label
+        self.name = name
+        self.verbose_name = verbose_name
+        self.model_class = model_class
+        self.form_class = None
+        self.form_valid_callback = None
+        self.can_delete = can_delete
+        self.display_fields = display_fields
+        self.select_related = select_related
+
+        self.render = renderer()
+        self.log = Logger(app_label)
+
+        self.urlpatterns = []
+        self.permissions = {}
+
+        self._setup_list_view()
+
+        if self.can_delete:
+            self._setup_delete_view()
+
+    def _setup_list_view(self):
+        view_func = self.render(perm='%s.view' % self.name)(self.list_view)
+        view_url = url('^/%s$' % self.name, view_func, name=self.name)
+        self.urlpatterns.append(view_url)
+        self.permissions['%s.view' % self.name] = u'%s|查看' % self.verbose_name
+
+    def list_view(self, request, response):
+        qs = self.model_class.objects.all()
+        if self.select_related:
+            qs = qs.select_related(*self.select_related)
+        ui = MainUI(request)
+        grid = ui.add_paging_grid(qs, self.display_fields)
+
+        _links = []
+
+        if self.form_class:
+            _links.append((lambda i: reverse('admin:%s:%s-edit' % (self.app_label, self.name), args=[i.pk]), u"编辑"))
+
+        if self.can_delete:
+            _links.append((lambda i: reverse('admin:%s:%s-delete' % (self.app_label, self.name), args=[i.pk]), u"删除"))
+
+        if _links:
+            grid.add_column(None, links(_links))
+
+        return ui
+
+    def setup_edit_view(self, form_class, form_valid_callback=None):
+        self.form_class = form_class
+        self.form_valid_callback = form_valid_callback
+        view_func = self.render(perm='%s.edit' % self.name)(self.edit_view)
+        view_url = url('^/%s/(?P<pk>\d+)/edit$' % self.name, view_func, name='%s-edit' % self.name)
+        self.urlpatterns.append(view_url)
+        self.permissions['%s.edit' % self.name] = u'%s|编辑' % self.verbose_name
+
+    def edit_view(self, request, response, pk=None):
+        instance = self.model_class.objects.get(pk=pk) if pk else None
+        form = self.form_class(request.POST or None, request.FILES or None, instance=instance)
+
+        def form_valid(**kwargs):
+            if self.form_valid_callback:
+                self.form_valid_callback(form, request, response)
+            form.save()
+            return redirect('admin:%s:%s' % (self.app_label, self.name))
+
+        if self.can_delete:
+            delete_url = reverse('admin:%s:%s-delete' % (self.app_label, self.name),
+                                 args=[instance.pk]) if instance else None
+        else:
+            delete_url = None
+
+        return edit_view(self.app_label, request, form, form_valid, delete_url=delete_url)
+
+    def _setup_delete_view(self):
+        view_func = self.render(perm='%s.delete' % self.name)(self.delete_view)
+        view_url = url('^/%s/(?P<pk>\d+)/delete$' % self.name, view_func, name='%s-delete' % self.name)
+        self.urlpatterns.append(view_url)
+        self.permissions['%s.delete' % self.name] = u'%s|删除' % self.verbose_name
+
+    def delete_view(self, request, response, pk):
+        instance = self.model_class.objects.filter(pk=pk)
+
+        def on_success():
+            return redirect('admin:%s:%s' % (self.app_label, self.name))
+
+        return delete_confirm_view(self.app_label, request, instance, on_success)
