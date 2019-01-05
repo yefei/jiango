@@ -94,7 +94,7 @@ class ColorSelect(widgets.Input):
         if selected is False and value:
             output.append('<li data-value="%s" style="background-color:%s" class="selected"><li>' % (value, value))
         output.append('</ul>')
-        output.append('<script>ColorSelect("id_%s_select", "id_%s");</script>' % (name, name))
+        output.append('<script type="text/javascript">ColorSelect("id_%s_select", "id_%s");</script>' % (name, name))
         return mark_safe(''.join(output))
 
 

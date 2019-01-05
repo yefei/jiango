@@ -1,9 +1,9 @@
 {% load static from staticfiles %}
 <link rel="stylesheet" type="text/css" href="{% static 'admin/css/daterangepicker.css' %}">
 <script type="text/javascript" src="{% static 'admin/js/moment.js' %}"></script>
-<script>moment.locale('zh-cn');</script>
+<script type="text/javascript">moment.locale('zh-cn');</script>
 <script type="text/javascript" src="{% static 'admin/js/daterangepicker.js' %}"></script>
-<script>
+<script type="text/javascript">
     function dateRangePicker(el) {
         $(el).daterangepicker({
             autoUpdateInput:false,
