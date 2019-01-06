@@ -62,6 +62,8 @@ def display_for_field(value, field):
         return formats.number_format(value, field.decimal_places)
     elif isinstance(field, models.FloatField):
         return formats.number_format(value)
+    elif isinstance(field, models.ManyToManyField):
+        return u', '.join(unicode(i) for i in value.all())
     else:
         return smart_unicode(value)
 

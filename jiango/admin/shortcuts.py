@@ -11,12 +11,15 @@ from django.contrib import messages
 from django.shortcuts import redirect
 from django.conf.urls import url
 from django.core.urlresolvers import reverse
+from django.utils.safestring import mark_safe
 from jiango.shortcuts import render_to_string, HttpResponseException, get_or_create_referer_params, HttpReload
 from jiango.utils.model import get_deleted_objects
-from jiango.ui import Element
+from jiango.ui import Element, Link
+from jiango.pagination import Paging
+from jiango.bootstrap.ui import Grid
 from .auth import login_redirect, logout_redirect, get_request_user
 from .models import Permission, Log, LogTypes
-from .ui import MainUI, links
+from .ui import MainUI, links, AdminPagination
 from . import config
 
 
@@ -327,9 +330,11 @@ class CURDAdmin(object):
         self.model_class = model_class
         self.form_class = None
         self.form_valid_callback = None
+        self.can_add = False
         self.can_delete = can_delete
         self.display_fields = display_fields
         self.select_related = select_related
+        self.other_links = []
 
         self.render = renderer()
         self.log = Logger(app_label)
@@ -342,43 +347,64 @@ class CURDAdmin(object):
         if self.can_delete:
             self._setup_delete_view()
 
-    def _setup_list_view(self):
-        view_func = self.render(perm='%s.view' % self.name)(self.list_view)
-        view_url = url('^/%s$' % self.name, view_func, name=self.name)
+    def add_view(self, perm, view_func, view_verbose_name, url_regex_append='$', url_name_append=None):
+        view_func = self.render(perm=perm)(view_func)
+        view_url = url('^/%s%s' % (self.name, url_regex_append), view_func,
+                       name=('%s-%s' % (self.name, url_name_append)) if url_name_append else self.name)
         self.urlpatterns.append(view_url)
-        self.permissions['%s.view' % self.name] = u'%s|查看' % self.verbose_name
+        self.permissions['%s.%s' % (self.name, perm)] = u'%s|%s' % (self.verbose_name, view_verbose_name)
+
+    def _setup_list_view(self):
+        self.add_view('view', self.list_view, u'查看')
 
     def list_view(self, request, response):
         qs = self.model_class.objects.all()
         if self.select_related:
             qs = qs.select_related(*self.select_related)
+        qs = Paging(qs, request).page()
+
+        # 字符串类型则使用自定义模版渲染
+        if isinstance(self.display_fields, basestring):
+            return self.display_fields, {'qs': qs}
+
         ui = MainUI(request)
-        grid = ui.add_paging_grid(qs, self.display_fields)
+        grid = Grid(qs.object_list, self.display_fields)
+        ui.add_table(grid)
 
-        _links = []
-
+        _links = [] + self.other_links
         if self.form_class:
             _links.append((lambda i: reverse('admin:%s:%s-edit' % (self.app_label, self.name), args=[i.pk]), u"编辑"))
-
         if self.can_delete:
             _links.append((lambda i: reverse('admin:%s:%s-delete' % (self.app_label, self.name), args=[i.pk]), u"删除"))
-
         if _links:
             grid.add_column(None, links(_links))
 
+        page = AdminPagination(qs)
+
+        if self.can_add:
+            footer = Element(tag='div', attrs={'class': 'clearfix'})
+            if self.can_add:
+                add_btn = Link(mark_safe(u'<i class="fa fa-plus"></i> 添加'),
+                               'admin:%s:%s-add' % (self.app_label, self.name))
+                add_btn.set_attr('class', 'btn btn-sm btn-primary')
+                footer.append(Element(add_btn, tag='div', attrs={'class': 'pull-left'}))
+            footer.append(Element(page, 'div', {'class': 'pull-right'}))
+            ui.append(footer)
+        else:
+            ui.append(page)
         return ui
 
-    def setup_edit_view(self, form_class, form_valid_callback=None):
+    def setup_edit_view(self, form_class, form_valid_callback=None, can_add=True):
         self.form_class = form_class
         self.form_valid_callback = form_valid_callback
-        view_func = self.render(perm='%s.edit' % self.name)(self.edit_view)
-        view_url = url('^/%s/(?P<pk>\d+)/edit$' % self.name, view_func, name='%s-edit' % self.name)
-        self.urlpatterns.append(view_url)
-        self.permissions['%s.edit' % self.name] = u'%s|编辑' % self.verbose_name
+        self.can_add = can_add
+        self.add_view('edit', self.edit_view, u'编辑', '/(?P<pk>\d+)/edit$', 'edit')
+        if self.can_add:
+            self.add_view('add', self.edit_view, u'添加', '/add$', 'add')
 
     def edit_view(self, request, response, pk=None):
         instance = self.model_class.objects.get(pk=pk) if pk else None
-        form = self.form_class(request.POST or None, request.FILES or None, instance=instance)
+        form = self.form_class(data=request.POST or None, files=request.FILES or None, instance=instance)
 
         def form_valid(**kwargs):
             if self.form_valid_callback:
@@ -395,10 +421,7 @@ class CURDAdmin(object):
         return edit_view(self.app_label, request, form, form_valid, delete_url=delete_url)
 
     def _setup_delete_view(self):
-        view_func = self.render(perm='%s.delete' % self.name)(self.delete_view)
-        view_url = url('^/%s/(?P<pk>\d+)/delete$' % self.name, view_func, name='%s-delete' % self.name)
-        self.urlpatterns.append(view_url)
-        self.permissions['%s.delete' % self.name] = u'%s|删除' % self.verbose_name
+        self.add_view('delete', self.delete_view, u'删除', '/(?P<pk>\d+)/delete$', 'delete')
 
     def delete_view(self, request, response, pk):
         instance = self.model_class.objects.filter(pk=pk)
