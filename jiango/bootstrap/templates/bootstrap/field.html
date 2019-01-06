@@ -8,14 +8,14 @@
     {% elif field|is_multiple_checkbox %}
         <div class="checkbox-multiple">
             <label class="control-label">{{ field.label }}</label>
-            {% for f in field %}{{ f }} {% endfor %}
+            {% for f in field %}{{ f }} <i class="sep"></i>{% endfor %}
         </div>
     {% else %}
     	{% if field.label %}
         	<label class="control-label" for="{{ field.auto_id }}">{{ field.label }}</label>
 		{% endif %}
         {% if field|is_radio %}
-            <div class="radio">{% for f in field %}{{ f }} {% endfor %}</div>
+            <div class="radio">{% for f in field %}{{ f }} <i class="sep"></i>{% endfor %}</div>
         {% else %}
             {% ff field class="form-control" %}
         {% endif %}
