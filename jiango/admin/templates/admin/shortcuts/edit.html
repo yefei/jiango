@@ -9,10 +9,10 @@
             <div class="box-body">
                 {{form|bootstrap}}
             </div>
-            <div class="box-footer">
-                <button type="submit" class="btn btn-warning btn-large">确定</button>
+            <div class="box-footer text-center">
+                <button type="submit" class="btn btn-primary btn-large"><i class="fa fa-check"></i> 确定</button>
                 {% if delete_url %}
-                    <a href="{{ delete_url }}" class="btn btn-danger pull-right">删除</a>
+                    <a href="{{ delete_url }}" class="btn btn-default"><i class="fa fa-trash"></i> 删除</a>
                 {% endif %}
             </div>
         </form>

@@ -4,6 +4,7 @@
 
 {% block body %}
     <body class="hold-transition login-page">
+    {% include 'admin/browser-check.inc.html' %}
     <div class="login-box">
         <div class="login-logo">
             <a href="{% url admin:-index %}">{{ site_full_name|safe }}</a>
