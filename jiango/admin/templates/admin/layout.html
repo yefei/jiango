@@ -11,14 +11,14 @@
     <link rel="stylesheet" type="text/css" href="{% static 'admin/css/font-awesome.css' %}">
 	<link rel="stylesheet" type="text/css" href="{% static 'admin/css/jquery.notify.css' %}">
 	<link rel="stylesheet" type="text/css" href="{% static 'admin/css/AdminLTE.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'admin/css/skins/skin-blue-light.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'admin/css/skins/skin-black-light.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'admin/css/admin.css' %}?1">
 	<script type="text/javascript">var static_prefix = '{% get_static_prefix %}';</script>
     {% include 'admin/js.inc.html' %}
     {{ head_content|safe }}
 </head>
 {% block body %}
-<body class="hold-transition skin-blue-light fixed{% if current_sub_menus %} sidebar-mini{% if sidebar_collapse %} sidebar-collapse{% endif %}{% endif %}">
+<body class="hold-transition fixed{% if current_sub_menus %} sidebar-mini{% if sidebar_collapse %} sidebar-collapse{% endif %}{% endif %}">
     <div class="wrapper">
         <header class="main-header">
             <a href="{% url admin:-index %}" class="logo">
