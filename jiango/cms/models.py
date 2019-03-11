@@ -107,7 +107,7 @@ class Path(ModelBase):
     )
 
     name = models.CharField(u'栏目名称', max_length=100)
-    path = models.CharField(u'栏目路径', max_length=200, unique=True, help_text=PATH_HELP)
+    path = models.CharField(u'栏目路径', max_length=100, unique=True, help_text=PATH_HELP)
     depth = models.SmallIntegerField(u'栏目深度', db_index=True, editable=False)
     sort = models.SmallIntegerField(u'排序', db_index=True, default=0, editable=False)
     
