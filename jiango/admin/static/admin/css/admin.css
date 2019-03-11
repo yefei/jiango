@@ -1,5 +1,8 @@
 @CHARSET "UTF-8";
 
+.table {
+	margin-bottom: 10px;
+}
 .table th {
 	background-color: #F2F2F2;
 }
@@ -119,6 +122,33 @@ i.sep {
 	}
 }
 
+.m-0 {
+	margin: 0;
+}
+
 .mt-20 {
 	margin-top: 20px;
+}
+
+.mb-10 {
+	margin-bottom: 10px;
+}
+
+.ml-10 {
+	margin-left: 10px;
+}
+
+/* Flex */
+.flex-row {
+	display: flex;
+	flex-direction: row;
+}
+.align-items-center {
+	align-items: center;
+}
+.ml-auto {
+	margin-left: auto;
+}
+.mr-auto {
+	margin-right: auto;
 }

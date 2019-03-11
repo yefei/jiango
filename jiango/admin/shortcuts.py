@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 # Created on 2015-9-2
 # @author: Yefei
+import operator
 from functools import wraps
 from inspect import isfunction
 from django.http import HttpResponse
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import transaction
+from django.db import transaction, models
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.conf.urls import url
@@ -21,6 +22,9 @@ from .auth import login_redirect, logout_redirect, get_request_user
 from .models import Permission, Log, LogTypes
 from .ui import MainUI, links, AdminPagination
 from . import config
+
+
+SEARCH_VAR = 'q'
 
 
 class Alert(Exception):
@@ -323,7 +327,7 @@ def edit_view(app_label, request, form, on_success=None, template='/admin/shortc
 
 class CURDAdmin(object):
     def __init__(self, app_label, name, verbose_name, model_class,
-                 display_fields=None, select_related=None, can_delete=True):
+                 display_fields=None, select_related=None, can_delete=True, search_fields=None):
         self.app_label = app_label
         self.name = name
         self.verbose_name = verbose_name
@@ -334,6 +338,7 @@ class CURDAdmin(object):
         self.can_delete = can_delete
         self.display_fields = display_fields
         self.select_related = select_related
+        self.search_fields = search_fields
         self.other_links = []
 
         self.render = renderer()
@@ -361,13 +366,69 @@ class CURDAdmin(object):
         qs = self.model_class.objects.all()
         if self.select_related:
             qs = qs.select_related(*self.select_related)
+
+        # Apply keyword searches.
+        def construct_search(field_name):
+            if field_name.startswith('^'):
+                return "%s__istartswith" % field_name[1:]
+            elif field_name.startswith('='):
+                return "%s__iexact" % field_name[1:]
+            elif field_name.startswith('@'):
+                return "%s__search" % field_name[1:]
+            else:
+                return "%s__icontains" % field_name
+
+        search_query = request.GET.get(SEARCH_VAR, '')
+        if self.search_fields and search_query:
+            orm_lookups = [construct_search(str(search_field)) for search_field in self.search_fields]
+            for bit in search_query.split():
+                or_queries = [models.Q(**{orm_lookup: bit}) for orm_lookup in orm_lookups]
+                qs = qs.filter(reduce(operator.or_, or_queries))
+
         qs = Paging(qs, request).page()
 
         # 字符串类型则使用自定义模版渲染
         if isinstance(self.display_fields, basestring):
-            return self.display_fields, {'qs': qs}
+            return self.display_fields, {'qs': qs, 'search_query': search_query}
 
         ui = MainUI(request)
+
+        # 头部
+        header = Element(tag='div', attrs={'class': 'flex-row align-items-center mb-10'})
+        header.append(Element(self.verbose_name, tag='h3', attrs={'class': 'm-0 mr-auto'}))
+        ui.append(header)
+
+        # 搜索表单
+        if self.search_fields:
+            search_form = Element(tag='form', attrs={'class': 'form-inline input-group ml-10'})
+            search_form.append(Element(tag='input', close_tag=False, attrs={
+                'name': SEARCH_VAR,
+                'placeholder': '输入关键词搜索',
+                'class': 'form-control',
+                'value': search_query,
+            }))
+
+            buttons = Element(tag='span', attrs={'class': 'input-group-btn'})
+            search_form.append(buttons)
+            
+            buttons.append(Element(content=u'搜索', tag='button', attrs={
+                'type': 'submit',
+                'class': 'btn btn-default',
+            }))
+            if search_query:
+                buttons.append(Element(content=u'取消', tag='a', attrs={
+                    'href': '?',
+                    'class': 'btn btn-default',
+                }))
+            header.append(search_form)
+
+        # 添加按钮
+        if self.can_add:
+            add_btn = Link(mark_safe(u'<i class="fa fa-plus"></i> 添加'),
+                           'admin:%s:%s-add' % (self.app_label, self.name))
+            add_btn.set_attr('class', 'btn btn-primary ml-10')
+            header.append(add_btn)
+
         grid = Grid(qs.object_list, self.display_fields)
         ui.add_table(grid)
 
@@ -380,18 +441,7 @@ class CURDAdmin(object):
             grid.add_column(None, links(_links))
 
         page = AdminPagination(qs)
-
-        if self.can_add:
-            footer = Element(tag='div', attrs={'class': 'clearfix'})
-            if self.can_add:
-                add_btn = Link(mark_safe(u'<i class="fa fa-plus"></i> 添加'),
-                               'admin:%s:%s-add' % (self.app_label, self.name))
-                add_btn.set_attr('class', 'btn btn-sm btn-primary')
-                footer.append(Element(add_btn, tag='div', attrs={'class': 'pull-left'}))
-            footer.append(Element(page, 'div', {'class': 'pull-right'}))
-            ui.append(footer)
-        else:
-            ui.append(page)
+        ui.append(page)
         return ui
 
     def setup_edit_view(self, form_class, form_valid_callback=None, can_add=True):
