@@ -2,10 +2,10 @@
 
 <section class="content-header">
     <h1>
-        <a href="{% url admin:-index %}">系统</a>
-        / <a href="{% url admin:-user %}">管理员</a>
+        <a href="{% url admin:admin:index %}">系统</a>
+        / <a href="{% url admin:admin:user %}">管理员</a>
         {% if user %}
-            / <a href="{% url admin:-user-show user.pk %}">{{user}}</a>
+            / <a href="{% url admin:admin:user-show user.pk %}">{{user}}</a>
             / 编辑管理员
         {% else %}
             / 添加管理员

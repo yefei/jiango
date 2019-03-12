@@ -10,7 +10,7 @@ from django.contrib import messages
 from django.shortcuts import redirect
 from jiango.admin.shortcuts import renderer, Alert, Logger
 from jiango.admin.config import ADMIN_PERMISSIONS
-from jiango.admin.loader import urlpatterns as system_urlpatterns, system_sub_menus
+from jiango.admin.admin import urlpatterns as system_urlpatterns, sub_menus as system_sub_menus
 from .models import get_config_value, get_config_item, set_config_value
 from .forms import ItemForm
 
@@ -41,20 +41,20 @@ def edit(request, response, key):
     if form.is_valid():
         log_content = u'修改配置项: %s(%s)' % (verbose_name, key)
         log_content += u'\n\n原值: %r\n新值: %r' % (value, form.cleaned_data['value'])
-        log(request, log.SUCCESS, log_content, view_name='admin:-config-edit', view_args=[key])
+        log(request, log.SUCCESS, log_content, view_name='admin:admin:config-edit', view_args=[key])
         set_config_value(key, form.cleaned_data['value'])
         messages.success(request, u'成功修改配置项')
-        return redirect('admin:-config')
+        return redirect('admin:admin:config')
     return locals()
 
 
 system_urlpatterns.extend([
-    url(r'^-/config$', index, name='-config'),
-    url(r'^-/config/(?P<key>.+)$', edit, name='-config-edit'),
+    url(r'^/config$', index, name='config'),
+    url(r'^/config/(?P<key>.+)$', edit, name='config-edit'),
 ])
 
 system_sub_menus.extend([
-    ('admin:-config', u'系统配置', 'fa fa-cog'),
+    ('admin:admin:config', u'系统配置', 'fa fa-cog'),
 ])
 
 ADMIN_PERMISSIONS['config.view'] = u'查看系统配置'

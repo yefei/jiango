@@ -1,7 +1,7 @@
 <section class="content-header">
     <h1>
-        <a href="{% url admin:-index %}">系统</a>
-        / <a href="{% url admin:-log %}">日志</a>
+        <a href="{% url admin:admin:index %}">系统</a>
+        / <a href="{% url admin:admin:log %}">日志</a>
         / #{{result.pk}}
     </h1>
 </section>
@@ -21,7 +21,7 @@
                 {% endif %}
                 <b>操作用户:</b>
                 {% if result.user_id %}
-                    <a href="{% url admin:-user-show result.user.pk %}" target="_blank">{{result.user.username}}</a>
+                    <a href="{% url admin:admin:user-show result.user.pk %}" target="_blank">{{result.user.username}}</a>
                 {% elif result.username %}
                     {{result.username}} (已经被删除)
                 {% else %}

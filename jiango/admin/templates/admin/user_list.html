@@ -2,7 +2,7 @@
 
 <section class="content-header">
     <h1>
-        <a href="{% url admin:-index %}">系统</a> /
+        <a href="{% url admin:admin:index %}">系统</a> /
         管理员列表
     </h1>
 </section>
@@ -29,7 +29,7 @@
                             {% if not i.is_active %}<span class="label label-default">无效</span>{% endif %}
                             {% if i.is_superuser %}<span class="label label-warning">超级用户</span>{% endif %}
                             {% if i.is_online %}<span class="label label-success">在线</span>{% endif %}
-                            <a href="{% url admin:-user-show i.pk %}" class="btn btn-default btn-xs pull-right">详细</a>
+                            <a href="{% url admin:admin:user-show i.pk %}" class="btn btn-default btn-xs pull-right">详细</a>
                         </td>
                         <td class="datetime">{{i.login_at|default:'-'}}</td>
                         <td class="datetime">{{i.login_fail_at|default:'-'}} ({{i.login_fails}})</td>
@@ -41,7 +41,7 @@
             </table>
         </div>
         <div class="box-footer">
-            <a href="{% url admin:-user-add %}" class="btn btn-primary btn-sm pull-left">添加管理员</a>
+            <a href="{% url admin:admin:user-add %}" class="btn btn-primary btn-sm pull-left">添加管理员</a>
             {% paginate user_set %}
         </div>
     </div>

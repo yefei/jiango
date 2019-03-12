@@ -1,6 +1,6 @@
 <section class="content-header">
-    <h1><a href="{% url admin:-index %}">系统</a> / 管理组
-        <a href="{% url admin:-group-add %}" class="btn btn-primary btn-sm">添加管理组</a>
+    <h1><a href="{% url admin:admin:index %}">系统</a> / 管理组
+        <a href="{% url admin:admin:group-add %}" class="btn btn-primary btn-sm">添加管理组</a>
     </h1>
 </section>
 
@@ -13,7 +13,7 @@
                     <h3>{{i.name}}</h3>
                     <p>{% if i.permissions.all %}{{ i.permissions.all|join:'<br>'|safe }}{% else %}-- 无任何权限 --{% endif %}</p>
                 </div>
-                <a href="{% url admin:-group-show i.pk %}" class="small-box-footer">查看</a>
+                <a href="{% url admin:admin:group-show i.pk %}" class="small-box-footer">查看</a>
             </div>
         </div>
         {% endfor %}

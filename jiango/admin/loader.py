@@ -1,17 +1,13 @@
 # -*- coding: utf-8 -*-
 # Created on 2015-9-1
 # @author: Yefei
-from time import time
 from inspect import isfunction
 from django.conf.urls import url, include
-from django.http import HttpResponse
 from django.utils.text import capfirst
 from django.utils.datastructures import SortedDict
 from django.core.urlresolvers import reverse, resolve
-from django.utils.encoding import smart_unicode
+from django.shortcuts import redirect
 from jiango.importlib import autodiscover_installed_apps
-from .auth import get_request_user
-from . import views
 
 
 # A flag to tell us if autodiscover is running.  autodiscover will set this to
@@ -32,45 +28,12 @@ def autodiscover(module_name):
     LOADING = False
 
 
-# 主要用于保持用户在线状态
-# 返回毫秒级时间戳可用于客户端判断通讯延迟
-def ping(request):
-    get_request_user(request)
-    return HttpResponse(str(int(time()*1000)))
+def index(request):
+    return redirect('admin:admin:index')
 
 
 urlpatterns = [
-    url(r'^-/ping$', ping, name='-ping'),
-
-    url(r'^$', views.index, name='-index'),
-    url(r'^-/login$', views.login, name='-login'),
-    url(r'^-/logout$', views.logout, name='-logout'),
-    url(r'^-/password$', views.set_password, name='-password'),
-    
-    url(r'^-/log$', views.log_list, name='-log'),
-    url(r'^-/log/(?P<log_id>\d+)$', views.log_show, name='-log-show'),
-    
-    url(r'^-/user$', views.user_list, name='-user'),
-    url(r'^-/user/add$', views.user_edit, name='-user-add'),
-    url(r'^-/user/(?P<user_id>\d+)$', views.user_show, name='-user-show'),
-    url(r'^-/user/(?P<user_id>\d+)/edit$', views.user_edit, name='-user-edit'),
-    url(r'^-/user/(?P<user_id>\d+)/password$', views.set_password, name='-user-password'),
-    url(r'^-/user/(?P<user_id>\d+)/delete$', views.user_delete, name='-user-delete'),
-    
-    url(r'^-/group$', views.group_list, name='-group'),
-    url(r'^-/group/add$', views.group_edit, name='-group-add'),
-    url(r'^-/group/(?P<group_id>\d+)$', views.group_show, name='-group-show'),
-    url(r'^-/group/(?P<group_id>\d+)/edit$', views.group_edit, name='-group-edit'),
-    url(r'^-/group/(?P<group_id>\d+)/delete$', views.group_delete, name='-group-delete'),
-]
-
-system_sub_menus = [
-    # url_name, name, icon
-    ('admin:-index', u'系统首页', 'fa fa-dashboard'),
-    ('admin:-log', u'系统日志', 'fa fa-file-text-o'),
-    ('admin:-user', u'管理员', 'fa fa-user'),
-    ('admin:-group', u'管理组', 'fa fa-group'),
-    ('admin:-password', u'修改密码', 'fa fa-lock'),
+    url(r'^$', index, name='-index'),
 ]
 
 
@@ -123,16 +86,11 @@ def get_navigation(request):
         is_active = current_view_name.startswith('admin:%s:' % app_name)
 
         navigation.append(dict(url=reverse('admin:%s:index' % app_name),
+                               app_name=app_name,
                                verbose_name=verbose_name,
                                icon=icon,
                                sub_menus=sub_menus,
                                is_active=is_active))
-
-    navigation.append(dict(url=reverse('admin:-index'),
-                           verbose_name=u'系统',
-                           icon=None,
-                           sub_menus=_get_sub_menus(request, current_view_name, system_sub_menus),
-                           is_active=current_view_name.startswith('admin:-')))
     return navigation
 
 

@@ -15,12 +15,12 @@
         <td class="nowrap">{{i.get_level_display}}</td>
         <td class="nowrap">{{i.get_action_display}}</td>
         <td>{{i.content|truncatechars:60}}
-            <a href="{% url admin:-log-show i.pk %}" class="pull-right">详细</a>
+            <a href="{% url admin:admin:log-show i.pk %}" class="pull-right">详细</a>
         </td>
         <td class="datetime">{{i.datetime}}</td>
         <td class="user">
             {% if i.user %}
-                <a href="{% url admin:-user-show i.user.pk %}" target="_blank">{{i.user.username}}</a>
+                <a href="{% url admin:admin:user-show i.user.pk %}" target="_blank">{{i.user.username}}</a>
             {% elif i.username %}
                 <span title="已经被删除">{{i.username}}</span>
             {% endif %}

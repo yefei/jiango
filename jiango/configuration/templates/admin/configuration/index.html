@@ -1,6 +1,6 @@
 <section class="content-header">
     <h1>
-        <a href="{% url admin:-index %}">系统</a> /
+        <a href="{% url admin:admin:index %}">系统</a> /
         系统配置
     </h1>
 </section>
@@ -23,7 +23,7 @@
                         <td class="nowrap">{{i.verbose_name}}</td>
                         <td>{{ i.value|truncatechars:100 }}</td>
                         <td class="nowrap">
-                            <a href="{% url admin:-config-edit i.key %}">修改</a>
+                            <a href="{% url admin:admin:config-edit i.key %}">修改</a>
                         </td>
                     </tr>
                     {% endfor %}

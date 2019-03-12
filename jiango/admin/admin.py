@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 # Created on 2015-9-2
 # @author: Yefei
+from time import time
+from django.conf.urls import url
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.utils.crypto import get_random_string
 from django.shortcuts import redirect
 from django.contrib import messages
@@ -14,6 +16,7 @@ from .config import SECRET_KEY_DIGEST, FULL_NAME, CLIENT_PASSWORD_ENCRYPT
 from .models import User, Log, get_password_digest, Group
 
 
+verbose_name = u'系统'
 render = renderer('admin/')
 log = Logger('admin')
 
@@ -24,7 +27,7 @@ def index(request, response):
     user = get_request_user(request)
     online_set = set(User.objects.online())
     online_count = len(online_set)
-    navigation = get_navigation(request)[:-1]
+    navigation = (i for i in get_navigation(request) if i['app_name'] != 'admin')
     if user.has_perm('admin.log.view'):
         log_set = Log.objects.select_related('user')[:10]
         log_count = Log.objects.count()
@@ -43,7 +46,7 @@ def login(request, response):
             if not user.is_active:
                 log(request, log.WARNING, u'用户 %s 认证成功，由于账户已被停用而被禁止登陆' % user.username, log.LOGIN, user=user)
                 raise Alert(Alert.ERROR, u'您的帐号已经被停用')
-            next_url = request.REQUEST.get(LOGIN_NEXT_FIELD, reverse('admin:-index'))
+            next_url = request.REQUEST.get(LOGIN_NEXT_FIELD, reverse('admin:admin:index'))
             resp = HttpResponseRedirect(next_url)
             set_login(user)
             set_login_cookie(resp, user)
@@ -83,7 +86,7 @@ def set_password(request, response, user_id=None):
             target_user.update_password(form.get_new_password())
             log(request, log.SUCCESS, u'修改 %s 的登陆密码' % target_user, log.UPDATE)
             messages.success(request, u'成功修改 %s 的登陆密码' % target_user)
-            resp = redirect('admin:-index')
+            resp = redirect('admin:admin:index')
             if user.pk == target_user.pk:
                 set_login_cookie(resp, user)
             return resp
@@ -96,7 +99,7 @@ def set_password(request, response, user_id=None):
             log(request, log.WARNING, u'修改 %s 的登陆密码时验证当前密码错误被强制退出' % target_user, log.LOGOUT)
             set_logout_cookie(response)
             raise Alert(Alert.ERROR, u'修改登陆密码时验证当前密码错误被强制退出',
-                        {u'重新登陆': reverse('admin:-login')}, back=False)
+                        {u'重新登陆': reverse('admin:admin:login')}, back=False)
     else:
         form = SetPasswordForm(user, client_password_encrypt)
     return locals()
@@ -147,11 +150,11 @@ def user_edit(request, response, user_id=None):
                 form.instance.password_digest = get_password_digest(raw_password)
             user = form.save()
             log(request, log.SUCCESS, u'%s管理员: %s' % (action_name, user), action,
-                view_name='admin:-user-show', view_args=(user.pk,), form=form)
+                view_name='admin:admin:user-show', view_args=(user.pk,), form=form)
             messages.success(request,
                              u'成功%s管理员%s' % (action_name, (u'，初始密码: %s' % raw_password) if raw_password else ''),
                              'sticky' if raw_password else '')
-            return redirect('admin:-user-show', user.pk)
+            return redirect('admin:admin:user-show', user.pk)
         log(request, log.ERROR, u'%s管理员失败' % action_name, action, form=form)
     else:
         form = UserForm(instance=user)
@@ -166,7 +169,7 @@ def user_delete(request, response, user_id):
         log(request, log.SUCCESS, u'删除用户: %s' % user, log.DELETE)
         messages.success(request, u'删除完成')
         user.delete()
-        return redirect('admin:-user-list')
+        return redirect('admin:admin:user-list')
     return locals()
 
 
@@ -193,9 +196,9 @@ def group_edit(request, response, group_id=None):
         if form.is_valid():
             group = form.save()
             log(request, log.SUCCESS, u'%s %s 用户组' % (action_name, group), action,
-                view_name='admin:-group-show', view_args=(group.pk,), form=form)
+                view_name='admin:admin:group-show', view_args=(group.pk,), form=form)
             messages.success(request, u'成功%s用户组' % action_name)
-            return redirect('admin:-group-show', group.pk)
+            return redirect('admin:admin:group-show', group.pk)
         log(request, log.ERROR, u'%s用户组失败' % action_name, action, form=form)
     else:
         form = GroupForm(instance=group)
@@ -210,5 +213,47 @@ def group_delete(request, response, group_id):
         log(request, log.SUCCESS, u'删除用户组: %s' % group, log.DELETE)
         messages.success(request, u'删除完成')
         group.delete()
-        return redirect('admin:-group')
+        return redirect('admin:admin:group')
     return locals()
+
+
+# 主要用于保持用户在线状态
+# 返回毫秒级时间戳可用于客户端判断通讯延迟
+def ping(request):
+    get_request_user(request)
+    return HttpResponse(str(int(time()*1000)))
+
+
+urlpatterns = [
+    url(r'^/ping$', ping, name='ping'),
+
+    url(r'^$', index, name='index'),
+    url(r'^/login$', login, name='login'),
+    url(r'^/logout$', logout, name='logout'),
+    url(r'^/password$', set_password, name='password'),
+
+    url(r'^/log$', log_list, name='log'),
+    url(r'^/log/(?P<log_id>\d+)$', log_show, name='log-show'),
+
+    url(r'^/user$', user_list, name='user'),
+    url(r'^/user/add$', user_edit, name='user-add'),
+    url(r'^/user/(?P<user_id>\d+)$', user_show, name='user-show'),
+    url(r'^/user/(?P<user_id>\d+)/edit$', user_edit, name='user-edit'),
+    url(r'^/user/(?P<user_id>\d+)/password$', set_password, name='user-password'),
+    url(r'^/user/(?P<user_id>\d+)/delete$', user_delete, name='user-delete'),
+
+    url(r'^/group$', group_list, name='group'),
+    url(r'^/group/add$', group_edit, name='group-add'),
+    url(r'^/group/(?P<group_id>\d+)$', group_show, name='group-show'),
+    url(r'^/group/(?P<group_id>\d+)/edit$', group_edit, name='group-edit'),
+    url(r'^/group/(?P<group_id>\d+)/delete$', group_delete, name='group-delete'),
+]
+
+sub_menus = [
+    # url_name, name, icon
+    ('admin:admin:index', u'系统首页', 'fa fa-dashboard'),
+    ('admin:admin:log', u'系统日志', 'fa fa-file-text-o'),
+    ('admin:admin:user', u'管理员', 'fa fa-user'),
+    ('admin:admin:group', u'管理组', 'fa fa-group'),
+    ('admin:admin:password', u'修改密码', 'fa fa-lock'),
+]

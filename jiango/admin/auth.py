@@ -85,7 +85,7 @@ def get_request_user(request):
 
 def login_redirect(request):
     path = urlquote(request.get_full_path())
-    tup = reverse('admin:-login'), LOGIN_NEXT_FIELD, path
+    tup = reverse('admin:admin:login'), LOGIN_NEXT_FIELD, path
     return HttpResponseRedirect('%s?%s=%s' % tup)
 
 
