@@ -394,14 +394,22 @@ class CURDAdmin(object):
         ui = MainUI(request)
 
         # 头部
-        header = Element(tag='div', attrs={'class': 'flex-row align-items-center mb-10'})
-        header.append(Element(self.verbose_name, tag='h3', attrs={'class': 'm-0 mr-auto'}))
+        header = Element(tag='div', attrs={'class': 'clearfix mb-10'})
         ui.append(header)
+
+        header_left = Element(tag='div', attrs={'class': 'pull-left'})
+        header_left.append(Element(self.verbose_name, tag='h3', attrs={'class': 'm-0'}))
+        header.append(header_left)
+
+        header_right = Element(tag='div', attrs={'class': 'pull-right'})
+        header.append(header_right)
 
         # 搜索表单
         if self.search_fields:
-            search_form = Element(tag='form', attrs={'class': 'form-inline input-group ml-10'})
-            search_form.append(Element(tag='input', close_tag=False, attrs={
+            search_form = Element(tag='form', attrs={'class': 'pull-left form-inline ml-10'})
+            _wrap = Element(tag='div', attrs={'class': 'input-group'})
+            search_form.append(_wrap)
+            _wrap.append(Element(tag='input', close_tag=False, attrs={
                 'name': SEARCH_VAR,
                 'placeholder': '输入关键词搜索',
                 'class': 'form-control',
@@ -409,7 +417,7 @@ class CURDAdmin(object):
             }))
 
             buttons = Element(tag='span', attrs={'class': 'input-group-btn'})
-            search_form.append(buttons)
+            _wrap.append(buttons)
             
             buttons.append(Element(content=u'搜索', tag='button', attrs={
                 'type': 'submit',
@@ -420,14 +428,14 @@ class CURDAdmin(object):
                     'href': '?',
                     'class': 'btn btn-default',
                 }))
-            header.append(search_form)
+            header_right.append(search_form)
 
         # 添加按钮
         if self.can_add:
             add_btn = Link(mark_safe(u'<i class="fa fa-plus"></i> 添加'),
                            'admin:%s:%s-add' % (self.app_label, self.name))
             add_btn.set_attr('class', 'btn btn-primary ml-10')
-            header.append(add_btn)
+            header_right.append(add_btn)
 
         grid = Grid(qs.object_list, self.display_fields)
         ui.add_table(grid)
