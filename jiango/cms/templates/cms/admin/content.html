@@ -50,9 +50,11 @@
                                 {% if i.flag != 0 %}<span class="label label-info">{{ i.get_flag_display }}</span>{% endif %}
                                 {% if i.is_hidden %}<span class="label label-default">隐藏</span>{% endif %}
                                 <a href="{% url admin:cms:content-edit i.pk %}">{{i}}</a>
+                                {% if i.url %}
                                 <div class="pull-right">
                                     <a href="{{ i.url }}" class="btn btn-xs btn-default" target="_blank">查看</a>
                                 </div>
+                                {% endif %}
                             </td>
                             <td class="datetime">{{i.update_at}}</td>
                             <td class="user">{{i.update_user}}</td>
