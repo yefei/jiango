@@ -4,26 +4,26 @@
 
 <section class="content">
     <p>当前在线管理员: <b>{{online_count}}</b> 位
-        <span class="btn-group">
-            <a href="{% url admin:admin:user %}" class="btn btn-default">查看所有管理员</a>
-            <a href="{% url admin:admin:user-add %}" class="btn btn-default">添加</a>
-        </span>
-        &nbsp; &nbsp;
-        <a href="{% url admin:admin:group %}" class="btn btn-default">用户组</a>
-        &nbsp; &nbsp;
-        <a href="{% url admin:admin:password %}" class="btn btn-default">修改我的密码</a>
+        <i class="sep">|</i>
+        <a href="{% url admin:admin:user %}">查看所有管理员</a>
+        <i class="sep">|</i>
+        <a href="{% url admin:admin:user-add %}">添加管理员</a>
+        <i class="sep">|</i>
+        <a href="{% url admin:admin:group %}">用户组</a>
+        <i class="sep">|</i>
+        <a href="{% url admin:admin:password %}">修改我的密码</a>
     </p>
     <blockquote>
         <ul class="list-inline">
             {% for i in online_set %}
-                <li>{{i.username}}</li>
+                <li><i class="fa fa-user"></i> {{i.username}}</li>
             {% endfor %}
         </ul>
     </blockquote>
 
     <div class="box">
         <div class="box-header with-border">
-            <h3 class="box-title">功能地图</h3>
+            <h3 class="box-title">功能导航</h3>
         </div>
         <div class="box-body">
             <table class="navigation-menu">
