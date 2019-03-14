@@ -57,7 +57,7 @@ class AlertMessage(HttpReload):
         self.message = message
         self.extra_tags = extra_tags
         self.fail_silently = fail_silently
-        self.remove_get_vars = remove_get_vars
+        super(AlertMessage, self).__init__(remove_get_vars)
     
     def response(self, request, response=None):
         add_message(request, self.level, self.message, self.extra_tags, self.fail_silently)
