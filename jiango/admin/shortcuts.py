@@ -341,7 +341,7 @@ class CURDAdmin(object):
         self.search_fields = search_fields
         self.other_links = []
 
-        self.render = renderer()
+        self.render = renderer('%s/admin/' % app_label)
         self.log = Logger(app_label)
 
         self.urlpatterns = []
@@ -452,13 +452,16 @@ class CURDAdmin(object):
         ui.append(page)
         return ui
 
+    def setup_add_view(self, view):
+        self.can_add = True
+        self.add_view('add', view, u'添加', '/add$', 'add')
+
     def setup_edit_view(self, form_class, form_valid_callback=None, can_add=True):
         self.form_class = form_class
         self.form_valid_callback = form_valid_callback
-        self.can_add = can_add
         self.add_view('edit', self.edit_view, u'编辑', '/(?P<pk>\d+)/edit$', 'edit')
-        if self.can_add:
-            self.add_view('add', self.edit_view, u'添加', '/add$', 'add')
+        if can_add:
+            self.setup_add_view(self.edit_view)
 
     def edit_view(self, request, response, pk=None):
         instance = self.model_class.objects.get(pk=pk) if pk else None
