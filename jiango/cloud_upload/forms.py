@@ -7,7 +7,7 @@ from django import forms
 from django.core.validators import EMPTY_VALUES
 from .settings import SIZE_LIMIT
 from .client import get_stream_hash
-from .services import get_file_by_hash, create_by_stream
+from .services import get_file_by_hash, create_by_stream, get_or_create_by_stream
 from .widgets import CloudClearableFileInput
 
 
@@ -40,15 +40,8 @@ class CloudFileFormField(forms.FileField):
     def to_python(self, value):
         if value in EMPTY_VALUES:
             return None
-        # 计算文件 hash
-        fp = super(CloudFileFormField, self).to_python(value)
-        self.fp = fp
-        hash_key = get_stream_hash(fp)
-        value = get_file_by_hash(hash_key)
-        if value is None:
-            # 不存在则创建
-            value = create_by_stream(fp, fp.content_type, hash_key)
-        return value
+        self.fp = super(CloudFileFormField, self).to_python(value)
+        return get_or_create_by_stream(self.fp, self.fp.content_type)
 
 
 class CloudImageFormField(forms.ImageField):
@@ -63,15 +56,8 @@ class CloudImageFormField(forms.ImageField):
     def to_python(self, value):
         if value in EMPTY_VALUES:
             return None
-        # 计算文件 hash
-        fp = super(CloudImageFormField, self).to_python(value)
-        self.fp = fp
-        hash_key = get_stream_hash(fp)
-        value = get_file_by_hash(hash_key)
-        if value is None:
-            # 不存在则创建
-            value = create_by_stream(fp, fp.content_type, hash_key)
-        return value
+        self.fp = super(CloudImageFormField, self).to_python(value)
+        return get_or_create_by_stream(self.fp, self.fp.content_type)
 
 
 # from .models import Test

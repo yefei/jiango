@@ -5,11 +5,17 @@ Since: 2019/3/14
 """
 from django.utils.safestring import mark_safe
 from django.utils.html import escape, conditional_escape
-from django.forms.widgets import ClearableFileInput, CheckboxInput
+from django.forms.widgets import ClearableFileInput, CheckboxInput, FileInput
+from django.core.files.uploadedfile import UploadedFile
 from .models import File
 
 
 class CloudClearableFileInput(ClearableFileInput):
+    template_with_initial = u'<div class="row">' \
+                            u'<div class="col-md-6">%(initial_text)s: %(initial)s %(clear_template)s</div>' \
+                            u'<div class="col-md-6">%(input_text)s: %(input)s</div>' \
+                            u'</div>'
+
     def render(self, name, value, attrs=None):
         substitutions = {
             'initial_text': self.initial_text,
@@ -19,9 +25,9 @@ class CloudClearableFileInput(ClearableFileInput):
         }
 
         template = u'%(input)s'
-        substitutions['input'] = super(CloudClearableFileInput, self).render(name, value, attrs)
+        substitutions['input'] = FileInput.render(self, name, value, attrs)
 
-        if value:
+        if value and not isinstance(value, UploadedFile):
             file_obj = File.objects.get(pk=value)
             template = self.template_with_initial
             substitutions['initial'] = (u'<a href="%s" target="_blank">%s: %s</a>'

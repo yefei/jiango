@@ -62,3 +62,12 @@ def get_file_by_hash(hash_key):
         return File.objects.get(hash=hash_key)
     except File.DoesNotExist:
         pass
+
+
+def get_or_create_by_stream(stream, mime=None):
+    hash_key = get_stream_hash(stream)
+    obj = get_file_by_hash(hash_key)
+    if obj is None:
+        # 不存在则创建
+        obj = create_by_stream(stream, mime, hash_key)
+    return obj

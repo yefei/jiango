@@ -19,6 +19,9 @@ class File(models.Model):
         ordering = ['-pk']
         verbose_name = u'云文件'
 
+    def __unicode__(self):
+        return self.hash
+
     @property
     def is_image(self):
         return self.mime and self.mime.startswith('image/')
