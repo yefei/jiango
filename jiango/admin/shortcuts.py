@@ -387,15 +387,8 @@ class CURDAdmin(object):
 
         qs = Paging(qs, request).page()
 
-        # 字符串类型则使用自定义模版渲染
-        if isinstance(self.display_fields, basestring):
-            return self.display_fields, {'qs': qs, 'search_query': search_query}
-
-        ui = MainUI(request)
-
         # 头部
         header = Element(tag='div', attrs={'class': 'clearfix mb-10'})
-        ui.append(header)
 
         header_left = Element(tag='div', attrs={'class': 'pull-left'})
         header_left.append(Element(self.verbose_name, tag='h3', attrs={'class': 'm-0'}))
@@ -437,6 +430,16 @@ class CURDAdmin(object):
             add_btn.set_attr('class', 'btn btn-primary ml-10')
             header_right.append(add_btn)
 
+        page = AdminPagination(qs)
+
+        # 字符串类型则使用自定义模版渲染
+        if isinstance(self.display_fields, basestring):
+            return self.display_fields, {
+                'qs': qs, 'page': mark_safe(page.render()), 'header': mark_safe(header.render())}
+
+        ui = MainUI(request)
+        ui.append(header)
+
         grid = Grid(qs.object_list, self.display_fields)
         ui.add_table(grid)
 
@@ -448,7 +451,6 @@ class CURDAdmin(object):
         if _links:
             grid.add_column(None, links(_links))
 
-        page = AdminPagination(qs)
         ui.append(page)
         return ui
 
