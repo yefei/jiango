@@ -30,5 +30,5 @@ class OrderField(SmallIntegerField):
                 last_obj = qs.latest(self.attname)
             except self.model.DoesNotExist:
                 last_obj = None
-            val = last_obj.order + 1 if last_obj else 0
+            val = getattr(last_obj, self.attname) + 1 if last_obj else 0
         return val
