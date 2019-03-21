@@ -27,7 +27,7 @@ class HttpReload(HttpResponseException):
     def __init__(self, remove_get_vars=None, add_get_vars_dict=None):
         self.remove_get_vars = remove_get_vars
         self.add_get_vars_dict = add_get_vars_dict
-    
+
     def response(self, request, response=None):
         if response is None:
             response = HttpResponse()
@@ -38,7 +38,8 @@ class HttpReload(HttpResponseException):
             get_vars = request.GET.copy()
             if self.remove_get_vars:
                 for k in self.remove_get_vars:
-                    del get_vars[k]
+                    if k in get_vars:
+                        del get_vars[k]
         if self.add_get_vars_dict:
             get_vars.update(self.add_get_vars_dict)
         response['Location'] = '%s%s' % (request.path, get_vars and ('?' + get_vars.urlencode()) or '')
@@ -51,14 +52,14 @@ class AlertMessage(HttpReload):
     SUCCESS = message_constants.SUCCESS
     WARNING = message_constants.WARNING
     ERROR = message_constants.ERROR
-    
+
     def __init__(self, level, message, extra_tags='', fail_silently=False, remove_get_vars=None):
         self.level = level
         self.message = message
         self.extra_tags = extra_tags
         self.fail_silently = fail_silently
         super(AlertMessage, self).__init__(remove_get_vars)
-    
+
     def response(self, request, response=None):
         add_message(request, self.level, self.message, self.extra_tags, self.fail_silently)
         return super(AlertMessage, self).response(request, response)
@@ -76,16 +77,16 @@ def get_or_create_referer_params(request, default=None, key='ref'):
 def render_to_string(request, result, default_template, prefix=None, template_ext='html'):
     templates = [default_template]
     dictionary = None
-    
+
     # 参数解析
     # {'var': value ...}
     if isinstance(result, dict):
         dictionary = result
-    
+
     # 'template' or '/root_template'
     elif isinstance(result, basestring):
         templates = [result]
-    
+
     # 'template1', 'template2' ...
     # 'template', {'var': value ...}
     # 'template1', 'template2', ... {'var': value ...}
@@ -96,17 +97,17 @@ def render_to_string(request, result, default_template, prefix=None, template_ex
             dictionary = result[-1]
         else:
             templates = list(result)
-    
+
     if getattr(request, 'is_mobile', False):
         templates = [t + '.mobile' for t in templates] + templates
-    
+
     for i in xrange(0, len(templates)):
         if templates[i].startswith('/'):
             templates[i] = templates[i][1:]
         elif prefix:
             templates[i] = prefix + templates[i]
         templates[i] += '.' + template_ext
-    
+
     return _render_to_string(templates, dictionary, RequestContext(request))
 
 
@@ -168,9 +169,9 @@ def render_serialize(func_or_format):
         return 'json', {'var': value ...}
         return 'json', {'var': value ...}, {'options': opt ...}
     """
-    
+
     default_format = 'json'
-    
+
     def do_renderer(func):
         @wraps(func)
         def wrapper(request, *args, **kwargs):
@@ -178,12 +179,12 @@ def render_serialize(func_or_format):
             value = None
             options = {}
             response = HttpResponse()
-            
+
             result = func(request, response, *args, **kwargs)
-            
+
             if isinstance(result, HttpResponse):
                 return result
-            
+
             if isinstance(result, tuple):
                 len_tuple = len(result)
                 if len_tuple == 2:
@@ -192,17 +193,17 @@ def render_serialize(func_or_format):
                     _format, value, options = result
             else:
                 value = result
-            
+
             return response_serialize(value, _format, options, response)
         return wrapper
-    
+
     # @render_serialize('json')
     if isinstance(func_or_format, basestring):
         default_format = func_or_format
         return do_renderer
-    
+
     # @render_serialize
-    return do_renderer(func_or_format) 
+    return do_renderer(func_or_format)
 
 
 def _get_queryset(klass):
