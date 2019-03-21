@@ -15,7 +15,7 @@ class CheckboxSelectMultiple(widgets.CheckboxSelectMultiple):
     def __init__(self, label_class='checkbox inline', attrs=None, choices=()):
         super(CheckboxSelectMultiple, self).__init__(attrs, choices)
         self.label_class = label_class
-    
+
     def render(self, name, value, attrs=None, choices=()):
         if value is None:
             value = []
@@ -46,7 +46,7 @@ class RadioSelect(widgets.RadioSelect):
     def __init__(self, label_class='radio inline', *args, **kwargs):
         super(RadioSelect, self).__init__(*args, **kwargs)
         self.label_class = label_class
-    
+
     def render(self, name, value, attrs=None, choices=()):
         r = self.get_renderer(name, value, attrs, choices)
         return mark_safe('\n'.join([unicode(i).replace('<label', '<label class="%s"' % self.label_class) for i in r]))
@@ -130,3 +130,52 @@ class ColorModelSelectMultiple(forms.SelectMultiple):
         if id_:
             id_ += '_0'
         return id_
+
+
+def datetime_picker_media():
+    return forms.Media(
+        js=[static("js/moment.js"), static("js/bootstrap-datetimepicker.js")],
+        css={'all': [static("css/bootstrap-datetimepicker.css")]}
+    )
+
+
+def datetime_picker_render(datetime_format, input_html, name):
+    output = (
+        u'<div class="input-group date" id="id_%s_datetimepicker">' % name,
+        input_html,
+        u'<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>',
+        u'</div>',
+        u'<script type="text/javascript">$("#id_%s_datetimepicker")'
+        u'.datetimepicker({format:"%s"});</script>' % (name, datetime_format),
+    )
+    return mark_safe(''.join(output))
+
+
+class DateTimePicker(widgets.DateTimeInput):
+    @property
+    def media(self):
+        return datetime_picker_media()
+
+    def render(self, name, value, attrs=None):
+        input_html = super(DateTimePicker, self).render(name, value, attrs)
+        return datetime_picker_render('L LTS', input_html, name)
+
+
+class DatePicker(widgets.DateInput):
+    @property
+    def media(self):
+        return datetime_picker_media()
+
+    def render(self, name, value, attrs=None):
+        input_html = super(DatePicker, self).render(name, value, attrs)
+        return datetime_picker_render('L', input_html, name)
+
+
+class TimePicker(widgets.TimeInput):
+    @property
+    def media(self):
+        return datetime_picker_media()
+
+    def render(self, name, value, attrs=None):
+        input_html = super(TimePicker, self).render(name, value, attrs)
+        return datetime_picker_render('LTS', input_html, name)
