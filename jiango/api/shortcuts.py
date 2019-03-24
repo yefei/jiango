@@ -25,7 +25,7 @@ def default_exception_func(e):
     if isinstance(e, APIResult):
         return api_result(e.error_code, e.error_message, **e.params), 200
     logger.warning('API unknown error: %s', repr(e))
-    return api_result(UNKNOWN_ERROR, 'unknown error'), 422
+    return api_result(UNKNOWN_ERROR, e.message), 200
 
 
 def render(func, exception_func=None):

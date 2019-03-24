@@ -13,3 +13,5 @@ UNKNOWN_ERROR = -100  # 未知错误类型
 LOGIN_AUTH_FAIL = 1000, u'登录验证失败'
 
 CAPTCHA_ERROR = 1001, u'图像验证码错误'
+
+WECHAT_AUTH_REQUIRED = 1002, u'需要微信登陆授权'
