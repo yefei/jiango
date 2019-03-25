@@ -45,7 +45,7 @@ def auth_callback(request):
             url += 'auth_token=%s' % token
             response = HttpResponseRedirect(url)
             response.delete_cookie(AUTH_REDIRECT_NEXT_COOKIE_KEY)
-            set_auth_cookie(response, url)
+            set_auth_cookie(response, token)
             return response
         except WeChatError as e:
             logger.warn('authorization_code error: %s', e)
