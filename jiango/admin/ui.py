@@ -44,6 +44,17 @@ class AdminPagination(ui.Pagination):
 def links(items):
     def inner(data, attrs):
         attrs['class'] = 'nowrap'
-        return mark_safe('<i class="sep">|</i>'.join([u'<a href="%s">%s</a>' % (
-            url(data) if callable(url) else url, name) for url, name in items]))
+        _items = []
+        for i in items:
+            if len(i) == 3:
+                url, name, attr = i
+            else:
+                url, name = i
+                attr = ''
+            _items.append(u'<a href="%s"%s>%s</a>' % (
+                url(data) if callable(url) else url,
+                (' ' + attr) if attr else '',
+                name,
+            ))
+        return mark_safe('<i class="sep">|</i>'.join(_items))
     return inner

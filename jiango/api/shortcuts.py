@@ -12,7 +12,8 @@ from .helpers import APIResult, api_result
 from .errorcodes import LOGIN_AUTH_FAIL, UNKNOWN_ERROR
 
 
-ACCESS_CONTROL_ALLOW_ORIGIN = get_setting('API_ACCESS_CONTROL_ALLOW_ORIGIN', '*')
+ALLOW_ORIGIN = get_setting('API_ALLOW_ORIGIN', '*')
+ALLOW_HEADERS = get_setting('API_ALLOW_HEADERS', '*')
 
 
 formats = get_serializer_formats()
@@ -38,8 +39,10 @@ def render(func, exception_func=None):
         serializer = get_serializer(output_format)
         response = HttpResponse(content_type=serializer.mimetype)
 
-        if ACCESS_CONTROL_ALLOW_ORIGIN:
-            response['Access-Control-Allow-Origin'] = ACCESS_CONTROL_ALLOW_ORIGIN
+        if ALLOW_ORIGIN:
+            response['Access-Control-Allow-Origin'] = ALLOW_ORIGIN
+        if ALLOW_HEADERS:
+            response['Access-Control-Allow-Headers'] = ALLOW_HEADERS
 
         try:
             request.value = None
