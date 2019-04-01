@@ -162,6 +162,19 @@ def pay_signature(params):
     return hashlib.md5(s.encode('utf-8')).hexdigest().upper()
 
 
+def pay_xml(params):
+    params['sign'] = pay_signature(params)
+    return '<xml>%s</xml>' % ''.join(['<%s>%s</%s>' % (k, escape(v), k) for k, v in params.items()])
+
+
+def pay_xml_parse(xml_data):
+    x = XML2Dict().parse(xml_data)
+    x = x['xml']
+    if x['return_code'] != 'SUCCESS':
+        raise WeChatPayError(x['return_msg'])
+    return x
+
+
 def pay_unifiedorder(body, out_trade_no, total_fee, ip, notify_url, openid):
     url = 'https://api.mch.weixin.qq.com/pay/unifiedorder'
     params = {
@@ -178,13 +191,9 @@ def pay_unifiedorder(body, out_trade_no, total_fee, ip, notify_url, openid):
         'trade_type': 'JSAPI',
         'openid': openid,
     }
-    params['sign'] = pay_signature(params)
-    data = '<xml>%s</xml>' % ''.join(['<%s>%s</%s>' % (k,escape(v),k) for k,v in params.items()])
+    data = pay_xml(params)
     res = requests.post(url, data.encode('utf-8'))
-    x = XML2Dict().parse(res.content)
-    x = x['xml']
-    if x['return_code'] != 'SUCCESS':
-        raise WeChatPayError(x['return_msg'])
+    x = pay_xml_parse(res.content)
     if x['result_code'] != 'SUCCESS':
         raise WeChatPayError('%s: %s' % (x['err_code'], x['err_code_des']))
     return x
@@ -204,11 +213,8 @@ def get_jsapi_pay_config(prepay_id):
     return params
 
 
-def pay_notify_parse(xmlcontent):
-    data = XML2Dict().parse(xmlcontent)
-    data = data['xml']
-    if data['return_code'] != 'SUCCESS':
-        raise WeChatPayError(data['return_msg'])
+def pay_notify_parse(xml_data):
+    data = pay_xml_parse(xml_data)
     # 效验签名
     if data.pop('sign') == pay_signature(data):
         return data
