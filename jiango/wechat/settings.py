@@ -22,10 +22,13 @@ AUTH_COOKIE_DOMAIN = setting.get_setting('AUTH_COOKIE_DOMAIN')
 AUTH_HEADER_KEY = setting.get_setting('AUTH_HEADER_KEY', 'HTTP_X_WECHAT_AUTH_TOKEN')
 
 # 是否开启支付支持
-PAY_SUPPORT = setting.get_setting('PAY_SUPPORT', False)
-if PAY_SUPPORT:
+if setting.get_setting('MCH_ID', False):
     PAY_KEY = setting.get_required_setting('PAY_KEY')
     MCH_ID = setting.get_required_setting('MCH_ID')
+    CERT = setting.get_required_setting('CERT')
+    CERT_KEY = setting.get_required_setting('CERT_KEY')
 else:
     PAY_KEY = None
     MCH_ID = None
+    CERT = None
+    CERT_KEY = None

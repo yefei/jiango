@@ -11,7 +11,7 @@ from django.utils.html import escape
 from django.utils.crypto import get_random_string
 from django.conf import settings
 from jiango.utils.xml2dict import XML2Dict
-from .settings import APP_ID, SECRET, TOKEN, PAY_KEY, MCH_ID, SCOPE
+from .settings import APP_ID, SECRET, TOKEN, PAY_KEY, MCH_ID, SCOPE, CERT, CERT_KEY
 
 
 ACCESS_TOKEN_CACHE_KEY = 'jiango:wechat:access_token'
@@ -219,3 +219,34 @@ def pay_notify_parse(xml_data):
     if data.pop('sign') == pay_signature(data):
         return data
     raise WeChatPayError('check signature error')
+
+
+# 发放普通红包
+# https://pay.weixin.qq.com/wiki/doc/api/tools/cash_coupon.php?chapter=13_1
+def send_red_pack(ip, mch_billno, send_name, re_openid, total_amount, wishing, act_name, remark,
+                  scene_id=None, risk_info=None):
+    url = 'https://api.mch.weixin.qq.com/mmpaymkttransfers/sendredpack'
+    params = {
+        'mch_id': MCH_ID,
+        'wxappid': APP_ID,
+        'nonce_str': get_random_string(),
+        'mch_billno': mch_billno,  # 商户订单号
+        'send_name': send_name,  # 商户名称
+        're_openid': re_openid,  # 用户openid
+        'total_amount': total_amount,  # 付款金额(分)
+        'total_num': 1,  # 红包发放总人数
+        'wishing': wishing,  # 红包祝福语
+        'client_ip': ip,  # 调用接口的机器Ip地址
+        'act_name': act_name,  # 活动名称
+        'remark': remark,  # 备注
+    }
+    if scene_id:
+        params['scene_id'] = scene_id  # 场景id
+    if risk_info:
+        params['risk_info'] = risk_info  # 活动信息
+    data = pay_xml(params)
+    res = requests.post(url, data.encode('utf-8'), cert=(CERT, CERT_KEY))
+    x = pay_xml_parse(res.content)
+    if x['result_code'] != 'SUCCESS':
+        raise WeChatPayError('%s: %s' % (x['err_code'], x['err_code_des']))
+    return x
