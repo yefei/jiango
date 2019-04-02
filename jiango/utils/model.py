@@ -4,20 +4,19 @@
 from django.db import models, router
 from django.db.models.deletion import Collector
 from django.utils.text import capfirst
-from django.utils.encoding import force_unicode
 
 
 def get_deleted_objects(queryset, using=None):
     if using is None:
         using = router.db_for_write(queryset.model)
         print using
-    
+
     collector = NestedObjects(using=using)
     collector.collect(queryset)
-    
+
     def format_callback(obj):
         opts = obj._meta
-        return u'%s: %s' % (capfirst(opts.verbose_name), force_unicode(obj))
+        return u'%s: %s' % (capfirst(opts.verbose_name), obj)
 
     to_delete = collector.nested(format_callback)
     protected = [format_callback(obj) for obj in collector.protected]
