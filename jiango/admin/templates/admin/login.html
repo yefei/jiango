@@ -16,7 +16,7 @@
             <form action="" method="post" id="login-form">
                 {% csrf_token %}
                 {% for field in form.hidden_fields %}{{ field }}{% endfor %}
-                <div class="form-group has-feedback {{ form.password.errors|yesno:'has-error,' }}">
+                <div class="form-group has-feedback {{ form.username.errors|yesno:'has-error,' }}">
                     {% ff form.username class="form-control" placeholder="用户名" %}
                     <span class="glyphicon glyphicon-user form-control-feedback"></span>
                     {% for error in form.username.errors %}
