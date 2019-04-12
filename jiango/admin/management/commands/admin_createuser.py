@@ -4,36 +4,43 @@
 # @version: $Id:$
 import sys
 import getpass
+from optparse import make_option
 from django.core.management.base import BaseCommand
 from django.core import exceptions
 from jiango.admin.models import User, get_password_digest
 
 
 class Command(BaseCommand):
+    option_list = BaseCommand.option_list + (
+        make_option('--username', dest='username', default=None,
+                    help='Specifies the username for the superuser.'),
+        make_option('--password', dest='password', default=None,
+                    help='Specifies the password for the superuser.'),
+    )
     help = 'Used to create a admin superuser'
 
     def handle(self, *args, **options):
-        username = None
-        password = None
+        username = options.get('username', None)
+        password = options.get('password', None)
         username_field = User._meta.get_field('username')
-        
+
         try:
             # Get a username
             while username is None:
                 if not username:
                     raw_value = raw_input('Username: ')
-                
+
                 try:
                     username = username_field.clean(raw_value, None)
                 except exceptions.ValidationError as e:
                     print >>self.stderr, "Error:", '; '.join(e.messages)
                     username = None
                     continue
-                
+
                 if User.objects.filter(username=username).exists():
                     self.stderr.write("Error: That username is already taken.\n")
                     username = None
-            
+
             # Get a password
             while password is None:
                 if not password:
@@ -51,7 +58,7 @@ class Command(BaseCommand):
         except KeyboardInterrupt:
             self.stderr.write("Operation cancelled.\n")
             sys.exit(1)
-        
+
         User.objects.create(username=username, password_digest=get_password_digest(password),
                             is_active=True, is_superuser=True)
         self.stdout.write("Admin superuser created successfully.\n")
