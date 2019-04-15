@@ -44,6 +44,9 @@ def render(func, exception_func=None):
         if ALLOW_HEADERS:
             response['Access-Control-Allow-Headers'] = ALLOW_HEADERS
 
+        if request.method == 'OPTIONS':
+            return response
+
         try:
             request.value = None
             content_type = request.META.get('CONTENT_TYPE', '').split(';')

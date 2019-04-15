@@ -6,6 +6,7 @@ Version: $Id$
 """
 from django.core.validators import ValidationError
 from django.utils.encoding import force_unicode
+from jiango.utils.gb11643 import check_gb11643
 
 
 class StringSizeValidator(object):
@@ -31,3 +32,13 @@ class StringSizeValidator(object):
                 code='max_size',
                 params=params,
             )
+
+
+def validate_gb11643(value):
+    if not check_gb11643(value):
+        raise ValidationError(u'身份证号错误', code='check-error')
+
+
+def validate_mobile_number(value):
+    if not value or len(value) != 11 or value[0] != '1':
+        raise ValidationError(u'手机号错误', code='check-error')

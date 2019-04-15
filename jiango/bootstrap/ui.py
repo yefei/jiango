@@ -48,9 +48,9 @@ def display_for_field(value, field):
     if field.flatchoices:
         return dict(field.flatchoices).get(value, EMPTY_VALUE)
     elif isinstance(field, models.BooleanField) or isinstance(field, models.NullBooleanField):
-        icon = {True: 'glyphicon glyphicon-ok-circle',
-                False: 'glyphicon glyphicon-remove-circle',
-                None: 'glyphicon glyphicon-ban-circle'}[value]
+        icon = {True: 'glyphicon glyphicon-ok-circle text-success text-center center-block',
+                False: 'glyphicon glyphicon-remove-circle text-danger text-center center-block',
+                None: 'glyphicon glyphicon-ban-circle text-muted text-center center-block'}[value]
         return Element(tag='span', attrs={'class': icon})
     elif value is None:
         return EMPTY_VALUE
