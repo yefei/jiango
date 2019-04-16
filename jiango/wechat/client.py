@@ -27,7 +27,7 @@ class WeChatError(RuntimeError):
 
 # 请求微信接口
 def request_get(url, **params):
-    resp = requests.get(url, params)
+    resp = requests.get(url, params=params)
     data = json.loads(resp.content)  # 不能用自带的 resp.json() 因为 微信接口返回的中文不是 unicode 转义符
     if data.get('errcode', 0) != 0:
         raise WeChatError(data.get('errcode'), data.get('errmsg'))
