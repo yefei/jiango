@@ -46,6 +46,8 @@ def links(items):
         attrs['class'] = 'nowrap'
         _items = []
         for i in items:
+            if callable(i):
+                i = i(data)
             if len(i) == 3:
                 url, name, attr = i
             else:

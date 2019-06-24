@@ -8,6 +8,7 @@ import hashlib
 import uuid
 from datetime import datetime, timedelta
 from django.db import models
+from django.utils import timezone
 from jiango.shortcuts import update_instance
 from jiango.utils.http import get_remote_ip
 from .signals import user_login_signal, user_logout_signal
@@ -26,7 +27,7 @@ def get_user_model():
 
 
 class UserBase(models.Model):
-    registered_at = models.DateTimeField(u'注册日期', auto_now_add=True, db_index=True)
+    registered_at = models.DateTimeField(u'注册日期', default=timezone.now, db_index=True)
     updated_at = models.DateTimeField(u'更新日期', auto_now=True, db_index=True)
     login_fail_at = models.DateTimeField(u'最近登陆失败日期', null=True, db_index=True, editable=False)
     login_fails = models.PositiveSmallIntegerField(u'最近登陆失败次数', default=0, editable=False)
