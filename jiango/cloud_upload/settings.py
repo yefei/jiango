@@ -10,10 +10,10 @@ setting = PrefixSetting('CLOUD_UPLOAD_')
 
 
 # 必须配置项
-ACCESS_KEY = setting.get_required_setting('ACCESS_KEY')
-SECRET_KEY = setting.get_required_setting('SECRET_KEY')
-DOMAIN = setting.get_required_setting('DOMAIN')
-BUCKET = setting.get_required_setting('BUCKET')
+ACCESS_KEY = setting.get_setting('ACCESS_KEY')
+SECRET_KEY = setting.get_setting('SECRET_KEY')
+DOMAIN = setting.get_setting('DOMAIN')
+BUCKET = setting.get_setting('BUCKET')
 
 # 访问协议
 PROTOCOL = setting.get_setting('PROTOCOL', 'http')

@@ -85,6 +85,9 @@ class Grid(Table):
             if name in ('pk', 'id'):
                 label = '#'
                 attrs['class'] = 'id'
+            elif callable(name):
+                label = getattr(name, 'verbose_name', name.__name__)
+                attrs['class'] = 'nowrap'
             else:
                 label = label_for_field(name, self.model)
                 try:
